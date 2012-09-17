@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema xmlns="http://www.mulesoft.org/schema/mule/jasperengine"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:mule="http://www.mulesoft.org/schema/mule/core"
+            xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+            xmlns:schemadoc="http://www.mulesoft.org/schema/mule/schemadoc"
+            targetNamespace="http://www.mulesoft.org/schema/mule/jasperengine"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified">
+
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:import namespace="http://www.mulesoft.org/schema/mule/core"
+                schemaLocation="http://www.mulesoft.org/schema/mule/core/3.3/mule.xsd" />
+    <xsd:import namespace="http://www.mulesoft.org/schema/mule/jms"
+                schemaLocation="http://www.mulesoft.org/schema/mule/jms/3.3/mule-jms.xsd"/>
+    <xsd:import namespace = "http://www.mulesoft.org/schema/mule/schemadoc"
+                schemaLocation = "http://www.mulesoft.org/schema/mule/schemadoc/3.3/mule-schemadoc.xsd"/>
+
+    <xsd:annotation>
+        <xsd:documentation>This transport will be used for communication to and from the Jasper Engine.</xsd:documentation>
+        <xsd:appinfo>
+            <schemadoc:short-name>JasperEngine</schemadoc:short-name>
+            <schemadoc:page-title>JasperEngine Transport</schemadoc:page-title>
+            <schemadoc:transport-features
+            receiveEvents="true" dispatchEvents="false" responseEvents="true"
+                                          requestEvents="false"
+                                          transactions="true" streaming="false">
+                <schemadoc:inboundMEPs in-only="true" in-optional-out="true" in-out="true"/>
+                <schemadoc:outboundMEPs out-only="true" out-in="true" out-optional-in="true"/>
+            </schemadoc:transport-features>
+        </xsd:appinfo>
+    </xsd:annotation>
+
+    <xsd:element name="connector" type="jasperengineConnectorType" substitutionGroup="mule:abstract-connector">
+        <xsd:annotation>
+            <xsd:documentation>
+                This transport will be used for communication to and from the Jasper Engine.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="jasperengineConnectorType">
+        <xsd:complexContent>
+            <xsd:extension base="jms:activeMqConnectorType">           
+                 <xsd:attribute name="vendor" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                        The vendor of the jApp.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                 <xsd:attribute name="appName" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                        The name of the jApp.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                 <xsd:attribute name="version" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                        The version of the jApp.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                 <xsd:attribute name="deploymentId" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                        The deployment ID of the jApp.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                 <xsd:attribute name="jAppAuthKey" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                        The authentication key of the jApp.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                 <xsd:attribute name="jasperEngineURL" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                        The JasperEngine URL.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:element name="inbound-endpoint" type="inboundEndpointType" substitutionGroup="mule:abstract-inbound-endpoint"/>
+    <xsd:complexType name="inboundEndpointType">
+        <xsd:complexContent>
+            <xsd:extension base="jms:inboundEndpointType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="outbound-endpoint" type="outboundEndpointType" substitutionGroup="mule:abstract-outbound-endpoint"/>
+    <xsd:complexType name="outboundEndpointType">
+        <xsd:complexContent>
+            <xsd:extension base="jms:outboundEndpointType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="endpoint" type="globalEndpointType" substitutionGroup="mule:abstract-global-endpoint"/>
+    <xsd:complexType name="globalEndpointType">
+        <xsd:complexContent>
+            <xsd:extension base="jms:globalEndpointType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+</xsd:schema>
