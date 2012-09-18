@@ -15,7 +15,7 @@ public class JasperBroker extends BrokerFilter {
 	 * Map will store known connections to prevent multiple jApps from using same jApp authKey
 	 * combinations
 	 */
-//	private static Map<String, String> jAppList = new ConcurrentHashMap<String, String>();
+	private static Map<String, ConnectionInfo> jAppList = new ConcurrentHashMap<String, ConnectionInfo>();
 	
      public JasperBroker(Broker next) {
         super(next);                
@@ -34,23 +34,29 @@ public class JasperBroker extends BrokerFilter {
 	    	throw (SecurityException)new SecurityException("Invalid jApp name and id combination : " + info.getUserName() + ":" + info.getPassword());
     	}
     	
-//    	//TODO store connection, client IDs and/or IPs of registered jApps so that we can better log why a registration is failing.
-//    	
-//    	if(!jAppList.containsKey(info.getPassword())){
-//    		jAppList.put(info.getPassword(), info.getUserName());
-//    		System.out.println("j-App registered in system : " + info.getUserName() + ":" + info.getPassword());
-//    	}else{
-//    		throw (SecurityException)new SecurityException("Only one instance of a jApp can be registered with Jasper Core, jApp with with name and id combination already registered : " + info.getUserName() + ":" + info.getPassword());
-//    	}
+    	/*
+    	 * We check that only one jApp per authKey is ever registered at one time, if a second jApp attempts
+    	 * to register we throw a security exception
+    	 */
+    	if(!(jAppList.containsKey(info.getPassword()))){
+    		jAppList.put(info.getPassword(), info);
+    		System.out.println("jApp registered in system : " + info.getUserName() + ":" + info.getPassword());
+    	}else{
+    		ConnectionInfo oldAppInfo = jAppList.get(info.getPassword());
+    		System.out.println("jApp not registred in system, only one instance of a jApp can be registered with Jasper Core at a time, jApp with with the following info already registered \n" +
+                    "vendor:appName:version:deploymentId:jAppAuthKey = " + oldAppInfo.getUserName() + ":" + oldAppInfo.getPassword() + "\n" +
+                    "clientId:clientIp = " + oldAppInfo.getClientId() + ":" + oldAppInfo.getClientIp());
+    		throw (SecurityException)new SecurityException("jApp not registred in system, only one instance of a jApp can be registered with Jasper Core at a time, jApp with with the following info already registered \n" +
+    				                                        "vendor:appName:version:deploymentId:jAppAuthKey = " + oldAppInfo.getUserName() + ":" + oldAppInfo.getPassword() + "\n" +
+    				                                        "clientId:clientIp = " + oldAppInfo.getClientId() + ":" + oldAppInfo.getClientIp());
+    	}
 		super.addConnection(context, info);
     }
     
     public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error)throws Exception{
-		System.out.println("\njApp deregistered in system : " + info.getUserName() + ":" + info.getPassword());
-//    	jAppList.remove(info.getPassword());
+		System.out.println("jApp deregistered in system : " + info.getUserName() + ":" + info.getPassword());
+    	jAppList.remove(info.getPassword());
     	super.removeConnection(context, info, null);
     }
-    
-    
-
+   
 }
