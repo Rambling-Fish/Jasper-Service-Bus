@@ -7,8 +7,8 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
 http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
-    <ajax:connector name="AjaxConnector" serverUrl="http://0.0.0.0:8083/jasper/cat010/1.0/ajax" resourceBase="${app.home}/docroot" jsonCommented="true" doc:name="AjaxGlobalConnector"/>
-    <jasperengine:connector name="JEC" vendor="jasper" appName="cat010-interface-ajax" version="1.0" deploymentId="jasperLab" jAppAuthKey="32fa6dbe32ebb29754714096b775026b758a8177" jasperEngineURL="tcp://localhost:61616" doc:name="Active MQ"></jasperengine:connector>
+    <jasperengine:connector name="JEC" vendor="jasper" appName="cat010-interface-ajax" version="1.0" deploymentId="jasperLab" jAppAuthKey="32fa6dbe32ebb29754714096b775026b758a8177" jasperEngineURL="tcp://${cat010.interface.ajax.jasperEngineURL.host}:${cat010.interface.ajax.jasperEngineURL.port}" doc:name="Jasper Connector"/>
+    <ajax:connector name="AjaxConnector" serverUrl="http://${cat010.interface.ajax.serverUrl.host}:${cat010.interface.ajax.serverUrl.port}/${cat010.interface.ajax.serverUrl.path}" resourceBase="${app.home}/docroot" jsonCommented="true" doc:name="AjaxGlobalConnector"/>
     <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.cat010.codec.Cat010Message" name="JEC_msg_to_cat010" doc:name="JEC msg to cat010"/>
     <flow name="jApp-cat010-interface-ajax-flow-periodicStatusMessage" doc:name="jApp-cat010-interface-ajax-flow-periodicStatusMessage">
         <jasperengine:inbound-endpoint topic="jms.jasper.1.0.cat010.topic.psm" transformer-refs="JEC_msg_to_cat010" connector-ref="JEC" doc:name="JECEndpoint"/>

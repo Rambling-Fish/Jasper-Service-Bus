@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <mule-configuration xmlns="http://www.mulesoft.com/tooling/messageflow" name="cat010toajax">
-    <global-unknown unknownName="JEC" entity-id="0b2237ba-7fa4-4b17-bd42-11bafbb2fa5e">
-        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; name=&quot;JEC&quot; vendor=&quot;jasper&quot; appName=&quot;cat010-interface-rest&quot; version=&quot;1.0&quot; deploymentId=&quot;jasperLab&quot; jAppAuthKey=&quot;3a59f0c1e43f1cc6bfe3ef40d9031bedd1f429b6&quot; jasperEngineURL=&quot;tcp://localhost:61616&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;Active MQ&quot;/&gt;</content>
+    <global-unknown unknownName="JEC" entity-id="922cd8cd-519a-4b3a-aba7-79aaae9d1fe1">
+        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; name=&quot;JEC&quot; vendor=&quot;jasper&quot; appName=&quot;cat010-interface-rest&quot; version=&quot;1.0&quot; deploymentId=&quot;jasperLab&quot; jAppAuthKey=&quot;3a59f0c1e43f1cc6bfe3ef40d9031bedd1f429b6&quot; jasperEngineURL=&quot;tcp://${cat010.interface.rest.jasperEngineURL.host}:${cat010.interface.rest.jasperEngineURL.port}&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;Jasper Connector&quot;/&gt;</content>
     </global-unknown>
-    <global-element type="http://www.mulesoft.org/schema/mule/jms/jmsmessage-to-object-transformer" name="JEC msg to cat010" entity-id="20a2700f-70aa-4021-ac37-dcb99991d23f">
+    <global-element type="http://www.mulesoft.org/schema/mule/jms/jmsmessage-to-object-transformer" name="JEC msg to cat010" entity-id="3f2c2fd0-a7df-4054-82d3-d0dd1bb5f281">
         <properties>
             <property value="org.jasper.jLib.cat010.codec.Cat010Message" name="returnClass"/>
             <property name="ignoreBadInput"/>
@@ -12,14 +12,14 @@
             <property value="JEC_msg_to_cat010" name="name"/>
         </properties>
     </global-element>
-    <global-element type="http://www.mulesoft.org/schema/mule/http/endpoint" name="HTTP" entity-id="3641e8fc-2963-4c2c-b46d-0f971139c4b4">
+    <global-element type="http://www.mulesoft.org/schema/mule/http/endpoint" name="HTTP" entity-id="f7148935-6baa-4ce5-8175-17556b9de41a">
         <properties>
             <property name="exchange-pattern"/>
             <property value="http://www.mulesoft.org/schema/mule/http/endpoint" name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute"/>
             <property name="httpLabel"/>
-            <property value="0.0.0.0" name="host"/>
-            <property value="8082" name="port"/>
-            <property value="jasper/cat010/1.0" name="path"/>
+            <property value="${cat010.interface.rest.http.endpoint.host}" name="host"/>
+            <property value="${cat010.interface.rest.http.endpoint.port}" name="port"/>
+            <property value="${cat010.interface.rest.http.endpoint.path}" name="path"/>
             <property name="method"/>
             <property value="globalHttpEndpoint" name="name"/>
             <property name="businessEventsLabel"/>
@@ -47,11 +47,11 @@
             <property name="bussinessEventsLabel"/>
             <property name="tracking:enable-default-events"/>
         </properties>
-        <lane hadOnlyOneElement="false" entity-id="9422e642-7dcf-4a25-802f-d67f7367b9d4">
-            <unknown entity-id="83cb00c4-f26d-45ca-853d-898959c4d5b5">
+        <lane hadOnlyOneElement="false" entity-id="fbb5bc6c-6f73-40ed-a185-bf0894b9ba99">
+            <unknown entity-id="1850c409-3094-41ce-9092-8b9ada53f51c">
                 <content>&lt;jasperengine:inbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.cat010.topic.tr&quot; transformer-refs=&quot;JEC_msg_to_cat010&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECEndpoint&quot;/&gt;</content>
             </unknown>
-            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="RestCache" entity-id="5b150b62-d4f9-40be-9384-66b4e8821dd2">
+            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="RestCache" entity-id="1328f8c4-60bc-4127-8fb0-eecc123dfba4">
                 <properties>
                     <property name="class"/>
                     <property-collection name="@http://www.mulesoft.org/schema/mule/core/singleton-object;0">
@@ -68,8 +68,8 @@
             <property name="bussinessEventsLabel"/>
             <property name="tracking:enable-default-events"/>
         </properties>
-        <lane hadOnlyOneElement="false" entity-id="3cbcd385-3c27-45c5-98ec-a7e19a7ef489">
-            <endpoint message-exchange-pattern="OneWay" direction="Inbound" type="http://www.mulesoft.org/schema/mule/http/endpoint" name="targetReport" entity-id="eba094cb-0fba-4a9c-9933-3170c2e65cda">
+        <lane hadOnlyOneElement="false" entity-id="c9e5e437-3dc7-445b-8fd7-56c5d11a6bab">
+            <endpoint message-exchange-pattern="OneWay" direction="Inbound" type="http://www.mulesoft.org/schema/mule/http/endpoint" name="targetReport" entity-id="9932ee91-9f78-4629-9879-9f88ee6f3953">
                 <properties>
                     <property value="one-way" name="exchange-pattern"/>
                     <property value="request-response" name="exchange-pattern"/>
@@ -97,10 +97,10 @@
                     <property name="keep-alive"/>
                 </properties>
             </endpoint>
-            <response entity-id="e1b02686-9f48-406b-8269-14935010c387">
-                <compartment entity-id="c157a6e6-c227-403d-abec-a7d7f6118109">
-                    <lane hadOnlyOneElement="false" entity-id="6102f7b7-01ca-42a5-a9c4-6d061f1feb98">
-                        <pattern type="http://www.mulesoft.org/schema/mule/json/object-to-json-transformer" name="Object to JSON" entity-id="8ce417bc-9ee7-40c8-9897-448a0263f56a">
+            <response entity-id="045a8d9c-90a3-41b8-ae4a-011335c67934">
+                <compartment entity-id="70087bba-5166-4b16-8727-e987bd793308">
+                    <lane hadOnlyOneElement="false" entity-id="20a29609-fd06-4470-9871-9c4264fb274d">
+                        <pattern type="http://www.mulesoft.org/schema/mule/json/object-to-json-transformer" name="Object to JSON" entity-id="9a08aeb5-9674-4395-b8b3-e357a5c051b7">
                             <properties>
 <property name="returnClass"/>
 <property name="ignoreBadInput"/>
@@ -113,7 +113,7 @@
                     </lane>
                 </compartment>
             </response>
-            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="RestCache" entity-id="4657a404-cc3e-4ea9-933d-33b4f1d6b4d3">
+            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="RestCache" entity-id="ef4a185d-7d1d-489d-ab0c-d4366ca7ca4b">
                 <properties>
                     <property name="class"/>
                     <property-collection name="@http://www.mulesoft.org/schema/mule/core/singleton-object;0">

@@ -7,11 +7,11 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
 http://www.mulesoft.org/schema/mule/webview http://www.mulesoft.org/schema/mule/webview/current/mule-webview.xsd ">
-    <webview:endpoint name="globalWebViewEndpoint" host="66.46.93.196" user="searidge" password="came1ot9"></webview:endpoint>
-    <webview:polling-connector name="webViewConnector" webViewPollingFrequencyTrax="1000" webViewPollingFrequencyVideo="0" webViewPollingFrequencyNotam="60000" webViewPollingFrequencyAdaps="30000" webViewPollingFrequencyApm="0" doc:name="WebView Polling Connector"></webview:polling-connector>
-    <jasperengine:connector name="JEC" vendor="jasper" appName="webview-client" version="1.0" deploymentId="jasperLab" jAppAuthKey="4eb7f41c94c0ee0fbbaef419855090974c306a39" jasperEngineURL="tcp://localhost:61616" doc:name="JasperEngineConnector"/>
+    <jasperengine:connector name="JEC" vendor="jasper" appName="webview-client" version="1.0" deploymentId="jasperLab" jAppAuthKey="4eb7f41c94c0ee0fbbaef419855090974c306a39" jasperEngineURL="tcp://${webview.client.jasperEngineURL.host}:${webview.client.jasperEngineURL.port}" doc:name="Jasper Connector"/>
+    <webview:endpoint name="globalWebViewEndpoint" host="${webview.client.inbound.webviewEndpoint.host}" user="${webview.client.inbound.webviewEndpoint.user}" password="${webview.client.inbound.webviewEndpoint.password}"/>
+    <webview:polling-connector name="webViewConnector" webViewPollingFrequencyTrax="${webview.client.webviewConnector.pollingFrequency.trax}" webViewPollingFrequencyVideo="0" webViewPollingFrequencyNotam="${webview.client.webviewConnector.pollingFrequency.notam}" webViewPollingFrequencyAdaps="${webview.client.webviewConnector.pollingFrequency.adaps}" webViewPollingFrequencyApm="0" doc:name="WebView Polling Connector"/>
     <flow name="jApp-webview-client-flow" doc:name="jApp-webview-client-flow">
-        <webview:inbound-endpoint ref="globalWebViewEndpoint" connector-ref="webViewConnector" doc:name="webViewEndpoint"></webview:inbound-endpoint>
+        <webview:inbound-endpoint ref="globalWebViewEndpoint" connector-ref="webViewConnector" doc:name="webViewEndpoint"/>
                 <object-to-string-transformer doc:name="Object to String"/>
         <choice doc:name="Choice">
             <when expression="INBOUND:MessageType=trax" evaluator="header">

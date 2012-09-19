@@ -8,8 +8,8 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd 
 http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
-    <jasperengine:connector name="JEC" vendor="jasper" appName="cat010-webview-interface-ajax" version="1.0" deploymentId="jasperLab" jAppAuthKey="a70e2d280b871f343bdab9cedf6b12b9f4d1eb97" jasperEngineURL="tcp://localhost:61616" doc:name="Active MQ"></jasperengine:connector>
-    <ajax:connector name="AjaxConnector" serverUrl="http://0.0.0.0:8085/jasper/webview/1.1/ajax" resourceBase="${app.home}/docroot" jsonCommented="true" doc:name="AjaxGlobalConnector"/>
+    <jasperengine:connector name="JEC" vendor="jasper" appName="cat010-webview-interface-ajax" version="1.0" deploymentId="jasperLab" jAppAuthKey="a70e2d280b871f343bdab9cedf6b12b9f4d1eb97" jasperEngineURL="tcp://${cat010-webview.interface.ajax.jasperEngineURL.host}:${cat010-webview.interface.ajax.jasperEngineURL.port}" doc:name="Jasper Connector"/>
+    <ajax:connector name="AjaxConnector" serverUrl="http://${cat010-webview.interface.ajax.serverUrl.host}:${cat010-webview.interface.ajax.serverUrl.port}/${cat010-webview.interface.ajax.serverUrl.path}" resourceBase="${app.home}/docroot" jsonCommented="true" doc:name="AjaxGlobalConnector"/>
     <flow name="jApp-cat010-webview-interface-ajax-publish-flow" doc:name="jApp-cat010-webview-interface-ajax-publish-flow">
         <component doc:name="TraxAggregator">
             <singleton-object class="org.jasper.jApp.cat010Webview.util.JasperTraxAggregator"/>

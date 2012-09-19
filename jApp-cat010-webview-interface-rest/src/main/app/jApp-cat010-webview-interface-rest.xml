@@ -7,8 +7,8 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
 http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
-    <jasperengine:connector name="JEC" vendor="jasper" appName="cat010-webview-interface-rest" version="1.0" deploymentId="jasperLab" jAppAuthKey="a7a9197ed64261f2d657569b1da5dc6e9c802c41" jasperEngineURL="tcp://localhost:61616" doc:name="Active MQ"></jasperengine:connector>
-    <http:endpoint host="0.0.0.0" port="8080" path="jasper/" name="globalHttpEndpoint" doc:name="HTTP"/>
+    <jasperengine:connector name="JEC" vendor="jasper" appName="cat010-webview-interface-rest" version="1.0" deploymentId="jasperLab" jAppAuthKey="a7a9197ed64261f2d657569b1da5dc6e9c802c41" jasperEngineURL="tcp://${cat010-webview.interface.rest.jasperEngineURL.host}:${cat010-webview.interface.rest.jasperEngineURL.port}" doc:name="Jasper Connector"/>
+    <http:endpoint host="${cat010-webview.interface.rest.http.endpoint.host}" port="${cat010-webview.interface.rest.http.endpoint.port}" path="${cat010-webview.interface.rest.http.endpoint.path}" name="globalHttpEndpoint" doc:name="HTTP"/>
     <flow name="jApp-cat010-webview-interface-rest-cat010-flow" doc:name="jApp-cat010-webview-interface-rest-cat010-flow">
         <jasperengine:inbound-endpoint topic="jms.jasper.1.0.cat010.topic.tr" connector-ref="JEC" doc:name="JECEndpoint"/>
         <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.cat010.codec.Cat010TargetReport" doc:name="JEC msg to Cat010TargetReport"/>
