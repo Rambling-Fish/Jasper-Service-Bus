@@ -1,4 +1,4 @@
-package org.jasper.jCore.engine;
+package org.jasper.jCore.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
