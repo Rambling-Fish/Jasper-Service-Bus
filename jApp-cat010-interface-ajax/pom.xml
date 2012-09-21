@@ -4,6 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+    	  <groupId>org.jasper</groupId>
+		  <artifactId>jasper-platform</artifactId>
+		  <version>1.0</version>
+    </parent>
     <groupId>org.jasper.jApp</groupId>
     <artifactId>cat010-interface-ajax</artifactId>
     <packaging>mule</packaging>
@@ -40,6 +45,22 @@
             </plugins>
         </pluginManagement>
         <plugins>
+        
+   	        <plugin>
+	            <artifactId>maven-dependency-plugin</artifactId>
+	                <executions>
+	                    <execution>
+	                        <phase>package</phase>
+	                        <goals>
+	                            <goal>copy-dependencies</goal>
+	                        </goals>
+	                        <configuration>
+	                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+	                        </configuration>
+	                    </execution>
+	                </executions>
+	        </plugin>
+        
             <plugin>
                 <groupId>org.mule.tools</groupId>
                 <artifactId>maven-mule-plugin</artifactId>
@@ -86,50 +107,50 @@
                 make sure that MULE_HOME is set when building (required below when copying the
                 artifact to Mule's apps directory
             -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.0-beta-1</version>
-                <executions>
-                    <execution>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <requireProperty>
-                                    <property>env.MULE_HOME</property>
-                                    <message>You must set MULE_HOME before installing the example.</message>
-                                </requireProperty>
-                            </rules>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-enforcer-plugin</artifactId>-->
+<!--                <version>1.0-beta-1</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <phase>install</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>enforce</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <rules>-->
+<!--                                <requireProperty>-->
+<!--                                    <property>env.MULE_HOME</property>-->
+<!--                                    <message>You must set MULE_HOME before installing the example.</message>-->
+<!--                                </requireProperty>-->
+<!--                            </rules>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
             <!--
                 automatically deploy the artifact after it has been built
             -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <id>package-example</id>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <tasks>
-                                <copy file="${project.build.directory}/${project.build.finalName}.zip"
-                                    todir="${env.MULE_HOME}/apps" overwrite="true"/>
-                            </tasks>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-antrun-plugin</artifactId>-->
+<!--                <version>1.4</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>package-example</id>-->
+<!--                        <phase>install</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>run</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <tasks>-->
+<!--                                <copy file="${project.build.directory}/${project.build.finalName}.zip"-->
+<!--                                    todir="${env.MULE_HOME}/apps" overwrite="true"/>-->
+<!--                            </tasks>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 
@@ -209,6 +230,12 @@
 
     <!-- Mule Dependencies -->
     <dependencies>
+        <dependency>
+            <groupId>org.jasper.jLib</groupId>
+            <artifactId>cat010-codec</artifactId>
+            <version>1.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.mule</groupId>
             <artifactId>mule-core</artifactId>
