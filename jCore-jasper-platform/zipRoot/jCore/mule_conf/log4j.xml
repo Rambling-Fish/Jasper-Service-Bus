@@ -6,11 +6,11 @@
         <param name="ConversionPattern" value="%-5p %d [%t] %c %F - %m%n" />
       </layout>
    </appender>
-   <appender name="JAppsLogger" class="org.apache.log4j.RollingFileAppender">
-      <param name="File" value="../../../logs/JApps.log"/>
-      <param name="MaxFileSize" value="1MB"/>
-      <!--  Keep 5 backup files then reuse -->
-      <param name="MaxBackupIndex" value="5"/>
+   <appender name="jAppsLogger" class="org.apache.log4j.RollingFileAppender">
+      <param name="File" value="../../../logs/jApps.log"/>
+      <param name="MaxFileSize" value="5MB"/>
+      <!--  Keep 10 backup files then reuse -->
+      <param name="MaxBackupIndex" value="10"/>
       <param name="ImmediateFlush" value="true"/>
       <layout class="org.apache.log4j.PatternLayout">
          <param name="ConversionPattern" value="%d %p %c (%F:%L) - %m%n" />
@@ -20,12 +20,12 @@
    <logger name="org.jasper">
       <level value="INFO"/>
       <!-- <appender-ref ref="stdout"/> -->
-      <appender-ref ref="JAppsLogger"/>
+      <appender-ref ref="jAppsLogger"/>
    </logger>
    <!-- default mule logging -->
    <root>
       <level value="INFO" />
       <appender-ref ref="stdout" />
-      <appender-ref ref="JAppsLogger" />
+      <appender-ref ref="jAppsLogger" />
    </root>
 </log4j:configuration>
