@@ -57,7 +57,7 @@ public class JECore {
     		Properties sysProps = System.getProperties();
                //load a properties file
     		prop.load(new FileInputStream(System.getProperty("jCore-engine-property-file")));
-    		DOMConfigurator.configure("log4j.xml");
+    		DOMConfigurator.configure(System.getProperty("jCore-engine-log4j-xml"));
     		logger.info("jasperDeploymentID = " + prop.getProperty("jasperDeploymentID"));
     		//System.out.println("jasperDeploymentID = " + prop.getProperty("jasperDeploymentID")); 
     	} catch (IOException ex) {
