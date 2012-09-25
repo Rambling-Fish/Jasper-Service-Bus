@@ -46,7 +46,7 @@
                     </execution>
                     <execution>
                         <id>copy-resources-jCore-zip</id>
-                        <phase>package</phase>
+                        <phase>install</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
@@ -63,60 +63,59 @@
                         </configuration>
                     </execution>
                 </executions>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <inherited>false</inherited>
-                    <executions>
-                        <execution>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>copy-dependencies</goal>
-                            </goals>
-                            <configuration>
-                                <outputDirectory>${project.basedir}/target/jCore/libs</outputDirectory>
-                                <excludeTransitive>true</excludeTransitive>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.2-beta-2</version>
-                    <inherited>false</inherited>
-                    <configuration>
-                        <descriptor>${project.basedir}/assembly.xml</descriptor>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>assembly</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>assembly</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </build>
+            </plugin>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <inherited>false</inherited>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/target/jCore/libs</outputDirectory>
+                            <excludeTransitive>true</excludeTransitive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2-beta-2</version>
+                <inherited>false</inherited>
+                <configuration>
+                    <descriptor>${project.basedir}/assembly.xml</descriptor>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>assembly</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
-        <dependencies>
-            <dependency>
-                <groupId>org.jasper.jTransport</groupId>
-                <artifactId>jTransport-webview</artifactId>
-                <version>1.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.activemq</groupId>
-                <artifactId>activemq-all</artifactId>
-                <version>5.7-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jasper.jTransport</groupId>
-                <artifactId>jTransport-jasperEngine</artifactId>
-                <version>1.0</version>
-            </dependency>
-        </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>org.jasper.jTransport</groupId>
+            <artifactId>jTransport-webview</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-all</artifactId>
+            <version>5.7-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jasper.jTransport</groupId>
+            <artifactId>jTransport-jasperEngine</artifactId>
+            <version>1.0</version>
+        </dependency>
+    </dependencies>
 
-
-    </project>
+</project>
