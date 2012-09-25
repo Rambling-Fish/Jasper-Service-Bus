@@ -29,7 +29,7 @@
                 <version>2.6</version>
                 <executions>
                     <execution>
-                        <id>copy-resources</id>
+                        <id>copy-resources-build-artifacts</id>
                         <phase>package</phase>
                         <goals>
                             <goal>copy-resources</goal>

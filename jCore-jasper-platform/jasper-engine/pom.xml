@@ -21,7 +21,7 @@
 				<inherited>false</inherited>
 				<executions>
 					<execution>
-						<phase>package</phase>
+						<phase>compile</phase>
 						<goals>
 							<goal>copy-dependencies</goal>
 						</goals>
