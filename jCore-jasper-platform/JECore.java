@@ -6,8 +6,6 @@ import java.util.Properties;
 
 import org.apache.activemq.broker.Connector;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.log4j.Logger;
-import org.apache.log4j.xml.DOMConfigurator;
 import org.jasper.jCore.auth.JasperBrokerService;
 
 public class JECore {
@@ -18,7 +16,6 @@ public class JECore {
 	 * app id's, this salt should not be shared outside of Coral CEA
 	 */
 	private static final String SALT = "aAN:TKcacqi]@yO0xm?d";
-	static Logger logger = Logger.getLogger("org.jasper");
 
 	//TODO add deployment ID info and check deployment ID against registering j-Apps
 	
@@ -33,7 +30,7 @@ public class JECore {
 		}else{
 			String[] appDetails = appID.split(":");
 			if(appDetails.length != 4){
-				logger.error("appID incorrectly formatted");
+				System.out.println("appID incorrectly formatted");
 				return false;
 			}
 			System.out.println("\napp vendor        = " + appDetails[0]);
@@ -57,9 +54,7 @@ public class JECore {
     		Properties sysProps = System.getProperties();
                //load a properties file
     		prop.load(new FileInputStream(System.getProperty("jCore-engine-property-file")));
-    		DOMConfigurator.configure("log4j.xml");
-    		logger.info("jasperDeploymentID = " + prop.getProperty("jasperDeploymentID"));
-    		//System.out.println("jasperDeploymentID = " + prop.getProperty("jasperDeploymentID")); 
+    		System.out.println("jasperDeploymentID = " + prop.getProperty("jasperDeploymentID")); 
     	} catch (IOException ex) {
     		ex.printStackTrace();
     	}
@@ -73,6 +68,8 @@ public class JECore {
 		Connector connector = brokerService.addConnector("tcp://localhost:61616");
 		
 		brokerService.start();	
+		
+		System.out.println();
 
 	}
 

@@ -7,13 +7,9 @@
       </layout>
    </appender>
    <appender name="jAppsLogger" class="org.apache.log4j.RollingFileAppender">
-      <param name="File" value="../../../logs/jApps.log"/>
+      <param name="File" value="../logs/jApps.log"/>
       <param name="MaxFileSize" value="5MB"/>
-<<<<<<< HEAD
-      <!--  Keep 5 backup files then reuse -->
-=======
       <!--  Keep 10 backup files then reuse -->
->>>>>>> 25b0f6c671d78e9f7b420fdecd3f2b28336f0ead
       <param name="MaxBackupIndex" value="10"/>
       <param name="ImmediateFlush" value="true"/>
       <layout class="org.apache.log4j.PatternLayout">
