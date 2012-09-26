@@ -7,7 +7,7 @@
       </layout>
    </appender>
    <appender name="jAppsLogger" class="org.apache.log4j.RollingFileAppender">
-      <param name="File" value="../logs/jApps.log"/>
+      <param name="File" value="../logs/jasper-engine.log"/>
       <param name="MaxFileSize" value="5MB"/>
       <!--  Keep 10 backup files then reuse -->
       <param name="MaxBackupIndex" value="10"/>
