@@ -1,0 +1,13 @@
+K 10
+svn:ignore
+V 85
+target
+activemq-data
+.project
+.classpath
+.settings
+.wtpmodules
+*.iml
+eclipse-classes
+
+END

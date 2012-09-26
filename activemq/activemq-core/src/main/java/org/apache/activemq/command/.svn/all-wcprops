@@ -1,0 +1,425 @@
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/repos/asf/!svn/ver/1353042/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command
+END
+SessionId.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/SessionId.java
+END
+BrokerInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/BrokerInfo.java
+END
+ConnectionControl.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1141641/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ConnectionControl.java
+END
+BrokerId.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/BrokerId.java
+END
+TransactionInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/TransactionInfo.java
+END
+ProducerAck.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ProducerAck.java
+END
+MessageAck.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/1239188/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/MessageAck.java
+END
+RemoveInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/RemoveInfo.java
+END
+DiscoveryEvent.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/DiscoveryEvent.java
+END
+BaseCommand.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/BaseCommand.java
+END
+ActiveMQMapMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1353042/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQMapMessage.java
+END
+ControlCommand.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ControlCommand.java
+END
+MessagePull.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/MessagePull.java
+END
+KeepAliveInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/KeepAliveInfo.java
+END
+Message.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/repos/asf/!svn/ver/1353042/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/Message.java
+END
+ActiveMQBytesMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1353042/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQBytesMessage.java
+END
+DataArrayResponse.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/DataArrayResponse.java
+END
+DataResponse.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/DataResponse.java
+END
+JournalTrace.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/JournalTrace.java
+END
+XATransactionId.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1346813/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/XATransactionId.java
+END
+Response.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/Response.java
+END
+ProducerInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ProducerInfo.java
+END
+MessageDispatch.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/MessageDispatch.java
+END
+ActiveMQTempQueue.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1087330/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQTempQueue.java
+END
+ConsumerId.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ConsumerId.java
+END
+BaseEndpoint.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/BaseEndpoint.java
+END
+ConnectionInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1189700/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ConnectionInfo.java
+END
+NetworkBridgeFilter.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1214700/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/NetworkBridgeFilter.java
+END
+ExceptionResponse.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ExceptionResponse.java
+END
+Command.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/Command.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/package.html
+END
+RemoveSubscriptionInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/RemoveSubscriptionInfo.java
+END
+ActiveMQQueue.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQQueue.java
+END
+LastPartialCommand.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/LastPartialCommand.java
+END
+ActiveMQTextMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1353042/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQTextMessage.java
+END
+ActiveMQStreamMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1353042/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQStreamMessage.java
+END
+ConsumerControl.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ConsumerControl.java
+END
+DestinationInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1213208/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/DestinationInfo.java
+END
+SessionInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/SessionInfo.java
+END
+MessageId.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/repos/asf/!svn/ver/1347621/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/MessageId.java
+END
+ActiveMQTempDestination.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQTempDestination.java
+END
+TransactionId.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/TransactionId.java
+END
+CommandTypes.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1181219/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/CommandTypes.java
+END
+ActiveMQDestination.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1240287/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQDestination.java
+END
+UnresolvedDestinationTransformer.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1170474/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/UnresolvedDestinationTransformer.java
+END
+ActiveMQMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1353042/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQMessage.java
+END
+FlushCommand.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/FlushCommand.java
+END
+JournalTopicAck.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/JournalTopicAck.java
+END
+DataStructure.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/DataStructure.java
+END
+JournalQueueAck.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/JournalQueueAck.java
+END
+ActiveMQTempTopic.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1087330/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQTempTopic.java
+END
+SubscriptionInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/SubscriptionInfo.java
+END
+ProducerId.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ProducerId.java
+END
+ActiveMQObjectMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1353042/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQObjectMessage.java
+END
+ConsumerInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ConsumerInfo.java
+END
+ActiveMQTopic.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQTopic.java
+END
+ConnectionError.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ConnectionError.java
+END
+MessageDispatchNotification.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/MessageDispatchNotification.java
+END
+IntegerResponse.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/IntegerResponse.java
+END
+ConnectionId.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ConnectionId.java
+END
+LocalTransactionId.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/LocalTransactionId.java
+END
+ActiveMQBlobMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ActiveMQBlobMessage.java
+END
+JournalTransaction.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/564814/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/JournalTransaction.java
+END
+Endpoint.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/Endpoint.java
+END
+DefaultUnresolvedDestinationTransformer.java
+K 25
+svn:wc:ra_dav:version-url
+V 143
+/repos/asf/!svn/ver/1170474/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/DefaultUnresolvedDestinationTransformer.java
+END
+MarshallAware.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/564271/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/MarshallAware.java
+END
+ShutdownInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ShutdownInfo.java
+END
+ReplayCommand.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/ReplayCommand.java
+END
+PartialCommand.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/PartialCommand.java
+END
+WireFormatInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1133915/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/command/WireFormatInfo.java
+END

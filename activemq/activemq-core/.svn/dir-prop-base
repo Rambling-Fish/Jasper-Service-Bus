@@ -1,0 +1,25 @@
+K 10
+svn:ignore
+V 212
+target
+foo
+activemq-data
+.project
+.classpath
+.settings
+.wtpmodules
+bin
+junit*.properties
+*.iml
+ActiveMQConnections.dot
+load.db
+sdbStoreTest.db
+eclipse-classes
+derbydb
+testJdbcConfig
+amqstore
+broker1
+kahadir
+data
+
+END

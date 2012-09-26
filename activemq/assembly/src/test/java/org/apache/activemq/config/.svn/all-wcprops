@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/repos/asf/!svn/ver/1069405/activemq/trunk/assembly/src/test/java/org/apache/activemq/config
+END
+ValidateXMLConfigTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/910238/activemq/trunk/assembly/src/test/java/org/apache/activemq/config/ValidateXMLConfigTest.java
+END
+BrokerXmlConfigStartTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1069405/activemq/trunk/assembly/src/test/java/org/apache/activemq/config/BrokerXmlConfigStartTest.java
+END

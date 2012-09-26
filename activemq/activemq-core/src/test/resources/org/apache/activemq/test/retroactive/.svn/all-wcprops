@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/1145217/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/test/retroactive
+END
+activemq-timed-policy.xml
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/test/retroactive/activemq-timed-policy.xml
+END
+activemq-lastimage-policy.xml
+K 25
+svn:wc:ra_dav:version-url
+V 141
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/test/retroactive/activemq-lastimage-policy.xml
+END
+activemq-fixed-destination-buffer.xml
+K 25
+svn:wc:ra_dav:version-url
+V 149
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/test/retroactive/activemq-fixed-destination-buffer.xml
+END
+activemq-fixed-buffer.xml
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/test/retroactive/activemq-fixed-buffer.xml
+END
+activemq-message-query.xml
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/repos/asf/!svn/ver/1145217/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/test/retroactive/activemq-message-query.xml
+END

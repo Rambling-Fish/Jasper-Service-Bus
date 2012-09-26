@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/repos/asf/!svn/ver/1071259/activemq/trunk/assembly/src/test/java/org/apache/activemq/benchmark
+END
+ProducerConsumer.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1071259/activemq/trunk/assembly/src/test/java/org/apache/activemq/benchmark/ProducerConsumer.java
+END
+Producer.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/repos/asf/!svn/ver/1071259/activemq/trunk/assembly/src/test/java/org/apache/activemq/benchmark/Producer.java
+END
+BenchmarkSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1071259/activemq/trunk/assembly/src/test/java/org/apache/activemq/benchmark/BenchmarkSupport.java
+END
+Consumer.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/repos/asf/!svn/ver/1071259/activemq/trunk/assembly/src/test/java/org/apache/activemq/benchmark/Consumer.java
+END

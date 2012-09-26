@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/repos/asf/!svn/ver/1150708/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/util
+END
+JmxMBeansUtil.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/666793/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/util/JmxMBeansUtil.java
+END
+AmqMessagesUtil.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1150708/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/util/AmqMessagesUtil.java
+END
+SimpleConsole.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/util/SimpleConsole.java
+END

@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/repos/asf/!svn/ver/1036455/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/xbean
+END
+jdbc-persistence-test.xml
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/xbean/jdbc-persistence-test.xml
+END
+spring.xml
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/xbean/spring.xml
+END
+spring2.xml
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/xbean/spring2.xml
+END
+activemq-policy.xml
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/934961/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/xbean/activemq-policy.xml
+END
+connector-test.xml
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/xbean/connector-test.xml
+END
+activemq.xml
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/xbean/activemq.xml
+END
+activemq2.xml
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/xbean/activemq2.xml
+END
+management-context-test.xml
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1036455/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/xbean/management-context-test.xml
+END

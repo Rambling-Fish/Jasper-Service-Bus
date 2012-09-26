@@ -1,0 +1,13 @@
+K 10
+svn:ignore
+V 79
+*.iml
+*.ipr
+target
+activemq-data
+.settings
+.classpath
+.project
+eclipse-classes
+
+END

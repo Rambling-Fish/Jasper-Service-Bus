@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-xmpp/src/main/java/org/apache/activemq/transport/xmpp
+END
+XmppTransport.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-xmpp/src/main/java/org/apache/activemq/transport/xmpp/XmppTransport.java
+END
+XmppWireFormat.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-xmpp/src/main/java/org/apache/activemq/transport/xmpp/XmppWireFormat.java
+END
+XmppTransportServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-xmpp/src/main/java/org/apache/activemq/transport/xmpp/XmppTransportServer.java
+END
+ProtocolConverter.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-xmpp/src/main/java/org/apache/activemq/transport/xmpp/ProtocolConverter.java
+END
+XmppTransportFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-xmpp/src/main/java/org/apache/activemq/transport/xmpp/XmppTransportFactory.java
+END
+XmppWireFormatFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-xmpp/src/main/java/org/apache/activemq/transport/xmpp/XmppWireFormatFactory.java
+END

@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/repos/asf/!svn/ver/912652/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/bugs/amq1974
+END
+TryJmsManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/912652/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/bugs/amq1974/TryJmsManager.java
+END
+TryJmsClient.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/912652/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/bugs/amq1974/TryJmsClient.java
+END

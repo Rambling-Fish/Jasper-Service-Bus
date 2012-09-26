@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/repos/asf/!svn/ver/1158333/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/formatter
+END
+OutputFormatter.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1158333/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/formatter/OutputFormatter.java
+END
+CommandShellOutputFormatter.java
+K 25
+svn:wc:ra_dav:version-url
+V 143
+/repos/asf/!svn/ver/666793/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/formatter/CommandShellOutputFormatter.java
+END

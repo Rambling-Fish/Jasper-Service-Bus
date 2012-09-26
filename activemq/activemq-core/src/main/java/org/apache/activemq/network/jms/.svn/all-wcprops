@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms
+END
+InboundQueueBridge.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/InboundQueueBridge.java
+END
+OutboundQueueBridge.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/OutboundQueueBridge.java
+END
+QueueBridge.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/QueueBridge.java
+END
+JmsTopicConnector.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/JmsTopicConnector.java
+END
+JmsConnector.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/JmsConnector.java
+END
+ReconnectionPolicy.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/ReconnectionPolicy.java
+END
+JmsQueueConnector.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/JmsQueueConnector.java
+END
+InboundTopicBridge.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/InboundTopicBridge.java
+END
+SimpleJmsMessageConvertor.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/SimpleJmsMessageConvertor.java
+END
+OutboundTopicBridge.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/OutboundTopicBridge.java
+END
+TopicBridge.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/TopicBridge.java
+END
+JmsMesageConvertor.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/JmsMesageConvertor.java
+END
+DestinationBridge.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1238827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/DestinationBridge.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/network/jms/package.html
+END

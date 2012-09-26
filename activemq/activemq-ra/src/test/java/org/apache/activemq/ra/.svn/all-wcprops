@@ -1,0 +1,95 @@
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra
+END
+MDBTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/repos/asf/!svn/ver/726764/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/MDBTest.java
+END
+ManagedConnectionFactoryTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/ManagedConnectionFactoryTest.java
+END
+FailoverManagedConnectionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/774712/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/FailoverManagedConnectionTest.java
+END
+ActiveMQActivationSpecTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/ActiveMQActivationSpecTest.java
+END
+ConnectionEventListenerAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/ConnectionEventListenerAdapter.java
+END
+ManagedConnectionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/ManagedConnectionTest.java
+END
+UnsubscribeResubscribeTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/UnsubscribeResubscribeTest.java
+END
+JmsXARollback2CxTransactionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/980415/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/JmsXARollback2CxTransactionTest.java
+END
+ActiveMQConnectionFactoryTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/648727/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/ActiveMQConnectionFactoryTest.java
+END
+FailoverManagedClusterTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/FailoverManagedClusterTest.java
+END
+MessageEndpointProxyTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/798602/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/MessageEndpointProxyTest.java
+END
+ActiveMQResourceAdapterJavaBeanEqualityTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 140
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/ActiveMQResourceAdapterJavaBeanEqualityTest.java
+END
+ConnectionManagerAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/ConnectionManagerAdapter.java
+END
+ServerSessionImplTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/ServerSessionImplTest.java
+END
+JmsXAQueueTransactionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/739961/activemq/trunk/activemq-ra/src/test/java/org/apache/activemq/ra/JmsXAQueueTransactionTest.java
+END

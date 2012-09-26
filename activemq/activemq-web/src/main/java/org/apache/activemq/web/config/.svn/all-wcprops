@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-web/src/main/java/org/apache/activemq/web/config
+END
+WebConsoleConfiguration.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-web/src/main/java/org/apache/activemq/web/config/WebConsoleConfiguration.java
+END
+SystemPropertiesConfiguration.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-web/src/main/java/org/apache/activemq/web/config/SystemPropertiesConfiguration.java
+END
+AbstractConfiguration.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-web/src/main/java/org/apache/activemq/web/config/AbstractConfiguration.java
+END
+JNDIConfiguration.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-web/src/main/java/org/apache/activemq/web/config/JNDIConfiguration.java
+END

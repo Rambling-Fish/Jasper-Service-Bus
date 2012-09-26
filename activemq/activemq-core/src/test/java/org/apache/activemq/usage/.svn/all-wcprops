@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/repos/asf/!svn/ver/1085119/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/usage
+END
+StoreUsageTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1085119/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/usage/StoreUsageTest.java
+END
+CompositeMessageCursorUsageTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/982317/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/usage/CompositeMessageCursorUsageTest.java
+END
+MemoryUsageTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/946600/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/usage/MemoryUsageTest.java
+END

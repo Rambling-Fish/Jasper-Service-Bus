@@ -1,0 +1,11 @@
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/util/osgi
+END
+Activator.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/util/osgi/Activator.java
+END

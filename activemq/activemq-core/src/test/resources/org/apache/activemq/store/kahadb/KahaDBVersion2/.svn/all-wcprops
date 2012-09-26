@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1036524/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/store/kahadb/KahaDBVersion2
+END
+db-1.log
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1036524/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/store/kahadb/KahaDBVersion2/db-1.log
+END
+db.data
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1036524/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/store/kahadb/KahaDBVersion2/db.data
+END
+db.redo
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1036524/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/store/kahadb/KahaDBVersion2/db.redo
+END

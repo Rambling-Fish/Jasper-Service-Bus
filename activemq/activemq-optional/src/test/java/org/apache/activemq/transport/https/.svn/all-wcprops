@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/1333980/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/https
+END
+HttpsTransportBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/repos/asf/!svn/ver/904005/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/https/HttpsTransportBrokerTest.java
+END
+HttpsJmsSendAndReceiveConfigurationSslConfigTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 164
+/repos/asf/!svn/ver/1333980/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/https/HttpsJmsSendAndReceiveConfigurationSslConfigTest.java
+END
+HttpsJmsSendAndReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 142
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/https/HttpsJmsSendAndReceiveTest.java
+END
+HttpsJmsSendAndReceiveEmbeddedSslConfigTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 159
+/repos/asf/!svn/ver/1333980/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/https/HttpsJmsSendAndReceiveEmbeddedSslConfigTest.java
+END

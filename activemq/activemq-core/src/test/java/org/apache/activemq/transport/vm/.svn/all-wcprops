@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/repos/asf/!svn/ver/1350657/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/vm
+END
+VMTransportBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/564057/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/vm/VMTransportBrokerTest.java
+END
+VMTransportBrokerNameTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/910315/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/vm/VMTransportBrokerNameTest.java
+END
+VMTransportThreadSafeTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1350657/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/vm/VMTransportThreadSafeTest.java
+END
+VMTransportWaitForTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/888974/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/vm/VMTransportWaitForTest.java
+END
+VMTransportEmbeddedBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 138
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/vm/VMTransportEmbeddedBrokerTest.java
+END
+VmTransportNetworkBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1296194/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/vm/VmTransportNetworkBrokerTest.java
+END

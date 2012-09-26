@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/repos/asf/!svn/ver/1153425/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/usage
+END
+StoreUsage.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/usage/StoreUsage.java
+END
+UsageCapacity.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/usage/UsageCapacity.java
+END
+Usage.java
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/repos/asf/!svn/ver/1153425/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/usage/Usage.java
+END
+DefaultUsageCapacity.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/usage/DefaultUsageCapacity.java
+END
+SystemUsage.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/usage/SystemUsage.java
+END
+TempUsage.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/usage/TempUsage.java
+END
+UsageListener.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/567647/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/usage/UsageListener.java
+END
+MemoryUsage.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/usage/MemoryUsage.java
+END

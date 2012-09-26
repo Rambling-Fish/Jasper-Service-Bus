@@ -1,0 +1,215 @@
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/repos/asf/!svn/ver/1352933/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport
+END
+TransportLoggerControlMBean.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportLoggerControlMBean.java
+END
+TransportFilter.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportFilter.java
+END
+WriteTimeoutFilter.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1157238/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/WriteTimeoutFilter.java
+END
+TransportServerThreadSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportServerThreadSupport.java
+END
+RequestTimedOutIOException.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/985201/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/RequestTimedOutIOException.java
+END
+ResponseCallback.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/ResponseCallback.java
+END
+WireFormatNegotiator.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/WireFormatNegotiator.java
+END
+LogWriter.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/LogWriter.java
+END
+ThreadNameFilter.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/710061/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/ThreadNameFilter.java
+END
+AbstractInactivityMonitor.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1236414/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/AbstractInactivityMonitor.java
+END
+MutexTransport.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1182890/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/MutexTransport.java
+END
+TransportServerSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportServerSupport.java
+END
+TransportThreadSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportThreadSupport.java
+END
+TransportServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportServer.java
+END
+MarshallingTransportFilter.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/563921/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/MarshallingTransportFilter.java
+END
+TransportFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1157238/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportFactory.java
+END
+TransportSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportSupport.java
+END
+TransportServerFilter.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/563921/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportServerFilter.java
+END
+ResponseCorrelator.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/ResponseCorrelator.java
+END
+TransportLogger.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportLogger.java
+END
+TransportListener.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportListener.java
+END
+DefaultTransportListener.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/DefaultTransportListener.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/package.html
+END
+CompositeTransport.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/920306/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/CompositeTransport.java
+END
+TransportAcceptListener.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/563921/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportAcceptListener.java
+END
+TransportLoggerFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportLoggerFactory.java
+END
+CommandJoiner.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/CommandJoiner.java
+END
+TransportLoggerView.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportLoggerView.java
+END
+FutureResponse.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/FutureResponse.java
+END
+InactivityIOException.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/InactivityIOException.java
+END
+TransportLoggerViewMBean.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportLoggerViewMBean.java
+END
+InactivityMonitor.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1205011/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/InactivityMonitor.java
+END
+Transport.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1157238/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/Transport.java
+END
+TransportLoggerControl.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportLoggerControl.java
+END
+TransportDisposedIOException.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/TransportDisposedIOException.java
+END

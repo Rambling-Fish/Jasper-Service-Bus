@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/bugs/amq3625/conf
+END
+JaasStompSSLBroker1.xml
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/bugs/amq3625/conf/JaasStompSSLBroker1.xml
+END
+JaasStompSSLBroker2.xml
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/bugs/amq3625/conf/JaasStompSSLBroker2.xml
+END
+groups2.properties
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/bugs/amq3625/conf/groups2.properties
+END
+login.config
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/bugs/amq3625/conf/login.config
+END
+users2.properties
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/bugs/amq3625/conf/users2.properties
+END

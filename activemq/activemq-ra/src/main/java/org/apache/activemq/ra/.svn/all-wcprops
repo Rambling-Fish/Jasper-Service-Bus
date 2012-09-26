@@ -1,0 +1,167 @@
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/repos/asf/!svn/ver/1295672/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra
+END
+InboundContextSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/InboundContextSupport.java
+END
+ManagedSessionProxy.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ManagedSessionProxy.java
+END
+InboundContext.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/InboundContext.java
+END
+InboundSessionProxy.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/InboundSessionProxy.java
+END
+ActiveMQEndpointWorker.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1295672/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ActiveMQEndpointWorker.java
+END
+SimpleConnectionManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/SimpleConnectionManager.java
+END
+ActiveMQEndpointActivationKey.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/650392/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ActiveMQEndpointActivationKey.java
+END
+ActiveMQManagedConnection.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ActiveMQManagedConnection.java
+END
+ActiveMQActivationSpec.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1079331/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ActiveMQActivationSpec.java
+END
+ManagedTransactionContext.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1129227/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ManagedTransactionContext.java
+END
+InboundConnectionProxyFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/InboundConnectionProxyFactory.java
+END
+InboundMessageProducerProxy.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/InboundMessageProducerProxy.java
+END
+InvalidMessageEndpointException.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/564977/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/InvalidMessageEndpointException.java
+END
+LocalAndXATransaction.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/565003/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/LocalAndXATransaction.java
+END
+ActiveMQConnectionRequestInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1079331/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ActiveMQConnectionRequestInfo.java
+END
+ManagedConnectionProxy.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ManagedConnectionProxy.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/package.html
+END
+InboundConnectionProxy.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/InboundConnectionProxy.java
+END
+ActiveMQConnectionFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ActiveMQConnectionFactory.java
+END
+MessageActivationSpec.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1079331/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/MessageActivationSpec.java
+END
+ActiveMQResourceAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ActiveMQResourceAdapter.java
+END
+ActiveMQConnectionSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1079331/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ActiveMQConnectionSupport.java
+END
+ServerSessionPoolImpl.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ServerSessionPoolImpl.java
+END
+MessageEndpointProxy.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/MessageEndpointProxy.java
+END
+ServerSessionImpl.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ServerSessionImpl.java
+END
+MessageResourceAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/MessageResourceAdapter.java
+END
+ActiveMQManagedConnectionFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-ra/src/main/java/org/apache/activemq/ra/ActiveMQManagedConnectionFactory.java
+END

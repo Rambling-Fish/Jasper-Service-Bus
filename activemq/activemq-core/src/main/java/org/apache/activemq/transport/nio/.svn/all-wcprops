@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/repos/asf/!svn/ver/1332230/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/nio
+END
+NIOInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/nio/NIOInputStream.java
+END
+NIOOutputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1150630/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/nio/NIOOutputStream.java
+END
+NIOTransport.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1150630/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/nio/NIOTransport.java
+END
+NIOBufferedInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/813703/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/nio/NIOBufferedInputStream.java
+END
+NIOSSLTransport.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1332230/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/nio/NIOSSLTransport.java
+END
+SelectorSelection.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/916762/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/nio/SelectorSelection.java
+END
+NIOTransportFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1145534/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/nio/NIOTransportFactory.java
+END
+SelectorWorker.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/920827/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/nio/SelectorWorker.java
+END
+SelectorManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1303544/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/nio/SelectorManager.java
+END
+NIOSSLTransportFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1145534/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/nio/NIOSSLTransportFactory.java
+END

@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/repos/asf/!svn/ver/917556/activemq/trunk/assembly/src/release/example/conf
+END
+activemq.xml
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/asf/!svn/ver/917556/activemq/trunk/assembly/src/release/example/conf/activemq.xml
+END
+log4j.properties
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/repos/asf/!svn/ver/502054/activemq/trunk/assembly/src/release/example/conf/log4j.properties
+END
+resin-web.xml
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/asf/!svn/ver/502054/activemq/trunk/assembly/src/release/example/conf/resin-web.xml
+END
+web.xml
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/asf/!svn/ver/502054/activemq/trunk/assembly/src/release/example/conf/web.xml
+END

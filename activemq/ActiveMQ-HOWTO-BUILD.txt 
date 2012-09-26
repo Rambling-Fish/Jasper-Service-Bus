@@ -1,0 +1,5 @@
+How to build ActiveMQ without running te tests: 
+mvn clean install -Dmaven.test.skip=true
+
+
+Ref: http://activemq.apache.org/getting-started.html#GettingStarted-UnixSourceInstallation

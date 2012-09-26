@@ -1,0 +1,71 @@
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/repos/asf/!svn/ver/1188839/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/http
+END
+HttpClientReconnectTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 138
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/http/HttpClientReconnectTest.java
+END
+HttpJMSMessagesWithCompressionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 149
+/repos/asf/!svn/ver/1188839/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/http/HttpJMSMessagesWithCompressionTest.java
+END
+HttpPersistentSendAndReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 146
+/repos/asf/!svn/ver/565003/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/http/HttpPersistentSendAndReceiveTest.java
+END
+HttpTransportBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/918553/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/http/HttpTransportBrokerTest.java
+END
+WaitForJettyListener.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/http/WaitForJettyListener.java
+END
+HttpSpringTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/775206/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/http/HttpSpringTest.java
+END
+HttpJmsDurableTopicSendReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 148
+/repos/asf/!svn/ver/918553/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/http/HttpJmsDurableTopicSendReceiveTest.java
+END
+HttpSendCompressedMessagesTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 145
+/repos/asf/!svn/ver/1188839/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/http/HttpSendCompressedMessagesTest.java
+END
+HttpJmsSendAndReceiveWithCompressionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 155
+/repos/asf/!svn/ver/1188839/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/http/HttpJmsSendAndReceiveWithCompressionTest.java
+END
+HttpJmsSendAndReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 140
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/http/HttpJmsSendAndReceiveTest.java
+END
+HttpJMSMessageTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1078311/activemq/trunk/activemq-optional/src/test/java/org/apache/activemq/transport/http/HttpJMSMessageTest.java
+END

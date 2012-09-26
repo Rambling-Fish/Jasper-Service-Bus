@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1188641/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/discovery/masterslave
+END
+MasterSlaveDiscoveryAgentFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 160
+/repos/asf/!svn/ver/1188641/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/discovery/masterslave/MasterSlaveDiscoveryAgentFactory.java
+END
+MasterSlaveDiscoveryAgent.java
+K 25
+svn:wc:ra_dav:version-url
+V 153
+/repos/asf/!svn/ver/1188641/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/discovery/masterslave/MasterSlaveDiscoveryAgent.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1188641/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/discovery/masterslave/package.html
+END

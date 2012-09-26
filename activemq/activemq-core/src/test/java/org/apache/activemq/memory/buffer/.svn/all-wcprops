@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/memory/buffer
+END
+MemoryBufferTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/memory/buffer/MemoryBufferTestSupport.java
+END
+DummyMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/memory/buffer/DummyMessage.java
+END
+SizeBasedMessageBufferTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/memory/buffer/SizeBasedMessageBufferTest.java
+END
+OrderBasedMemoryBufferTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/memory/buffer/OrderBasedMemoryBufferTest.java
+END

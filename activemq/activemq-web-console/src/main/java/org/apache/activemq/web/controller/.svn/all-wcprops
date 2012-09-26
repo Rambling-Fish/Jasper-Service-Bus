@@ -1,0 +1,71 @@
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/1158044/activemq/trunk/activemq-web-console/src/main/java/org/apache/activemq/web/controller
+END
+CopyMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-web-console/src/main/java/org/apache/activemq/web/controller/CopyMessage.java
+END
+TODO.txt
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-web-console/src/main/java/org/apache/activemq/web/controller/TODO.txt
+END
+DeleteDestination.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-web-console/src/main/java/org/apache/activemq/web/controller/DeleteDestination.java
+END
+PurgeDestination.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-web-console/src/main/java/org/apache/activemq/web/controller/PurgeDestination.java
+END
+CreateDestination.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-web-console/src/main/java/org/apache/activemq/web/controller/CreateDestination.java
+END
+DeleteSubscriber.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-web-console/src/main/java/org/apache/activemq/web/controller/DeleteSubscriber.java
+END
+CreateSubscriber.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1158044/activemq/trunk/activemq-web-console/src/main/java/org/apache/activemq/web/controller/CreateSubscriber.java
+END
+DeleteMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-web-console/src/main/java/org/apache/activemq/web/controller/DeleteMessage.java
+END
+MoveMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-web-console/src/main/java/org/apache/activemq/web/controller/MoveMessage.java
+END
+DeleteJob.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-web-console/src/main/java/org/apache/activemq/web/controller/DeleteJob.java
+END
+SendMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1158044/activemq/trunk/activemq-web-console/src/main/java/org/apache/activemq/web/controller/SendMessage.java
+END

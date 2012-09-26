@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/repos/asf/!svn/ver/1347649/activemq/trunk/activemq-jaas/src/test/java/org/apache/activemq/jaas
+END
+LDAPLoginModuleTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1178812/activemq/trunk/activemq-jaas/src/test/java/org/apache/activemq/jaas/LDAPLoginModuleTest.java
+END
+StubCertificateLoginModule.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/565003/activemq/trunk/activemq-jaas/src/test/java/org/apache/activemq/jaas/StubCertificateLoginModule.java
+END
+UserPrincipalTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/565003/activemq/trunk/activemq-jaas/src/test/java/org/apache/activemq/jaas/UserPrincipalTest.java
+END
+CertificateLoginModuleTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/565003/activemq/trunk/activemq-jaas/src/test/java/org/apache/activemq/jaas/CertificateLoginModuleTest.java
+END
+GuestLoginModuleTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/825457/activemq/trunk/activemq-jaas/src/test/java/org/apache/activemq/jaas/GuestLoginModuleTest.java
+END
+PropertiesLoginModuleTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/769838/activemq/trunk/activemq-jaas/src/test/java/org/apache/activemq/jaas/PropertiesLoginModuleTest.java
+END
+LDAPModuleRoleExpansionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1347649/activemq/trunk/activemq-jaas/src/test/java/org/apache/activemq/jaas/LDAPModuleRoleExpansionTest.java
+END
+GroupPrincipalTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/565003/activemq/trunk/activemq-jaas/src/test/java/org/apache/activemq/jaas/GroupPrincipalTest.java
+END

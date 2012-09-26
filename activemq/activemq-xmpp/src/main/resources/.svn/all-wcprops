@@ -1,0 +1,203 @@
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/repos/asf/!svn/ver/915990/activemq/trunk/activemq-xmpp/src/main/resources
+END
+session.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/session.xsd
+END
+muc.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/muc.xsd
+END
+iq-oob.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/iq-oob.xsd
+END
+rosternotes.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/rosternotes.xsd
+END
+muc-unique.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/muc-unique.xsd
+END
+dialback.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/dialback.xsd
+END
+iq-version.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/iq-version.xsd
+END
+muc-user.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/muc-user.xsd
+END
+xml.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-xmpp/src/main/resources/xml.xsd
+END
+jabber-client.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/repos/asf/!svn/ver/915990/activemq/trunk/activemq-xmpp/src/main/resources/jabber-client.xsd
+END
+sasl.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-xmpp/src/main/resources/sasl.xsd
+END
+iq-time.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/iq-time.xsd
+END
+rosterx.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/rosterx.xsd
+END
+amp-feature.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/amp-feature.xsd
+END
+iq-auth.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/iq-auth.xsd
+END
+stanzaerror.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/stanzaerror.xsd
+END
+iq-last.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/iq-last.xsd
+END
+iq-pass.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/iq-pass.xsd
+END
+streams.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/915990/activemq/trunk/activemq-xmpp/src/main/resources/streams.xsd
+END
+iq-private.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/iq-private.xsd
+END
+address.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/address.xsd
+END
+amp-errors.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/amp-errors.xsd
+END
+jabber-server.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/repos/asf/!svn/ver/915990/activemq/trunk/activemq-xmpp/src/main/resources/jabber-server.xsd
+END
+disco-info.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/disco-info.xsd
+END
+activity.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/activity.xsd
+END
+tls.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-xmpp/src/main/resources/tls.xsd
+END
+streamerror.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/streamerror.xsd
+END
+iq-gateway.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/iq-gateway.xsd
+END
+muc-admin.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/muc-admin.xsd
+END
+bind.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/bind.xsd
+END
+amp.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/amp.xsd
+END
+roster.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/roster.xsd
+END
+disco-items.xsd
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/asf/!svn/ver/912310/activemq/trunk/activemq-xmpp/src/main/resources/disco-items.xsd
+END

@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 138
+/repos/asf/!svn/ver/958103/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/frametranslator
+END
+jms-json
+K 25
+svn:wc:ra_dav:version-url
+V 147
+/repos/asf/!svn/ver/958103/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/frametranslator/jms-json
+END
+jms-map-xml
+K 25
+svn:wc:ra_dav:version-url
+V 150
+/repos/asf/!svn/ver/645574/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/frametranslator/jms-map-xml
+END
+jms-object-json
+K 25
+svn:wc:ra_dav:version-url
+V 154
+/repos/asf/!svn/ver/645574/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/frametranslator/jms-object-json
+END
+jms-advisory-xml
+K 25
+svn:wc:ra_dav:version-url
+V 155
+/repos/asf/!svn/ver/958103/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/frametranslator/jms-advisory-xml
+END
+jms-xml
+K 25
+svn:wc:ra_dav:version-url
+V 146
+/repos/asf/!svn/ver/958103/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/frametranslator/jms-xml
+END
+jms-byte
+K 25
+svn:wc:ra_dav:version-url
+V 147
+/repos/asf/!svn/ver/645574/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/frametranslator/jms-byte
+END
+jms-map-json
+K 25
+svn:wc:ra_dav:version-url
+V 151
+/repos/asf/!svn/ver/645574/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/frametranslator/jms-map-json
+END
+jms-object-xml
+K 25
+svn:wc:ra_dav:version-url
+V 153
+/repos/asf/!svn/ver/645574/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/frametranslator/jms-object-xml
+END
+jms-advisory-json
+K 25
+svn:wc:ra_dav:version-url
+V 156
+/repos/asf/!svn/ver/958103/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/frametranslator/jms-advisory-json
+END

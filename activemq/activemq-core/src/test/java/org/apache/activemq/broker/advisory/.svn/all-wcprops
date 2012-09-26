@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/repos/asf/!svn/ver/1146717/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/advisory
+END
+AdvisoryJmxTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1021425/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/advisory/AdvisoryJmxTest.java
+END
+AdvisoryBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1021425/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/advisory/AdvisoryBrokerTest.java
+END
+AdvisoryNetworkBridgeTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1146717/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/advisory/AdvisoryNetworkBridgeTest.java
+END
+AdvisoryDuplexNetworkBridgeTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 143
+/repos/asf/!svn/ver/1054106/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/advisory/AdvisoryDuplexNetworkBridgeTest.java
+END

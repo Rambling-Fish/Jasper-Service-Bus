@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1234781/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/command/store/amq
+END
+Entry.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/829066/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/command/store/amq/Entry.java
+END
+CommandLineSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 142
+/repos/asf/!svn/ver/829066/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/command/store/amq/CommandLineSupport.java
+END
+AMQJournalToolCommand.java
+K 25
+svn:wc:ra_dav:version-url
+V 145
+/repos/asf/!svn/ver/829066/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/command/store/amq/AMQJournalToolCommand.java
+END
+MessageBodyFormatter.java
+K 25
+svn:wc:ra_dav:version-url
+V 144
+/repos/asf/!svn/ver/829066/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/command/store/amq/MessageBodyFormatter.java
+END
+AMQJournalTool.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/repos/asf/!svn/ver/1234781/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/command/store/amq/AMQJournalTool.java
+END
+CustomResourceLoader.java
+K 25
+svn:wc:ra_dav:version-url
+V 145
+/repos/asf/!svn/ver/1234779/activemq/trunk/activemq-console/src/main/java/org/apache/activemq/console/command/store/amq/CustomResourceLoader.java
+END

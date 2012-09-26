@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/1333980/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/transport/https
+END
+HttpsTransport.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1024559/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/transport/https/HttpsTransport.java
+END
+HttpsTransportServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1333980/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/transport/https/HttpsTransportServer.java
+END
+HttpsTransportFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1333980/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/transport/https/HttpsTransportFactory.java
+END
+Krb5AndCertsSslSocketConnector.java
+K 25
+svn:wc:ra_dav:version-url
+V 146
+/repos/asf/!svn/ver/1293432/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/transport/https/Krb5AndCertsSslSocketConnector.java
+END
+HttpsClientTransport.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/651320/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/transport/https/HttpsClientTransport.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/transport/https/package.html
+END

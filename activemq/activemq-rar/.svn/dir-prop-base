@@ -1,0 +1,11 @@
+K 10
+svn:ignore
+V 59
+*.iml
+target
+.settings
+.project
+eclipse-classes
+.classpath
+
+END

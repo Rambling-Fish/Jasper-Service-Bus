@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-web-demo/src/main/webapp/websocket
+END
+chat.css
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-web-demo/src/main/webapp/websocket/chat.css
+END
+chat.js
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-web-demo/src/main/webapp/websocket/chat.js
+END
+index.html
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/repos/asf/!svn/ver/1224694/activemq/trunk/activemq-web-demo/src/main/webapp/websocket/index.html
+END
+stomp.js
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-web-demo/src/main/webapp/websocket/stomp.js
+END

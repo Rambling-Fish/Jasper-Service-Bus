@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/repos/asf/!svn/ver/1352900/activemq/trunk/assembly
+END
+pom-deb.xml
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/repos/asf/!svn/ver/929601/activemq/trunk/assembly/pom-deb.xml
+END
+pom-rpm.xml
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/repos/asf/!svn/ver/929601/activemq/trunk/assembly/pom-rpm.xml
+END
+pom-pkg.xml
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/repos/asf/!svn/ver/929601/activemq/trunk/assembly/pom-pkg.xml
+END
+pom.xml
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/repos/asf/!svn/ver/1332983/activemq/trunk/assembly/pom.xml
+END

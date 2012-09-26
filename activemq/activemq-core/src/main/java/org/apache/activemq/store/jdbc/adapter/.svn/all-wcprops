@@ -1,0 +1,113 @@
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/repos/asf/!svn/ver/1353024/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter
+END
+HsqldbJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1095376/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/HsqldbJDBCAdapter.java
+END
+BlobJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1345202/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/BlobJDBCAdapter.java
+END
+AxionJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1095376/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/AxionJDBCAdapter.java
+END
+TransactJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1095376/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/TransactJDBCAdapter.java
+END
+TransactDatabaseLocker.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/TransactDatabaseLocker.java
+END
+DefaultJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1353024/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/DefaultJDBCAdapter.java
+END
+SybaseJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1095376/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/SybaseJDBCAdapter.java
+END
+BytesJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1095376/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/BytesJDBCAdapter.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/package.html
+END
+StreamJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1095376/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/StreamJDBCAdapter.java
+END
+MaxDBJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1095376/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/MaxDBJDBCAdapter.java
+END
+InformixJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1095376/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/InformixJDBCAdapter.java
+END
+ImageBasedJDBCAdaptor.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1095376/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/ImageBasedJDBCAdaptor.java
+END
+PostgresqlJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1095376/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/PostgresqlJDBCAdapter.java
+END
+OracleBlobJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1345202/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/OracleBlobJDBCAdapter.java
+END
+OracleJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1207963/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/OracleJDBCAdapter.java
+END
+MySqlJDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1095376/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/MySqlJDBCAdapter.java
+END
+DB2JDBCAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1095376/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/jdbc/adapter/DB2JDBCAdapter.java
+END

@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/openwire-control
+END
+org.apache.activemq.openwire.WireFormatInfoData.bin
+K 25
+svn:wc:ra_dav:version-url
+V 143
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/openwire-control/org.apache.activemq.openwire.WireFormatInfoData.bin
+END
+org.apache.activemq.openwire.BrokerInfoData.bin
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/openwire-control/org.apache.activemq.openwire.BrokerInfoData.bin
+END

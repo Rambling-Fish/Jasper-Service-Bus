@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/memory
+END
+usage.properties
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/610502/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/memory/usage.properties
+END
+activemq.xml
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/memory/activemq.xml
+END

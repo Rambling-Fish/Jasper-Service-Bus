@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/repos/asf/!svn/ver/1240979/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/ft
+END
+sharedFileSlave.xml
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1240979/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/ft/sharedFileSlave.xml
+END
+sharedFileMaster.xml
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/ft/sharedFileMaster.xml
+END
+slave.xml
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/ft/slave.xml
+END
+master.xml
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/ft/master.xml
+END
+slave2.xml
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/ft/slave2.xml
+END

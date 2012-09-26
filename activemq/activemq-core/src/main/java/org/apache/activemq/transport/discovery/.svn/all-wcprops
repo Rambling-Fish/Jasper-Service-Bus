@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/1208660/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/discovery
+END
+DiscoveryTransport.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1082333/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/discovery/DiscoveryTransport.java
+END
+DiscoveryAgent.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/discovery/DiscoveryAgent.java
+END
+DiscoveryTransportFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 141
+/repos/asf/!svn/ver/1076192/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/discovery/DiscoveryTransportFactory.java
+END
+DiscoveryListener.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1082333/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/discovery/DiscoveryListener.java
+END
+DiscoveryAgentFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/564814/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/discovery/DiscoveryAgentFactory.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/discovery/package.html
+END

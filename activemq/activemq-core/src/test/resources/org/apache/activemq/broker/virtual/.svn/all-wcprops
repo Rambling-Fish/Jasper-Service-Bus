@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/1326298/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/virtual
+END
+disconnected-selector.xml
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1326298/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/virtual/disconnected-selector.xml
+END
+filtered-queue.xml
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/virtual/filtered-queue.xml
+END
+global-virtual-topics.xml
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/954540/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/virtual/global-virtual-topics.xml
+END
+composite-queue.xml
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/virtual/composite-queue.xml
+END
+virtual-individual-dlq.xml
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1183342/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/virtual/virtual-individual-dlq.xml
+END
+composite-topic.xml
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/virtual/composite-topic.xml
+END

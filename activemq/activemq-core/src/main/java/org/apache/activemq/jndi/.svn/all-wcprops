@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/repos/asf/!svn/ver/1325985/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/jndi
+END
+NameParserImpl.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/jndi/NameParserImpl.java
+END
+ActiveMQInitialContextFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/jndi/ActiveMQInitialContextFactory.java
+END
+JNDIStorableInterface.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/564271/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/jndi/JNDIStorableInterface.java
+END
+ReadOnlyContext.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/jndi/ReadOnlyContext.java
+END
+LazyCreateContext.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/jndi/LazyCreateContext.java
+END
+ActiveMQWASInitialContextFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1325985/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/jndi/ActiveMQWASInitialContextFactory.java
+END
+JNDIBaseStorable.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/564057/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/jndi/JNDIBaseStorable.java
+END
+JNDIReferenceFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/jndi/JNDIReferenceFactory.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/jndi/package.html
+END

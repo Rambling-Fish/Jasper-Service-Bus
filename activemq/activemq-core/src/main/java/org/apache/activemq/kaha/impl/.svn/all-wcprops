@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/repos/asf/!svn/ver/1089772/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/kaha/impl
+END
+KahaStore.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1089772/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/kaha/impl/KahaStore.java
+END
+DataManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/564271/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/kaha/impl/DataManager.java
+END
+StoreLockedExcpetion.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/kaha/impl/StoreLockedExcpetion.java
+END
+IndexRootContainer.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/kaha/impl/IndexRootContainer.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/516048/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/kaha/impl/package.html
+END

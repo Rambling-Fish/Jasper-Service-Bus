@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-camel/src/test/resources/org/apache/activemq/camel
+END
+dlq.xml
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-camel/src/test/resources/org/apache/activemq/camel/dlq.xml
+END
+spring.xml
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/repos/asf/!svn/ver/1084132/activemq/trunk/activemq-camel/src/test/resources/org/apache/activemq/camel/spring.xml
+END
+transactedconsume.xml
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1163613/activemq/trunk/activemq-camel/src/test/resources/org/apache/activemq/camel/transactedconsume.xml
+END
+jmsXajdbc.xml
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1151406/activemq/trunk/activemq-camel/src/test/resources/org/apache/activemq/camel/jmsXajdbc.xml
+END
+SetHeaderTest-context.xml
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/746263/activemq/trunk/activemq-camel/src/test/resources/org/apache/activemq/camel/SetHeaderTest-context.xml
+END
+CamelDestinationExclusiveConsumerTest-context.xml
+K 25
+svn:wc:ra_dav:version-url
+V 152
+/repos/asf/!svn/ver/1170599/activemq/trunk/activemq-camel/src/test/resources/org/apache/activemq/camel/CamelDestinationExclusiveConsumerTest-context.xml
+END
+CamelRedeliveryTest-context.xml
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1089033/activemq/trunk/activemq-camel/src/test/resources/org/apache/activemq/camel/CamelRedeliveryTest-context.xml
+END

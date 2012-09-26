@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/repos/asf/!svn/ver/1302904/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/store/leveldb
+END
+LevelDBStoreBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1302494/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/store/leveldb/LevelDBStoreBrokerTest.java
+END
+LevelDBConfigTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1302904/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/store/leveldb/LevelDBConfigTest.java
+END

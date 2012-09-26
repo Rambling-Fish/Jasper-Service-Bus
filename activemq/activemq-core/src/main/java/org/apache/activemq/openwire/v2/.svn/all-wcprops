@@ -1,0 +1,371 @@
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2
+END
+MessageMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/MessageMarshaller.java
+END
+ActiveMQBytesMessageMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 138
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ActiveMQBytesMessageMarshaller.java
+END
+DataArrayResponseMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/DataArrayResponseMarshaller.java
+END
+DataResponseMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/DataResponseMarshaller.java
+END
+JournalTopicAckMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/JournalTopicAckMarshaller.java
+END
+JournalTraceMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/JournalTraceMarshaller.java
+END
+XATransactionIdMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/XATransactionIdMarshaller.java
+END
+JournalQueueAckMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/JournalQueueAckMarshaller.java
+END
+ActiveMQTempTopicMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ActiveMQTempTopicMarshaller.java
+END
+ResponseMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ResponseMarshaller.java
+END
+ProducerInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ProducerInfoMarshaller.java
+END
+ProducerIdMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ProducerIdMarshaller.java
+END
+SubscriptionInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/SubscriptionInfoMarshaller.java
+END
+ActiveMQTempQueueMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ActiveMQTempQueueMarshaller.java
+END
+MessageDispatchMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/MessageDispatchMarshaller.java
+END
+ActiveMQObjectMessageMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ActiveMQObjectMessageMarshaller.java
+END
+ConsumerInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ConsumerInfoMarshaller.java
+END
+MarshallerFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/MarshallerFactory.java
+END
+ConsumerIdMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ConsumerIdMarshaller.java
+END
+ActiveMQTopicMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ActiveMQTopicMarshaller.java
+END
+ConnectionErrorMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ConnectionErrorMarshaller.java
+END
+ConnectionInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ConnectionInfoMarshaller.java
+END
+MessageDispatchNotificationMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 145
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/MessageDispatchNotificationMarshaller.java
+END
+IntegerResponseMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/IntegerResponseMarshaller.java
+END
+ConnectionIdMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ConnectionIdMarshaller.java
+END
+NetworkBridgeFilterMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/NetworkBridgeFilterMarshaller.java
+END
+ExceptionResponseMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ExceptionResponseMarshaller.java
+END
+LocalTransactionIdMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/LocalTransactionIdMarshaller.java
+END
+ActiveMQQueueMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ActiveMQQueueMarshaller.java
+END
+RemoveSubscriptionInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 140
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/RemoveSubscriptionInfoMarshaller.java
+END
+LastPartialCommandMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/LastPartialCommandMarshaller.java
+END
+BaseDataStreamMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/602565/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/BaseDataStreamMarshaller.java
+END
+JournalTransactionMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/JournalTransactionMarshaller.java
+END
+ActiveMQTextMessageMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ActiveMQTextMessageMarshaller.java
+END
+ShutdownInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ShutdownInfoMarshaller.java
+END
+ActiveMQStreamMessageMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ActiveMQStreamMessageMarshaller.java
+END
+PartialCommandMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/PartialCommandMarshaller.java
+END
+ReplayCommandMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ReplayCommandMarshaller.java
+END
+WireFormatInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/WireFormatInfoMarshaller.java
+END
+ConsumerControlMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ConsumerControlMarshaller.java
+END
+DestinationInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/DestinationInfoMarshaller.java
+END
+SessionInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/SessionInfoMarshaller.java
+END
+ConnectionControlMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ConnectionControlMarshaller.java
+END
+BrokerInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/BrokerInfoMarshaller.java
+END
+SessionIdMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/SessionIdMarshaller.java
+END
+ActiveMQTempDestinationMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 141
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ActiveMQTempDestinationMarshaller.java
+END
+BrokerIdMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/BrokerIdMarshaller.java
+END
+MessageIdMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/MessageIdMarshaller.java
+END
+TransactionInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/TransactionInfoMarshaller.java
+END
+TransactionIdMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/TransactionIdMarshaller.java
+END
+MessageAckMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/MessageAckMarshaller.java
+END
+DiscoveryEventMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/DiscoveryEventMarshaller.java
+END
+BaseCommandMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/BaseCommandMarshaller.java
+END
+RemoveInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/RemoveInfoMarshaller.java
+END
+ActiveMQDestinationMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ActiveMQDestinationMarshaller.java
+END
+ActiveMQMapMessageMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ActiveMQMapMessageMarshaller.java
+END
+ActiveMQMessageMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ActiveMQMessageMarshaller.java
+END
+ControlCommandMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/ControlCommandMarshaller.java
+END
+FlushCommandMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/FlushCommandMarshaller.java
+END
+KeepAliveInfoMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/KeepAliveInfoMarshaller.java
+END
+MessagePullMarshaller.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/openwire/v2/MessagePullMarshaller.java
+END

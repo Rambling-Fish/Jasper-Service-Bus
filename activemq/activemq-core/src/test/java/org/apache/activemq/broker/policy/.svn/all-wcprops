@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/repos/asf/!svn/ver/1292858/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy
+END
+PerDurableConsumerDeadLetterTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 142
+/repos/asf/!svn/ver/1084023/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/PerDurableConsumerDeadLetterTest.java
+END
+NoRetryDeadLetterTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/NoRetryDeadLetterTest.java
+END
+RoundRobinDispatchPolicyTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/564057/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/RoundRobinDispatchPolicyTest.java
+END
+StrictOrderDispatchPolicyTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 138
+/repos/asf/!svn/ver/563921/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/StrictOrderDispatchPolicyTest.java
+END
+DestinationCursorConfigTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/DestinationCursorConfigTest.java
+END
+IndividualDeadLetterTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/IndividualDeadLetterTest.java
+END
+NoConsumerDeadLetterTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/NoConsumerDeadLetterTest.java
+END
+IndividualDeadLetterViaXmlTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 140
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/IndividualDeadLetterViaXmlTest.java
+END
+AbortSlowConsumerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1292858/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/AbortSlowConsumerTest.java
+END
+MessageListenerDeadLetterTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/MessageListenerDeadLetterTest.java
+END
+SimpleDispatchPolicyTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/628663/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/SimpleDispatchPolicyTest.java
+END
+DeadLetterTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1084023/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/DeadLetterTestSupport.java
+END
+PriorityNetworkDispatchPolicyTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 143
+/repos/asf/!svn/ver/1043076/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/PriorityNetworkDispatchPolicyTest.java
+END
+DeadLetterTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/policy/DeadLetterTest.java
+END

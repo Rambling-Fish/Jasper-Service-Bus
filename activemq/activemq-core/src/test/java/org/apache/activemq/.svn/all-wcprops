@@ -1,0 +1,545 @@
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/asf/!svn/ver/1353042/activemq/trunk/activemq-core/src/test/java/org/apache/activemq
+END
+JMSQueueRedeliverTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JMSQueueRedeliverTest.java
+END
+JmsSendReceiveTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsSendReceiveTestSupport.java
+END
+ActiveMQSslConnectionFactoryTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1074577/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ActiveMQSslConnectionFactoryTest.java
+END
+TimeStampTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/repos/asf/!svn/ver/1084751/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/TimeStampTest.java
+END
+JmsRedeliveredTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsRedeliveredTest.java
+END
+JmsAutoAckListenerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsAutoAckListenerTest.java
+END
+JmsSendWithAsyncCallbackTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1300727/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsSendWithAsyncCallbackTest.java
+END
+ZeroPrefetchConsumerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ZeroPrefetchConsumerTest.java
+END
+JmsTopicWildcardSendReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTopicWildcardSendReceiveTest.java
+END
+JmsTempDestinationTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/643460/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTempDestinationTest.java
+END
+ExclusiveConsumerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/628664/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ExclusiveConsumerTest.java
+END
+JmsMultipleClientsTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsMultipleClientsTestSupport.java
+END
+JmsQueueWildcardSendReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsQueueWildcardSendReceiveTest.java
+END
+JmsTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTestSupport.java
+END
+JMSDurableTopicRedeliverTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JMSDurableTopicRedeliverTest.java
+END
+JMSExclusiveConsumerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JMSExclusiveConsumerTest.java
+END
+EmbeddedBrokerAndConnectionTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/EmbeddedBrokerAndConnectionTestSupport.java
+END
+AutoFailTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/AutoFailTestSupport.java
+END
+JMSUsecaseTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/repos/asf/!svn/ver/691619/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JMSUsecaseTest.java
+END
+QueueConsumerPriorityTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/826700/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/QueueConsumerPriorityTest.java
+END
+ExclusiveConsumerStartupDestinationTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/960298/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ExclusiveConsumerStartupDestinationTest.java
+END
+LargeStreamletTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/LargeStreamletTest.java
+END
+ExpiryHogTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/repos/asf/!svn/ver/1061859/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ExpiryHogTest.java
+END
+OptimizedAckTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/1296326/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/OptimizedAckTest.java
+END
+JmsQueueRequestReplyTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsQueueRequestReplyTest.java
+END
+JmsDurableTopicSelectorTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsDurableTopicSelectorTest.java
+END
+JmsTopicSendReceiveSubscriberTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTopicSendReceiveSubscriberTest.java
+END
+TransactionContextTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/907174/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/TransactionContextTest.java
+END
+JmsTopicRedeliverTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTopicRedeliverTest.java
+END
+JmsConnectionStartStopTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsConnectionStartStopTest.java
+END
+JmsDurableTopicTransactionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsDurableTopicTransactionTest.java
+END
+JmsQueueTopicCompositeSendReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsQueueTopicCompositeSendReceiveTest.java
+END
+JmsQueueCompositeSendReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsQueueCompositeSendReceiveTest.java
+END
+JmsTopicSendReceiveWithTwoConnectionsTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1086182/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTopicSendReceiveWithTwoConnectionsTest.java
+END
+ReconnectWithSameClientIDTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1307142/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ReconnectWithSameClientIDTest.java
+END
+JmsQueueSelectorTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsQueueSelectorTest.java
+END
+CombinationTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1153701/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/CombinationTestSupport.java
+END
+JmsQueueSendReceiveUsingTwoSessionsTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsQueueSendReceiveUsingTwoSessionsTest.java
+END
+JmsQueueBrowserTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1088593/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsQueueBrowserTest.java
+END
+JmsDurableTopicSendReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsDurableTopicSendReceiveTest.java
+END
+PerDestinationStoreLimitTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/PerDestinationStoreLimitTest.java
+END
+ActiveMQMessageAuditTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1222250/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ActiveMQMessageAuditTest.java
+END
+JMSConsumerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JMSConsumerTest.java
+END
+ConnectionCleanupTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ConnectionCleanupTest.java
+END
+JmsClientAckTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsClientAckTest.java
+END
+JmsQueueSendReceiveTwoConnectionsTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsQueueSendReceiveTwoConnectionsTest.java
+END
+JmsTopicSendReceiveWithTwoConnectionsWithJMXTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 144
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTopicSendReceiveWithTwoConnectionsWithJMXTest.java
+END
+JmsConsumerResetActiveListenerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/707609/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsConsumerResetActiveListenerTest.java
+END
+ActiveMQXAConnectionFactoryTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ActiveMQXAConnectionFactoryTest.java
+END
+JmsSendReceiveWithMessageExpirationTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsSendReceiveWithMessageExpirationTest.java
+END
+TestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/repos/asf/!svn/ver/1159581/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/TestSupport.java
+END
+OnePrefetchAsyncConsumerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1311402/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/OnePrefetchAsyncConsumerTest.java
+END
+JmsTopicSendSameMessageTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTopicSendSameMessageTest.java
+END
+JmsCreateConsumerInOnMessageTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsCreateConsumerInOnMessageTest.java
+END
+JmsSessionRecoverTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsSessionRecoverTest.java
+END
+MessageEvictionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/MessageEvictionTest.java
+END
+RedeliveryPolicyTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1078189/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/RedeliveryPolicyTest.java
+END
+JmsMultipleBrokersTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1239188/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsMultipleBrokersTestSupport.java
+END
+JmsTransactionTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTransactionTestSupport.java
+END
+LoadTestBurnIn.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/LoadTestBurnIn.java
+END
+JmsTopicTransactionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTopicTransactionTest.java
+END
+JMSMessageTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JMSMessageTest.java
+END
+JmsRollbackRedeliveryTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsRollbackRedeliveryTest.java
+END
+RemoveDestinationTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/734524/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/RemoveDestinationTest.java
+END
+SpringTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/SpringTestSupport.java
+END
+ConsumerReceiveWithTimeoutTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ConsumerReceiveWithTimeoutTest.java
+END
+JmsAutoAckTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsAutoAckTest.java
+END
+CreateConsumerButDontStartConnectionWarningTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 143
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/CreateConsumerButDontStartConnectionWarningTest.java
+END
+JmsQueueTransactionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsQueueTransactionTest.java
+END
+JmsBenchmark.java
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsBenchmark.java
+END
+JmsTopicSendReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTopicSendReceiveTest.java
+END
+ActiveMQInputStreamTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1145295/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ActiveMQInputStreamTest.java
+END
+JmsQueueSendReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsQueueSendReceiveTest.java
+END
+ClientTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/649211/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ClientTestSupport.java
+END
+MessageTransformationTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/563921/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/MessageTransformationTest.java
+END
+ProducerFlowControlTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ProducerFlowControlTest.java
+END
+JmsTopicRequestReplyTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTopicRequestReplyTest.java
+END
+JmsClientAckListenerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsClientAckListenerTest.java
+END
+JmsQueueSendReceiveTwoConnectionsStartBeforeBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 150
+/repos/asf/!svn/ver/1159581/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsQueueSendReceiveTwoConnectionsStartBeforeBrokerTest.java
+END
+JmsDurableTopicWildcardSendReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsDurableTopicWildcardSendReceiveTest.java
+END
+ActiveMQConnectionFactoryTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ActiveMQConnectionFactoryTest.java
+END
+JMSIndividualAckTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1166216/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JMSIndividualAckTest.java
+END
+ProducerFlowControlSendFailTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/895975/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/ProducerFlowControlSendFailTest.java
+END
+JmsDurableQueueWildcardSendReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsDurableQueueWildcardSendReceiveTest.java
+END
+MessageListenerRedeliveryTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/MessageListenerRedeliveryTest.java
+END
+JmsTopicCompositeSendReceiveTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTopicCompositeSendReceiveTest.java
+END
+JmsTopicSelectorTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1142097/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JmsTopicSelectorTest.java
+END
+EmbeddedBrokerTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1153649/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/EmbeddedBrokerTestSupport.java
+END
+LargeMessageTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/LargeMessageTestSupport.java
+END
+JMSXAConsumerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/983057/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/JMSXAConsumerTest.java
+END

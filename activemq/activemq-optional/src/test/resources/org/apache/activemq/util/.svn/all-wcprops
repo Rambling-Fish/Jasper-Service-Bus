@@ -1,0 +1,11 @@
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/repos/asf/!svn/ver/515937/activemq/trunk/activemq-optional/src/test/resources/org/apache/activemq/util
+END
+test-log4j.properties
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/515937/activemq/trunk/activemq-optional/src/test/resources/org/apache/activemq/util/test-log4j.properties
+END

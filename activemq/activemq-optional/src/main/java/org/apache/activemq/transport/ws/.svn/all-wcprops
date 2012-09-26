@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/repos/asf/!svn/ver/1214770/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/transport/ws
+END
+StompServlet.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1187817/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/transport/ws/StompServlet.java
+END
+StompSocket.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1187817/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/transport/ws/StompSocket.java
+END
+WSTransportServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1214770/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/transport/ws/WSTransportServer.java
+END
+WSTransportFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/911492/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/transport/ws/WSTransportFactory.java
+END

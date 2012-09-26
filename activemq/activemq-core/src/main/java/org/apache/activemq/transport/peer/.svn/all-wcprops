@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/repos/asf/!svn/ver/1027461/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/peer
+END
+PeerTransportFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1027461/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/peer/PeerTransportFactory.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/transport/peer/package.html
+END

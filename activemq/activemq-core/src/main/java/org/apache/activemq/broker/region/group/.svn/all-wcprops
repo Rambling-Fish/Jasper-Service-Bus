@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/broker/region/group
+END
+MessageGroupMap.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/broker/region/group/MessageGroupMap.java
+END
+SimpleMessageGroupMapFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 144
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/broker/region/group/SimpleMessageGroupMapFactory.java
+END
+MessageGroupHashBucket.java
+K 25
+svn:wc:ra_dav:version-url
+V 138
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/broker/region/group/MessageGroupHashBucket.java
+END
+MessageGroupMapFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 138
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/broker/region/group/MessageGroupMapFactory.java
+END
+SimpleMessageGroupSet.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/broker/region/group/SimpleMessageGroupSet.java
+END
+SimpleMessageGroupMap.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/broker/region/group/SimpleMessageGroupMap.java
+END
+MessageGroupHashBucketFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 145
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/broker/region/group/MessageGroupHashBucketFactory.java
+END
+EmptyMessageGroupSet.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/broker/region/group/EmptyMessageGroupSet.java
+END
+MessageGroupSet.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/broker/region/group/MessageGroupSet.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/511784/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/broker/region/group/package.html
+END

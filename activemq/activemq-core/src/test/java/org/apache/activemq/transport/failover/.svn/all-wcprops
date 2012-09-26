@@ -1,0 +1,155 @@
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover
+END
+AMQ1925Test.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/AMQ1925Test.java
+END
+InitalReconnectDelayTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/repos/asf/!svn/ver/1327985/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/InitalReconnectDelayTest.java
+END
+FailoverComplexClusterTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 141
+/repos/asf/!svn/ver/1242748/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverComplexClusterTest.java
+END
+FailoverDuplicateTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1189700/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverDuplicateTest.java
+END
+SlowConnectionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1183062/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/SlowConnectionTest.java
+END
+FailoverClusterTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 141
+/repos/asf/!svn/ver/1242748/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverClusterTestSupport.java
+END
+BadConnectionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/BadConnectionTest.java
+END
+FailoverRedeliveryTransactionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 148
+/repos/asf/!svn/ver/1203773/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverRedeliveryTransactionTest.java
+END
+FailoverRandomTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/792538/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverRandomTest.java
+END
+FailoverPriorityTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1241061/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverPriorityTest.java
+END
+FailoverClusterTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1177437/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverClusterTest.java
+END
+FailoverTransportUriHandlingTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 147
+/repos/asf/!svn/ver/1234981/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverTransportUriHandlingTest.java
+END
+FailoverConsumerOutstandingCommitTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 152
+/repos/asf/!svn/ver/1177437/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverConsumerOutstandingCommitTest.java
+END
+FailoverTransactionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 138
+/repos/asf/!svn/ver/1203213/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverTransactionTest.java
+END
+ConnectionHangOnStartupTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 142
+/repos/asf/!svn/ver/1300726/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/ConnectionHangOnStartupTest.java
+END
+FailoverUpdateURIsTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1057565/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverUpdateURIsTest.java
+END
+FailoverTimeoutTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1049521/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverTimeoutTest.java
+END
+ReconnectTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1177411/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/ReconnectTest.java
+END
+FailoverConsumerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1177088/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverConsumerTest.java
+END
+FailoverConsumerUnconsumedTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 145
+/repos/asf/!svn/ver/1177437/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverConsumerUnconsumedTest.java
+END
+FailoverTransportTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1239118/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverTransportTest.java
+END
+FailoverUriTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/943860/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverUriTest.java
+END
+FailoverPrefetchZeroTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/repos/asf/!svn/ver/1177437/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverPrefetchZeroTest.java
+END
+FailoverTransportBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 142
+/repos/asf/!svn/ver/1177437/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverTransportBrokerTest.java
+END
+FailoverTransportBackupsTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 143
+/repos/asf/!svn/ver/1177437/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/failover/FailoverTransportBackupsTest.java
+END

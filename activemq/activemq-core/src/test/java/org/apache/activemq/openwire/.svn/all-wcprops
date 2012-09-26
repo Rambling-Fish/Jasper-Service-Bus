@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/repos/asf/!svn/ver/1181219/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire
+END
+DataFileGenerator.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/564271/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/DataFileGenerator.java
+END
+ItStillMarshallsTheSameTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/563921/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/ItStillMarshallsTheSameTest.java
+END
+NumberRangesWhileMarshallingTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1133956/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/NumberRangesWhileMarshallingTest.java
+END
+WireFormatInfoData.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/563921/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/WireFormatInfoData.java
+END
+BrokerInfoData.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/563921/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/BrokerInfoData.java
+END
+BooleanStreamTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/BooleanStreamTest.java
+END
+DataFileGeneratorTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/asf/!svn/ver/1086542/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/DataFileGeneratorTestSupport.java
+END

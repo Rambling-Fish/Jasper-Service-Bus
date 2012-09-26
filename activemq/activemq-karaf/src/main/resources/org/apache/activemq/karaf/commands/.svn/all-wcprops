@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/964847/activemq/trunk/activemq-karaf/src/main/resources/org/apache/activemq/karaf/commands
+END
+AdministrationCommand.properties
+K 25
+svn:wc:ra_dav:version-url
+V 143
+/repos/asf/!svn/ver/961712/activemq/trunk/activemq-karaf/src/main/resources/org/apache/activemq/karaf/commands/AdministrationCommand.properties
+END
+spring.xml
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/964847/activemq/trunk/activemq-karaf/src/main/resources/org/apache/activemq/karaf/commands/spring.xml
+END
+CreateBrokerCommand.properties
+K 25
+svn:wc:ra_dav:version-url
+V 141
+/repos/asf/!svn/ver/961712/activemq/trunk/activemq-karaf/src/main/resources/org/apache/activemq/karaf/commands/CreateBrokerCommand.properties
+END
+blueprint.xml
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/962432/activemq/trunk/activemq-karaf/src/main/resources/org/apache/activemq/karaf/commands/blueprint.xml
+END
+DestroyBrokerCommand.properties
+K 25
+svn:wc:ra_dav:version-url
+V 142
+/repos/asf/!svn/ver/961712/activemq/trunk/activemq-karaf/src/main/resources/org/apache/activemq/karaf/commands/DestroyBrokerCommand.properties
+END

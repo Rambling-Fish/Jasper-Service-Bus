@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/repos/asf/!svn/ver/1336373/activemq/trunk/assembly/src/release/bin
+END
+activemq-admin
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/asf/!svn/ver/1292413/activemq/trunk/assembly/src/release/bin/activemq-admin
+END
+activemq-admin.bat
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/1292413/activemq/trunk/assembly/src/release/bin/activemq-admin.bat
+END
+activemq
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/repos/asf/!svn/ver/1306441/activemq/trunk/assembly/src/release/bin/activemq
+END
+wrapper.jar
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/asf/!svn/ver/652121/activemq/trunk/assembly/src/release/bin/wrapper.jar
+END
+activemq.bat
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/asf/!svn/ver/1292413/activemq/trunk/assembly/src/release/bin/activemq.bat
+END

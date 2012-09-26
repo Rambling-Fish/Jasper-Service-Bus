@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/asf/!svn/ver/1160737/activemq/trunk/activemq-web-console/src/main/webapp/xml
+END
+subscribers.jsp
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/repos/asf/!svn/ver/1160737/activemq/trunk/activemq-web-console/src/main/webapp/xml/subscribers.jsp
+END
+queues.jsp
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/repos/asf/!svn/ver/504257/activemq/trunk/activemq-web-console/src/main/webapp/xml/queues.jsp
+END
+topics.jsp
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/repos/asf/!svn/ver/788352/activemq/trunk/activemq-web-console/src/main/webapp/xml/topics.jsp
+END

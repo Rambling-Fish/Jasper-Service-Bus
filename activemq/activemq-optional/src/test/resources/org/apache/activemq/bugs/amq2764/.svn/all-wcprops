@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/1189717/activemq/trunk/activemq-optional/src/test/resources/org/apache/activemq/bugs/amq2764
+END
+reconnect-broker1.xml
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1189717/activemq/trunk/activemq-optional/src/test/resources/org/apache/activemq/bugs/amq2764/reconnect-broker1.xml
+END
+reconnect-broker2.xml
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1080196/activemq/trunk/activemq-optional/src/test/resources/org/apache/activemq/bugs/amq2764/reconnect-broker2.xml
+END

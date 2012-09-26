@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/repos/asf/!svn/ver/1326298/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker
+END
+spring.xml
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/spring.xml
+END
+destinations-on-start.xml
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/destinations-on-start.xml
+END
+out-of-order-broker-elements.xml
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1034032/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/out-of-order-broker-elements.xml
+END
+exclusive-consumer-startup-destination.xml
+K 25
+svn:wc:ra_dav:version-url
+V 144
+/repos/asf/!svn/ver/960298/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/broker/exclusive-consumer-startup-destination.xml
+END

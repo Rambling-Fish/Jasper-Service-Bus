@@ -1,0 +1,71 @@
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/repos/asf/!svn/ver/1347649/activemq/trunk/activemq-jaas/src/main/java/org/apache/activemq/jaas
+END
+CertificateCallback.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/565003/activemq/trunk/activemq-jaas/src/main/java/org/apache/activemq/jaas/CertificateCallback.java
+END
+LDAPLoginModule.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/1347649/activemq/trunk/activemq-jaas/src/main/java/org/apache/activemq/jaas/LDAPLoginModule.java
+END
+UserPrincipal.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/1101099/activemq/trunk/activemq-jaas/src/main/java/org/apache/activemq/jaas/UserPrincipal.java
+END
+CertificateLoginModule.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1101099/activemq/trunk/activemq-jaas/src/main/java/org/apache/activemq/jaas/CertificateLoginModule.java
+END
+GuestLoginModule.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1101099/activemq/trunk/activemq-jaas/src/main/java/org/apache/activemq/jaas/GuestLoginModule.java
+END
+JassCredentialCallbackHandler.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1101099/activemq/trunk/activemq-jaas/src/main/java/org/apache/activemq/jaas/JassCredentialCallbackHandler.java
+END
+TextFileCertificateLoginModule.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1101099/activemq/trunk/activemq-jaas/src/main/java/org/apache/activemq/jaas/TextFileCertificateLoginModule.java
+END
+PropertiesLoginModule.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1101099/activemq/trunk/activemq-jaas/src/main/java/org/apache/activemq/jaas/PropertiesLoginModule.java
+END
+JaasCertificateCallbackHandler.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1158031/activemq/trunk/activemq-jaas/src/main/java/org/apache/activemq/jaas/JaasCertificateCallbackHandler.java
+END
+GroupPrincipal.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1101099/activemq/trunk/activemq-jaas/src/main/java/org/apache/activemq/jaas/GroupPrincipal.java
+END
+LDAPLoginProperty.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/769838/activemq/trunk/activemq-jaas/src/main/java/org/apache/activemq/jaas/LDAPLoginProperty.java
+END

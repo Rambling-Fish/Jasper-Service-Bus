@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/repos/asf/!svn/ver/1353042/activemq/trunk
+END
+NOTICE
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/repos/asf/!svn/ver/1079638/activemq/trunk/NOTICE
+END
+LICENSE
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/repos/asf/!svn/ver/645991/activemq/trunk/LICENSE
+END
+.gitignore
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/repos/asf/!svn/ver/1311236/activemq/trunk/.gitignore
+END
+pom.xml
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/repos/asf/!svn/ver/1347580/activemq/trunk/pom.xml
+END
+README.txt
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/repos/asf/!svn/ver/644867/activemq/trunk/README.txt
+END
+KEYS
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/repos/asf/!svn/ver/985679/activemq/trunk/KEYS
+END
+doap.rdf
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/repos/asf/!svn/ver/753218/activemq/trunk/doap.rdf
+END

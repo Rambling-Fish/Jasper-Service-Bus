@@ -1,0 +1,17 @@
+K 10
+svn:ignore
+V 148
+*.iml
+target
+.project
+.classpath
+target
+activemq-data
+.settings
+bin
+.wtpmodules
+surefire.properties
+surefire-classloader.properties
+eclipse-classes
+
+END

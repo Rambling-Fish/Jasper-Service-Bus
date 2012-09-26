@@ -1,0 +1,14 @@
+K 10
+svn:ignore
+V 74
+maven-bundle-plugin
+target
+*.iml
+*.iws
+*.ipr
+xdocs
+activemq-data
+foo
+data
+
+END

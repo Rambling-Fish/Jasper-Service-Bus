@@ -1,0 +1,287 @@
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7
+END
+SessionInfoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/SessionInfoTest.java
+END
+BrokerInfoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/BrokerInfoTest.java
+END
+ConnectionControlTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ConnectionControlTest.java
+END
+SessionIdTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/SessionIdTest.java
+END
+MessageIdTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/MessageIdTest.java
+END
+BrokerIdTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/BrokerIdTest.java
+END
+TransactionInfoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/TransactionInfoTest.java
+END
+ProducerAckTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ProducerAckTest.java
+END
+MessageAckTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/MessageAckTest.java
+END
+BaseCommandTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/BaseCommandTestSupport.java
+END
+DiscoveryEventTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/DiscoveryEventTest.java
+END
+RemoveInfoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/RemoveInfoTest.java
+END
+ControlCommandTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ControlCommandTest.java
+END
+FlushCommandTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/FlushCommandTest.java
+END
+MessagePullTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/MessagePullTest.java
+END
+KeepAliveInfoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/KeepAliveInfoTest.java
+END
+DataArrayResponseTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/DataArrayResponseTest.java
+END
+JournalTopicAckTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/JournalTopicAckTest.java
+END
+DataResponseTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/DataResponseTest.java
+END
+JournalTraceTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/JournalTraceTest.java
+END
+XATransactionIdTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/XATransactionIdTest.java
+END
+JournalQueueAckTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/JournalQueueAckTest.java
+END
+ResponseTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ResponseTest.java
+END
+ProducerInfoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ProducerInfoTest.java
+END
+TransactionIdTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/TransactionIdTestSupport.java
+END
+ProducerIdTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ProducerIdTest.java
+END
+SubscriptionInfoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/SubscriptionInfoTest.java
+END
+MessageDispatchTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/MessageDispatchTest.java
+END
+ConsumerInfoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ConsumerInfoTest.java
+END
+ConsumerIdTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ConsumerIdTest.java
+END
+ConnectionErrorTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ConnectionErrorTest.java
+END
+MessageDispatchNotificationTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/MessageDispatchNotificationTest.java
+END
+ConnectionInfoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ConnectionInfoTest.java
+END
+NetworkBridgeFilterTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/NetworkBridgeFilterTest.java
+END
+IntegerResponseTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/IntegerResponseTest.java
+END
+ConnectionIdTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ConnectionIdTest.java
+END
+LocalTransactionIdTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/LocalTransactionIdTest.java
+END
+ExceptionResponseTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ExceptionResponseTest.java
+END
+RemoveSubscriptionInfoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 134
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/RemoveSubscriptionInfoTest.java
+END
+LastPartialCommandTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/LastPartialCommandTest.java
+END
+JournalTransactionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/JournalTransactionTest.java
+END
+MessageTestSupport.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/MessageTestSupport.java
+END
+ShutdownInfoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ShutdownInfoTest.java
+END
+PartialCommandTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/PartialCommandTest.java
+END
+ReplayCommandTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ReplayCommandTest.java
+END
+ConsumerControlTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/ConsumerControlTest.java
+END
+DestinationInfoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/1084175/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/openwire/v7/DestinationInfoTest.java
+END

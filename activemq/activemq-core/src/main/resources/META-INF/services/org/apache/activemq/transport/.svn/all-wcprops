@@ -1,0 +1,125 @@
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/repos/asf/!svn/ver/1324714/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport
+END
+stomp+nio+ssl
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1150630/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/stomp+nio+ssl
+END
+nio+ssl
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1145534/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/nio+ssl
+END
+mqtt+ssl
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1309566/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/mqtt+ssl
+END
+vm
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/vm
+END
+stomp+nio
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/813703/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/stomp+nio
+END
+nio
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/nio
+END
+mqtt
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/1304984/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/mqtt
+END
+tcp
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/tcp
+END
+udp
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/udp
+END
+mock
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/mock
+END
+peer
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/peer
+END
+fanout
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/fanout
+END
+stomp+ssl
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/stomp+ssl
+END
+ssl
+K 25
+svn:wc:ra_dav:version-url
+V 126
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/ssl
+END
+stomp
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/stomp
+END
+mqtt+nio+ssl
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/asf/!svn/ver/1324714/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/mqtt+nio+ssl
+END
+multicast
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/multicast
+END
+mqtt+nio
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1324714/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/mqtt+nio
+END
+failover
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/failover
+END
+discovery
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/transport/discovery
+END

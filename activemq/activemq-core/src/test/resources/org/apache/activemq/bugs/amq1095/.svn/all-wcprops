@@ -1,0 +1,11 @@
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/bugs/amq1095
+END
+activemq.xml
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/org/apache/activemq/bugs/amq1095/activemq.xml
+END

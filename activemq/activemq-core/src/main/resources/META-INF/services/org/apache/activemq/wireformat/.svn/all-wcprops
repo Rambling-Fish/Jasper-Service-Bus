@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1304984/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/wireformat
+END
+stomp
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/wireformat/stomp
+END
+default
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/580013/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/wireformat/default
+END
+mqtt
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/asf/!svn/ver/1304984/activemq/trunk/activemq-core/src/main/resources/META-INF/services/org/apache/activemq/wireformat/mqtt
+END

@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-camel/src/main/java/org/apache/activemq/camel/converter
+END
+ActiveMQConverter.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-camel/src/main/java/org/apache/activemq/camel/converter/ActiveMQConverter.java
+END
+ActiveMQMessageConverter.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/repos/asf/!svn/ver/1071256/activemq/trunk/activemq-camel/src/main/java/org/apache/activemq/camel/converter/ActiveMQMessageConverter.java
+END
+IdentityMessageReuseConverter.java
+K 25
+svn:wc:ra_dav:version-url
+V 141
+/repos/asf/!svn/ver/937289/activemq/trunk/activemq-camel/src/main/java/org/apache/activemq/camel/converter/IdentityMessageReuseConverter.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/668217/activemq/trunk/activemq-camel/src/main/java/org/apache/activemq/camel/converter/package.html
+END

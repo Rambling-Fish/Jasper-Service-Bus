@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/fanout
+END
+FanoutTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/947757/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/fanout/FanoutTest.java
+END
+FanoutTransportBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 138
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/fanout/FanoutTransportBrokerTest.java
+END

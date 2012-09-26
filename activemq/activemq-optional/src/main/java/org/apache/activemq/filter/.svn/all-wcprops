@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/repos/asf/!svn/ver/565003/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/filter
+END
+XMLBeansXPathEvaluator.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/565003/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/filter/XMLBeansXPathEvaluator.java
+END
+JAXPXPathEvaluator.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/565003/activemq/trunk/activemq-optional/src/main/java/org/apache/activemq/filter/JAXPXPathEvaluator.java
+END

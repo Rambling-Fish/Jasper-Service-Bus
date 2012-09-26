@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/repos/asf/!svn/ver/1196804/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/state
+END
+CommandVisitorAdapter.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/repos/asf/!svn/ver/739008/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/state/CommandVisitorAdapter.java
+END
+ConnectionState.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/1061299/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/state/ConnectionState.java
+END
+ProducerState.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/891582/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/state/ProducerState.java
+END
+SessionState.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/repos/asf/!svn/ver/891582/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/state/SessionState.java
+END
+TransactionState.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/repos/asf/!svn/ver/891582/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/state/TransactionState.java
+END
+ConnectionStateTracker.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/repos/asf/!svn/ver/1196804/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/state/ConnectionStateTracker.java
+END
+ConsumerState.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/repos/asf/!svn/ver/563921/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/state/ConsumerState.java
+END
+ResponseHandler.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/repos/asf/!svn/ver/930135/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/state/ResponseHandler.java
+END
+Tracked.java
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/repos/asf/!svn/ver/930135/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/state/Tracked.java
+END
+CommandVisitor.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/739008/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/state/CommandVisitor.java
+END

@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/repos/asf/!svn/ver/1302977/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/kahadb/plist
+END
+PListStore.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1302977/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/kahadb/plist/PListStore.java
+END
+PList.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1153420/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/kahadb/plist/PList.java
+END
+PListEntry.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/repos/asf/!svn/ver/1130607/activemq/trunk/activemq-core/src/main/java/org/apache/activemq/store/kahadb/plist/PListEntry.java
+END

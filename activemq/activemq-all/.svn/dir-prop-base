@@ -1,0 +1,12 @@
+K 10
+svn:ignore
+V 71
+.classpath
+.project
+.settings
+eclipse-classes
+.checkstyle
+target
+*.iml
+
+END

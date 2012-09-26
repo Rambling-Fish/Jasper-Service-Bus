@@ -1,0 +1,125 @@
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/repos/asf/!svn/ver/1349713/activemq/trunk/activemq-core/src/test/resources
+END
+jndi.properties
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/jndi.properties
+END
+client.keystore
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/client.keystore
+END
+spring-embedded-xbean.xml
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/repos/asf/!svn/ver/649594/activemq/trunk/activemq-core/src/test/resources/spring-embedded-xbean.xml
+END
+spring-jndi.xml
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/spring-jndi.xml
+END
+spring-queue.xml
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/spring-queue.xml
+END
+spring-start-false.xml
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/repos/asf/!svn/ver/983027/activemq/trunk/activemq-core/src/test/resources/spring-start-false.xml
+END
+credentials.properties
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/repos/asf/!svn/ver/991934/activemq/trunk/activemq-core/src/test/resources/credentials.properties
+END
+spring-embedded.xml
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/spring-embedded.xml
+END
+jmx.access
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/asf/!svn/ver/1036455/activemq/trunk/activemq-core/src/test/resources/jmx.access
+END
+jmx.password
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/asf/!svn/ver/1036455/activemq/trunk/activemq-core/src/test/resources/jmx.password
+END
+dummy.keystore
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/asf/!svn/ver/660591/activemq/trunk/activemq-core/src/test/resources/dummy.keystore
+END
+spring-embedded-xbean-bean-ref.xml
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/repos/asf/!svn/ver/916937/activemq/trunk/activemq-core/src/test/resources/spring-embedded-xbean-bean-ref.xml
+END
+spring.xml
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/spring.xml
+END
+spring-embedded-xbean-noversion.xml
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/649594/activemq/trunk/activemq-core/src/test/resources/spring-embedded-xbean-noversion.xml
+END
+activemq-browse.properties
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/repos/asf/!svn/ver/1032904/activemq/trunk/activemq-core/src/test/resources/activemq-browse.properties
+END
+activemq.xml
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/asf/!svn/ver/1133915/activemq/trunk/activemq-core/src/test/resources/activemq.xml
+END
+server.keystore
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/repos/asf/!svn/ver/502054/activemq/trunk/activemq-core/src/test/resources/server.keystore
+END
+log4j.properties
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/repos/asf/!svn/ver/1244443/activemq/trunk/activemq-core/src/test/resources/log4j.properties
+END
+spring-embedded-xbean-local.xml
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/repos/asf/!svn/ver/813525/activemq/trunk/activemq-core/src/test/resources/spring-embedded-xbean-local.xml
+END
+login.config
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/asf/!svn/ver/1091862/activemq/trunk/activemq-core/src/test/resources/login.config
+END

@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/demo
+END
+SimpleQueueSender.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/demo/SimpleQueueSender.java
+END
+SimpleQueueReceiver.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/demo/SimpleQueueReceiver.java
+END
+SimpleConsumer.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/demo/SimpleConsumer.java
+END
+DefaultQueueSender.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/demo/DefaultQueueSender.java
+END
+SimpleProducer.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/demo/SimpleProducer.java
+END

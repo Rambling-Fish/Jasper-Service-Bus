@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/repos/asf/!svn/ver/1131010/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/store
+END
+TransactionStoreTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/repos/asf/!svn/ver/789291/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/store/TransactionStoreTest.java
+END
+DefaultStoreRecoveryBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/store/DefaultStoreRecoveryBrokerTest.java
+END
+DefaultStoreBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/store/DefaultStoreBrokerTest.java
+END
+LoadTester.java
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/asf/!svn/ver/1071259/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/store/LoadTester.java
+END
+RecoverExpiredMessagesTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 135
+/repos/asf/!svn/ver/1131010/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/broker/store/RecoverExpiredMessagesTest.java
+END

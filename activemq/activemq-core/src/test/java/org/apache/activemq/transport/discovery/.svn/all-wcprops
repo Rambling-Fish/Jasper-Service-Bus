@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/repos/asf/!svn/ver/1340275/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/discovery
+END
+ZeroconfDiscoverTransportTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 145
+/repos/asf/!svn/ver/1208660/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/discovery/ZeroconfDiscoverTransportTest.java
+END
+DiscoveryNetworkReconnectTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 145
+/repos/asf/!svn/ver/1179612/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/discovery/DiscoveryNetworkReconnectTest.java
+END
+DiscoveryTransportNoBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 146
+/repos/asf/!svn/ver/1340275/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/discovery/DiscoveryTransportNoBrokerTest.java
+END
+DiscoveryUriTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/repos/asf/!svn/ver/1183062/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/discovery/DiscoveryUriTest.java
+END
+DiscoveryTransportBrokerTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 144
+/repos/asf/!svn/ver/1069405/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/discovery/DiscoveryTransportBrokerTest.java
+END
+MasterSlaveDiscoveryTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 140
+/repos/asf/!svn/ver/1188641/activemq/trunk/activemq-core/src/test/java/org/apache/activemq/transport/discovery/MasterSlaveDiscoveryTest.java
+END
