@@ -9,21 +9,21 @@ Build Instructions
 4. All the jApp zips will be in the newly created target folder
 4. The jCore.zip will also be in the target folder
 
-Run Instructions
+Setup Instructions
 ----------------
 1. unzip the jCore.zip
 2. cd to unzipped folder, jasper-engine-1.0
 3. run setup : ./setup.sh
-4. start jasper : ./jasperStart.sh
+
+Starting and Stoping Jasper
+---------------------------
+use the jasper.sh script, examples
+  - ./jasper.sh start
+  - ./jasper.sh status
+  - ./jasper.sh stop
 
 Deploy jApps
 ------------
 1. copy jApp zip into the jasper-engine-1.0/jApps folder
-
-Stop Instructions 
------------------
-1. ps -ef | grep mule and kill the mule process
-2. ps -ef | grep java and kill the JECore process
-
 
 
