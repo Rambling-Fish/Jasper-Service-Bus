@@ -17,9 +17,9 @@
       </layout>
    </appender>
    <!-- jasper logging -->
-   <logger name="org.jasper">
+   <logger name="org.jasper" additivity="false">
       <level value="INFO"/>
-      <!-- <appender-ref ref="stdout"/> -->
+      <appender-ref ref="stdout"/>
       <appender-ref ref="jAppsLogger"/>
    </logger>
    <!-- default mule logging -->
