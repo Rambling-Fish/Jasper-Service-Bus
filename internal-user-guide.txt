@@ -22,8 +22,9 @@ use the jasper.sh script, examples
   - ./jasper.sh status
   - ./jasper.sh stop
 
-Deploy jApps
+Deploy, Configure and Undeploy jApps
 ------------
-1. copy jApp zip into the jasper-engine-1.0/jApps folder
+1. copy jApp zips into the jasper-engine-1.0/jApps folder
+2. run jAppManagement.sh script and follow menu screens.
 
 
