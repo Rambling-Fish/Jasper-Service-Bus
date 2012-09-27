@@ -4,11 +4,17 @@ J_PID=""
 M_PID=""
 
 function get_j_pid {
-   J_PID=`ps ax | grep java | grep JECore | cut -d " " -f 2`
+    J_PID=`ps ax | grep java | grep JECore | cut -d " " -f 1`
+    if [ -z $J_PID ]; then
+      J_PID=`ps ax | grep java | grep JECore | cut -d " " -f 2`
+    fi
 }
 
 function get_m_pid {
-   M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d " " -f 2`
+    M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d " " -f 1`
+    if [ -z $M_PID ]; then
+      M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d " " -f 2`
+    fi 
 }
 
 function stop_j {
