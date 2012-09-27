@@ -7,7 +7,7 @@
       </layout>
    </appender>
    <appender name="jAppsLogger" class="org.apache.log4j.RollingFileAppender">
-      <param name="File" value="../../../logs/jApps-server.log"/>
+      <param name="File" value="../../../logs/jApp-cat010-webview-interface-rest.log"/>
       <param name="MaxFileSize" value="5MB"/>
       <!--  Keep 10 backup files then reuse -->
       <param name="MaxBackupIndex" value="10"/>
@@ -21,10 +21,6 @@
       <level value="INFO"/>
       <appender-ref ref="stdout"/>
       <appender-ref ref="jAppsLogger"/>
-   </logger>
-   <!-- ignore these logs for now -->
-   <logger name="org.mule.transport.jms" additivity="false">
-      <level value="OFF"/>
    </logger>
    <!-- default mule logging -->
    <root>
