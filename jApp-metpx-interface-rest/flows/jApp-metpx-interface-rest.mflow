@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-configuration xmlns="http://www.mulesoft.com/tooling/messageflow" name="jApp-metpx-client">
+    <global-unknown index="1" unknownName="JEC" description="false" entity-id="global-unknown#1">
+        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; name=&quot;JEC&quot; vendor=&quot;jasper&quot; appName=&quot;metpx-interface-rest&quot; version=&quot;1.0&quot; deploymentId=&quot;jasperLab&quot; jAppAuthKey=&quot;1df2e1249e5bb32fd1896223e71cc14a0dc03110&quot; jasperEngineURL=&quot;tcp://${metpx.interface.rest.jasperEngineURL.host}:${metpx.interface.rest.jasperEngineURL.port}&quot; doc:name=&quot;Jasper Connector&quot;&gt;&lt;/jasperengine:connector&gt;</content>
+    </global-unknown>
+    <global-element type="http://www.mulesoft.org/schema/mule/http/endpoint" name="HTTP" entity-id="HTTP#1">
+        <properties>
+            <property name="exchange-pattern"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="http://www.mulesoft.org/schema/mule/http/endpoint" name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="httpLabel"/>
+            <property value="${metpx.interface.rest.http.endpoint.host}" name="host"/>
+            <property value="${metpx.interface.rest.http.endpoint.port}" name="port"/>
+            <property value="${metpx.interface.rest.http.endpoint.path}" name="path"/>
+            <property name="method"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="globalHttpEndpoint" name="name"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="businessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="address"/>
+            <property name="encoding"/>
+            <property name="disableTransportTransformer"/>
+            <property name="mimeType"/>
+            <property name="responseTimeout"/>
+            <property name="followRedirects"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="connector-ref"/>
+            <property name="ref"/>
+            <property name="transformer-refs"/>
+            <property name="responseTransformer-refs"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="user"/>
+            <property name="password"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="contentType"/>
+            <property name="keep-alive"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+        </properties>
+    </global-element>
+    <flow SubFlow="false" name="jApp-metpx-interface-rest" entity-id="faf37eca-18af-43aa-987d-3a7f79dbdbc2">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property value="3" name="auxiliary;index"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property value="3" name="auxiliary;index"/>
+            <property value="3" name="auxiliary;index"/>
+            <property value="3" name="auxiliary;index"/>
+        </properties>
+        <lane isChoiceOtherwiseLane="false" index="0" hadOnlyOneElement="false" entity-id="compartment-lane#1">
+            <unknown index="4" description="false" entity-id="unknown#1">
+                <content>&lt;jasperengine:inbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; topic=&quot;jms.jasper.1.0.metpx.topic&quot; connector-ref=&quot;JEC&quot; doc:name=&quot;JECEndpoint&quot;&gt;&lt;/jasperengine:inbound-endpoint&gt;</content>
+            </unknown>
+            <pattern type="http://www.mulesoft.org/schema/mule/jms/jmsmessage-to-object-transformer" name="JEC msg to Bulletin" entity-id="JmsMessage to Object#1">
+                <properties>
+                    <property value="org.jasper.jLib.metpx.decoder.Bulletin" name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property name="mimeType"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property value="5" name="auxiliary;index"/>
+                </properties>
+            </pattern>
+            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="RestCache" entity-id="Java#1">
+                <properties>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="org.jasper.jLib.metpx.util.JasperMetpxSimpleCache" name="class"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="6" name="auxiliary;index"/>
+                </properties>
+            </pattern>
+        </lane>
+    </flow>
+    <flow SubFlow="false" name="jApp-metpx-interface-rest-cache" entity-id="e7bb2f63-bd42-4808-a42a-d95729bc6f51">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property value="7" name="auxiliary;index"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property value="7" name="auxiliary;index"/>
+            <property value="7" name="auxiliary;index"/>
+            <property value="7" name="auxiliary;index"/>
+        </properties>
+        <lane isChoiceOtherwiseLane="false" index="0" hadOnlyOneElement="false" entity-id="compartment-lane#2">
+            <endpoint message-exchange-pattern="OneWay" direction="Inbound" type="http://www.mulesoft.org/schema/mule/http/endpoint" name="bulletinList" entity-id="HTTP#2">
+                <properties>
+                    <property value="one-way" name="exchange-pattern"/>
+                    <property value="request-response" name="exchange-pattern"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="http://www.mulesoft.org/schema/mule/http/endpoint" name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property name="httpLabel"/>
+                    <property name="host"/>
+                    <property name="port"/>
+                    <property name="path"/>
+                    <property name="method"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property name="address"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="responseTimeout"/>
+                    <property name="followRedirects"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property name="connector-ref"/>
+                    <property value="globalHttpEndpoint" name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="responseTransformer-refs"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property name="user"/>
+                    <property name="password"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property name="contentType"/>
+                    <property name="keep-alive"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="8" name="auxiliary;index"/>
+                </properties>
+            </endpoint>
+            <response index="9" entity-id="response#1">
+                <compartment entity-id="compartment#1">
+                    <lane isChoiceOtherwiseLane="false" index="0" hadOnlyOneElement="false" entity-id="compartment-lane#3">
+                        <pattern type="http://www.mulesoft.org/schema/mule/json/object-to-json-transformer" name="Object to JSON" entity-id="Object to JSON#1">
+                            <properties>
+<property name="returnClass"/>
+<property name="ignoreBadInput"/>
+<property name="encoding"/>
+<property value="10" name="auxiliary;index"/>
+<property name="mimeType"/>
+<property value="10" name="auxiliary;index"/>
+<property value="10" name="auxiliary;index"/>
+<property name="mapper-ref"/>
+<property name="sourceClass"/>
+<property value="10" name="auxiliary;index"/>
+<property value="10" name="auxiliary;index"/>
+<property value="10" name="auxiliary;index"/>
+                            </properties>
+                        </pattern>
+                    </lane>
+                </compartment>
+            </response>
+            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="RestCache" entity-id="Java#2">
+                <properties>
+                    <property value="11" name="auxiliary;index"/>
+                    <property value="11" name="auxiliary;index"/>
+                    <property value="11" name="auxiliary;index"/>
+                    <property value="org.jasper.jLib.metpx.util.JasperMetpxSimpleCache" name="class"/>
+                    <property value="11" name="auxiliary;index"/>
+                    <property value="11" name="auxiliary;index"/>
+                    <property value="11" name="auxiliary;index"/>
+                </properties>
+            </pattern>
+        </lane>
+    </flow>
+    <description>Decoding the amqp message in to a bulletin</description>
+</mule-configuration>

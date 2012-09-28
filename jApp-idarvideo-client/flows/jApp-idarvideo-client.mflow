@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-configuration xmlns="http://www.mulesoft.com/tooling/messageflow" name="iDARVideo">
+    <global-unknown index="1" unknownName="JEC" description="false" entity-id="global-unknown#1">
+        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; name=&quot;JEC&quot; vendor=&quot;jasper&quot; appName=&quot;idarvideo-client&quot; version=&quot;1.0&quot; deploymentId=&quot;jasperLab&quot; jAppAuthKey=&quot;4962f2adac5b849119642dab261b281af9824ea9&quot; jasperEngineURL=&quot;tcp://${idarvideo.client.jasperEngineURL.host}:${idarvideo.client.jasperEngineURL.port}&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JasperEngineConnector&quot;/&gt;</content>
+    </global-unknown>
+    <global-element type="http://www.mulesoft.org/schema/mule/tcp/polling-connector" name="TCP Polling" entity-id="TCP Polling#1">
+        <properties>
+            <property value="TCP_Polling" name="name"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="timeout"/>
+            <property name="pollingFrequency"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="dispatcherPoolFactory-ref"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="dynamicNotification"/>
+            <property value="false" name="validateConnections"/>
+            <property name="dispatcherFactory-ref"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="0" name="sendBufferSize"/>
+            <property value="0" name="receiveBufferSize"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="0" name="receiveBacklog"/>
+            <property name="sendTcpNoDelay"/>
+            <property name="reuseAddress"/>
+            <property name="keepSendSocketOpen"/>
+            <property name="keepAlive"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="10000" name="clientSoTimeout"/>
+            <property value="10000" name="serverSoTimeout"/>
+            <property value="0" name="socketSoLinger"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property-collection name="@http://www.mulesoft.org/schema/mule/tcp/custom-protocol;0">
+                <property value="org.jasper.jLib.idar.video.codec.IDARTcpProtocol" name="class"/>
+                <property value="3" name="auxiliary;wrapIn"/>
+                <property value="3" name="auxiliary;index"/>
+            </property-collection>
+        </properties>
+    </global-element>
+    <flow SubFlow="false" name="jApp-idarvideo-client" entity-id="7802eb74-4f57-410c-88a0-0aba149d76cf">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property value="4" name="auxiliary;index"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property value="4" name="auxiliary;index"/>
+            <property value="4" name="auxiliary;index"/>
+            <property value="4" name="auxiliary;index"/>
+        </properties>
+        <lane isChoiceOtherwiseLane="false" index="0" hadOnlyOneElement="false" entity-id="compartment-lane#1">
+            <endpoint message-exchange-pattern="RequestResponse" direction="Inbound" type="http://www.mulesoft.org/schema/mule/tcp/endpoint" name="TCP" entity-id="TCP#1">
+                <properties>
+                    <property value="request-response" name="exchange-pattern"/>
+                    <property name="exchange-pattern"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property value="${idarvideo.client.tcp.inbound.host}" name="host"/>
+                    <property value="${idarvideo.client.tcp.inbound.port}" name="port"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property name="address"/>
+                    <property value="${idarvideo.client.tcp.inbound.timeOut}" name="responseTimeout"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property value="TCP_Polling" name="connector-ref"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="responseTransformer-refs"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property value="5" name="auxiliary;index"/>
+                </properties>
+            </endpoint>
+            <pattern type="org.mule.tooling.ui.modules.core.pattern.customTransformer" name="ByteToIDARVideo" entity-id="Java#1">
+                <properties>
+                    <property name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property name="mimeType"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="org.jasper.jLib.idar.video.transformer.ByteArrayToIDARVideoMessage" name="class"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="6" name="auxiliary;index"/>
+                </properties>
+            </pattern>
+            <splitter index="7" type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="Choice#1">
+                <properties>
+                    <property-collection name="64a692ad-08e9-47ef-91fd-b31c209ec879">
+                        <property value="true" name="choice.otherwise"/>
+                        <property-collection name="choice.attributes"/>
+                    </property-collection>
+                    <property-collection name="a2a603da-a279-429a-a849-c98e58e54870">
+                        <property value="message.payload is org.jasper.jLib.idar.video.codec.IDARVideoMessage" name="choice.expression"/>
+                        <property-collection name="choice.attributes">
+                            <property value="message.payload is org.jasper.jLib.idar.video.codec.IDARVideoMessage" name="expression"/>
+                        </property-collection>
+                    </property-collection>
+                </properties>
+                <pattern type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="Choice#2"/>
+                <compartment entity-id="compartment#1">
+                    <lane isChoiceOtherwiseLane="false" index="9" hadOnlyOneElement="false" entity-id="a2a603da-a279-429a-a849-c98e58e54870">
+                        <unknown index="10" description="false" entity-id="unknown#1">
+                            <content>&lt;jasperengine:outbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.idarvideo.topic&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECAdapsEndpoint&quot;/&gt;</content>
+                        </unknown>
+                    </lane>
+                    <lane isChoiceOtherwiseLane="true" index="12" hadOnlyOneElement="false" entity-id="64a692ad-08e9-47ef-91fd-b31c209ec879">
+                        <pattern type="http://www.mulesoft.org/schema/mule/core/logger" name="ErrorLogger" entity-id="Logger#1">
+                            <properties>
+<property name="message"/>
+<property value="ERROR" name="level"/>
+<property name="category"/>
+<property value="13" name="auxiliary;index"/>
+<property value="13" name="auxiliary;index"/>
+<property value="13" name="auxiliary;index"/>
+                            </properties>
+                        </pattern>
+                    </lane>
+                </compartment>
+            </splitter>
+        </lane>
+    </flow>
+    <description></description>
+</mule-configuration>
