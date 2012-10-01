@@ -22,6 +22,10 @@
       <appender-ref ref="stdout"/>
       <appender-ref ref="jAppsLogger"/>
    </logger>
+   <!-- ignore these logs for now -->
+   <logger name="org.mule.transport.jms" additivity="false">
+      <level value="OFF"/>
+   </logger>
    <!-- default mule logging -->
    <root>
       <level value="INFO" />

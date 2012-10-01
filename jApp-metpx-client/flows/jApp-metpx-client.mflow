@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-configuration xmlns="http://www.mulesoft.com/tooling/messageflow" name="jApp-metpx-client">
+    <global-unknown index="1" unknownName="amqpConnector" description="false" entity-id="global-unknown#1">
+        <content>&lt;amqp:connector xmlns:amqp=&quot;http://www.mulesoft.org/schema/mule/amqp&quot; name=&quot;amqpConnector&quot; host=&quot;${metpx.client.amqp.host}&quot; port=&quot;${metpx.client.amqp.port}&quot; virtualHost=&quot;${metpx.client.amqp.virtualHost}&quot; username=&quot;${metpx.client.amqp.username}&quot; password=&quot;${metpx.client.amqp.password}&quot;/&gt;</content>
+    </global-unknown>
+    <global-unknown index="2" unknownName="weatherExchange" description="false" entity-id="global-unknown#2">
+        <content>&lt;amqp:endpoint xmlns:amqp=&quot;http://www.mulesoft.org/schema/mule/amqp&quot; name=&quot;weatherExchange&quot; exchangeName=&quot;metpx&quot; exchangeType=&quot;fanout&quot; exchangeAutoDelete=&quot;false&quot;&gt;
+	&lt;/amqp:endpoint&gt;</content>
+    </global-unknown>
+    <global-unknown index="3" unknownName="JEC" description="false" entity-id="global-unknown#3">
+        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; name=&quot;JEC&quot; vendor=&quot;jasper&quot; appName=&quot;metpx-client&quot; version=&quot;1.0&quot; deploymentId=&quot;jasperLab&quot; jAppAuthKey=&quot;2b38dafa59379a32c1dc883473f16348cdd37889&quot; jasperEngineURL=&quot;tcp://${metpx.client.jasperEngineURL.host}:${metpx.client.jasperEngineURL.port}&quot; doc:name=&quot;Jasper Connector&quot;&gt;&lt;/jasperengine:connector&gt;</content>
+    </global-unknown>
+    <global-element type="http://www.mulesoft.org/schema/mule/http/endpoint" name="HTTP" entity-id="HTTP#1">
+        <properties>
+            <property name="exchange-pattern"/>
+            <property value="4" name="auxiliary;index"/>
+            <property value="http://www.mulesoft.org/schema/mule/http/endpoint" name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute"/>
+            <property value="4" name="auxiliary;index"/>
+            <property name="httpLabel"/>
+            <property value="${metpx.interface.rest.http.endpoint.host}" name="host"/>
+            <property value="${metpx.interface.rest.http.endpoint.port}" name="port"/>
+            <property value="${metpx.interface.rest.http.endpoint.path}" name="path"/>
+            <property name="method"/>
+            <property value="4" name="auxiliary;index"/>
+            <property value="globalHttpEndpoint" name="name"/>
+            <property value="4" name="auxiliary;index"/>
+            <property value="4" name="auxiliary;index"/>
+            <property name="businessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property value="4" name="auxiliary;index"/>
+            <property name="address"/>
+            <property name="encoding"/>
+            <property name="disableTransportTransformer"/>
+            <property name="mimeType"/>
+            <property name="responseTimeout"/>
+            <property name="followRedirects"/>
+            <property value="4" name="auxiliary;index"/>
+            <property value="4" name="auxiliary;index"/>
+            <property value="4" name="auxiliary;index"/>
+            <property name="connector-ref"/>
+            <property name="ref"/>
+            <property name="transformer-refs"/>
+            <property name="responseTransformer-refs"/>
+            <property value="4" name="auxiliary;index"/>
+            <property value="4" name="auxiliary;index"/>
+            <property name="user"/>
+            <property name="password"/>
+            <property value="4" name="auxiliary;index"/>
+            <property name="contentType"/>
+            <property name="keep-alive"/>
+            <property value="4" name="auxiliary;index"/>
+            <property value="4" name="auxiliary;index"/>
+            <property value="4" name="auxiliary;index"/>
+            <property value="4" name="auxiliary;index"/>
+            <property value="4" name="auxiliary;index"/>
+        </properties>
+    </global-element>
+    <flow SubFlow="false" name="jApp-metpx-client" entity-id="9569bca3-c241-4b92-ac57-cf22ddc18eed">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property value="5" name="auxiliary;index"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property value="5" name="auxiliary;index"/>
+            <property value="5" name="auxiliary;index"/>
+            <property value="5" name="auxiliary;index"/>
+        </properties>
+        <lane isChoiceOtherwiseLane="false" index="0" hadOnlyOneElement="false" entity-id="compartment-lane#1">
+            <unknown index="6" description="false" entity-id="unknown#1">
+                <content>&lt;amqp:inbound-endpoint xmlns:amqp=&quot;http://www.mulesoft.org/schema/mule/amqp&quot; exchangeName=&quot;metpx&quot; exchangeAutoDelete=&quot;false&quot; exchangeType=&quot;fanout&quot; queueName=&quot;metpx&quot; queueAutoDelete=&quot;false&quot; queueDurable=&quot;true&quot; routingKey=&quot;#&quot; consumerTag=&quot;mule-audit-trail&quot;&gt;
+		&lt;/amqp:inbound-endpoint&gt;</content>
+            </unknown>
+            <pattern type="org.mule.tooling.ui.modules.core.pattern.customTransformer" name="ByteArrayToBulletin" entity-id="Java#1">
+                <properties>
+                    <property name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property value="7" name="auxiliary;index"/>
+                    <property name="mimeType"/>
+                    <property value="7" name="auxiliary;index"/>
+                    <property value="7" name="auxiliary;index"/>
+                    <property value="org.jasper.jLib.metpx.transformer.ByteArrayToBulletin" name="class"/>
+                    <property value="7" name="auxiliary;index"/>
+                    <property value="7" name="auxiliary;index"/>
+                    <property value="7" name="auxiliary;index"/>
+                </properties>
+            </pattern>
+            <splitter index="8" type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="Choice#1">
+                <properties>
+                    <property-collection name="5eabbf40-6631-4ddc-8019-1106fd43b7f9">
+                        <property value="message.payload is org.jasper.jLib.metpx.decoder.Bulletin" name="choice.expression"/>
+                        <property-collection name="choice.attributes">
+                            <property value="message.payload is org.jasper.jLib.metpx.decoder.Bulletin" name="expression"/>
+                        </property-collection>
+                    </property-collection>
+                    <property-collection name="078e4ddb-76ac-4b66-9406-c63f352bdfd6">
+                        <property value="true" name="choice.otherwise"/>
+                        <property-collection name="choice.attributes"/>
+                    </property-collection>
+                </properties>
+                <pattern type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="Choice#2"/>
+                <compartment entity-id="compartment#1">
+                    <lane isChoiceOtherwiseLane="false" index="10" hadOnlyOneElement="false" entity-id="5eabbf40-6631-4ddc-8019-1106fd43b7f9">
+                        <unknown index="11" description="false" entity-id="unknown#2">
+                            <content>&lt;jasperengine:outbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; topic=&quot;jms.jasper.1.0.metpx.topic&quot; connector-ref=&quot;JEC&quot; doc:name=&quot;JECMetPXEndpoint&quot;&gt;&lt;/jasperengine:outbound-endpoint&gt;</content>
+                        </unknown>
+                    </lane>
+                    <lane isChoiceOtherwiseLane="true" index="13" hadOnlyOneElement="false" entity-id="078e4ddb-76ac-4b66-9406-c63f352bdfd6">
+                        <pattern type="http://www.mulesoft.org/schema/mule/core/logger" name="ErrorLogger" entity-id="Logger#1">
+                            <properties>
+<property name="message"/>
+<property value="ERROR" name="level"/>
+<property name="category"/>
+<property value="14" name="auxiliary;index"/>
+<property value="14" name="auxiliary;index"/>
+<property value="14" name="auxiliary;index"/>
+                            </properties>
+                        </pattern>
+                    </lane>
+                </compartment>
+            </splitter>
+        </lane>
+    </flow>
+    <description>Decoding the amqp message in to a bulletin</description>
+</mule-configuration>

@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-configuration xmlns="http://www.mulesoft.com/tooling/messageflow" name="iDARVideo">
+    <global-unknown index="1" unknownName="JEC" description="false" entity-id="global-unknown#1">
+        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; name=&quot;JEC&quot; vendor=&quot;jasper&quot; appName=&quot;idarvideo-interface-rest&quot; version=&quot;1.0&quot; deploymentId=&quot;jasperLab&quot; jAppAuthKey=&quot;af5f818f2a780a74a54494bdbfe3d5d40388dfc1&quot; jasperEngineURL=&quot;tcp://${idarvideo.interface.rest.jasperEngineURL.host}:${idarvideo.interface.rest.jasperEngineURL.port}&quot; doc:name=&quot;JasperEngineConnector&quot;&gt;&lt;/jasperengine:connector&gt;</content>
+    </global-unknown>
+    <global-element type="http://www.mulesoft.org/schema/mule/http/endpoint" name="HTTP" entity-id="HTTP#1">
+        <properties>
+            <property name="exchange-pattern"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="http://www.mulesoft.org/schema/mule/http/endpoint" name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="httpLabel"/>
+            <property value="${idarvideo.interface.rest.http.endpoint.host}" name="host"/>
+            <property value="${idarvideo.interface.rest.http.endpoint.port}" name="port"/>
+            <property value="${idarvideo.interface.rest.http.endpoint.path}" name="path"/>
+            <property name="method"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="globalHttpEndpoint" name="name"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="businessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="address"/>
+            <property name="encoding"/>
+            <property name="disableTransportTransformer"/>
+            <property name="mimeType"/>
+            <property name="responseTimeout"/>
+            <property name="followRedirects"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="connector-ref"/>
+            <property name="ref"/>
+            <property name="transformer-refs"/>
+            <property name="responseTransformer-refs"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="user"/>
+            <property name="password"/>
+            <property value="2" name="auxiliary;index"/>
+            <property name="contentType"/>
+            <property name="keep-alive"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+            <property value="2" name="auxiliary;index"/>
+        </properties>
+    </global-element>
+    <flow SubFlow="false" name="idar-video-interface-rest" entity-id="7d865a73-c8d8-4205-9fbe-3e54b2030cb6">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property value="3" name="auxiliary;index"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property value="3" name="auxiliary;index"/>
+            <property value="3" name="auxiliary;index"/>
+            <property value="3" name="auxiliary;index"/>
+        </properties>
+        <lane isChoiceOtherwiseLane="false" index="0" hadOnlyOneElement="false" entity-id="compartment-lane#1">
+            <unknown index="4" description="false" entity-id="unknown#1">
+                <content>&lt;jasperengine:inbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; topic=&quot;jms.jasper.1.0.idarvideo.topic&quot; connector-ref=&quot;JEC&quot; doc:name=&quot;JECEndpoint&quot;&gt;&lt;/jasperengine:inbound-endpoint&gt;</content>
+            </unknown>
+            <pattern type="http://www.mulesoft.org/schema/mule/jms/jmsmessage-to-object-transformer" name="JEC msg to IDARVideoMessage" entity-id="JmsMessage to Object#1">
+                <properties>
+                    <property value="org.jasper.jLib.idar.video.codec.IDARVideoMessage" name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property name="mimeType"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property value="5" name="auxiliary;index"/>
+                    <property value="5" name="auxiliary;index"/>
+                </properties>
+            </pattern>
+            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="JasperIdarVideo SimpleCache" entity-id="Java#1">
+                <properties>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="org.jasper.engine.idarvideo.cache.JasperIdarVideoSimpleCache" name="class"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="6" name="auxiliary;index"/>
+                    <property value="6" name="auxiliary;index"/>
+                </properties>
+            </pattern>
+        </lane>
+    </flow>
+    <flow SubFlow="false" name="iDARVideoFlow1" entity-id="c0072ecb-a5f2-4d3e-aa1d-907162e746d1">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property value="7" name="auxiliary;index"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property value="7" name="auxiliary;index"/>
+            <property value="7" name="auxiliary;index"/>
+            <property value="7" name="auxiliary;index"/>
+        </properties>
+        <lane isChoiceOtherwiseLane="false" index="0" hadOnlyOneElement="false" entity-id="compartment-lane#2">
+            <endpoint message-exchange-pattern="OneWay" direction="Inbound" type="http://www.mulesoft.org/schema/mule/http/endpoint" name="bulletinList" entity-id="HTTP#2">
+                <properties>
+                    <property value="one-way" name="exchange-pattern"/>
+                    <property value="request-response" name="exchange-pattern"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="http://www.mulesoft.org/schema/mule/http/endpoint" name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property name="httpLabel"/>
+                    <property name="host"/>
+                    <property name="port"/>
+                    <property name="path"/>
+                    <property name="method"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property name="address"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="responseTimeout"/>
+                    <property name="followRedirects"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property name="connector-ref"/>
+                    <property value="globalHttpEndpoint" name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="responseTransformer-refs"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property name="user"/>
+                    <property name="password"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property name="contentType"/>
+                    <property name="keep-alive"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="8" name="auxiliary;index"/>
+                    <property value="8" name="auxiliary;index"/>
+                </properties>
+            </endpoint>
+            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="JasperIdarVideo SimpleCache" entity-id="Java#2">
+                <properties>
+                    <property value="9" name="auxiliary;index"/>
+                    <property value="9" name="auxiliary;index"/>
+                    <property value="9" name="auxiliary;index"/>
+                    <property value="org.jasper.engine.idarvideo.cache.JasperIdarVideoSimpleCache" name="class"/>
+                    <property value="9" name="auxiliary;index"/>
+                    <property value="9" name="auxiliary;index"/>
+                    <property value="9" name="auxiliary;index"/>
+                </properties>
+            </pattern>
+            <splitter index="10" type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="Choice#1">
+                <properties>
+                    <property-collection name="212a3181-82db-4f40-94ed-86b2d3324bc2">
+                        <property value="true" name="choice.otherwise"/>
+                        <property-collection name="choice.attributes"/>
+                    </property-collection>
+                    <property-collection name="7fb9dd19-9522-487d-89f6-72eba32b2c17">
+                        <property value="message.payload is byte[]" name="choice.expression"/>
+                        <property-collection name="choice.attributes">
+                            <property value="message.payload is byte[]" name="expression"/>
+                        </property-collection>
+                    </property-collection>
+                </properties>
+                <pattern type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="Choice#2"/>
+                <compartment entity-id="compartment#1">
+                    <lane isChoiceOtherwiseLane="false" index="12" hadOnlyOneElement="false" entity-id="7fb9dd19-9522-487d-89f6-72eba32b2c17">
+                        <endpoint message-exchange-pattern="OneWay" direction="Outbound" type="http://www.mulesoft.org/schema/mule/file/endpoint" name="File" entity-id="File#1">
+                            <properties>
+<property value="one-way" name="exchange-pattern"/>
+<property value="${app.home}" name="path"/>
+<property value="intelliDAR.jpg" name="outputPattern"/>
+<property name="moveToPattern"/>
+<property name="moveToDirectory"/>
+<property value="13" name="auxiliary;index"/>
+<property name="pollingFrequency"/>
+<property name="fileAge"/>
+<property value="13" name="auxiliary;index"/>
+<property value="13" name="auxiliary;index"/>
+<property value="13" name="auxiliary;index"/>
+<property name="businessEventsLabel"/>
+<property name="tracking:enable-default-events"/>
+<property value="13" name="auxiliary;index"/>
+<property name="address"/>
+<property value="10000" name="responseTimeout"/>
+<property name="encoding"/>
+<property name="disableTransportTransformer"/>
+<property name="mimeType"/>
+<property value="13" name="auxiliary;index"/>
+<property name="comparator"/>
+<property name="reverseOrder"/>
+<property value="13" name="auxiliary;index"/>
+<property value="13" name="auxiliary;index"/>
+<property name="connector-ref"/>
+<property name="ref"/>
+<property name="transformer-refs"/>
+<property value="13" name="auxiliary;index"/>
+<property value="13" name="auxiliary;index"/>
+<property value="13" name="auxiliary;index"/>
+                            </properties>
+                        </endpoint>
+                    </lane>
+                    <lane isChoiceOtherwiseLane="true" index="15" hadOnlyOneElement="false" entity-id="212a3181-82db-4f40-94ed-86b2d3324bc2">
+                        <splitter index="16" type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="Choice#3">
+                            <properties>
+<property-collection name="a5405207-c97f-4901-a599-88d34b738b34">
+    <property value="message.payload != 'JASPER ASB --- Resource Not Found.'" name="choice.expression"/>
+    <property-collection name="choice.attributes">
+        <property value="message.payload != 'JASPER ASB --- Resource Not Found.'" name="expression"/>
+    </property-collection>
+</property-collection>
+<property-collection name="78ce0375-a699-4a27-a7d2-44d9331e0b74">
+    <property value="true" name="choice.otherwise"/>
+    <property-collection name="choice.attributes"/>
+</property-collection>
+                            </properties>
+                            <pattern type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="Choice#4"/>
+                            <compartment entity-id="compartment#2">
+<lane isChoiceOtherwiseLane="false" index="18" hadOnlyOneElement="false" entity-id="a5405207-c97f-4901-a599-88d34b738b34">
+    <pattern type="org.mule.tooling.ui.modules.core.pattern.customTransformer" name="XMLfromObject" entity-id="Java#3">
+        <properties>
+            <property name="returnClass"/>
+            <property name="ignoreBadInput"/>
+            <property name="encoding"/>
+            <property value="19" name="auxiliary;index"/>
+            <property name="mimeType"/>
+            <property value="19" name="auxiliary;index"/>
+            <property value="19" name="auxiliary;index"/>
+            <property value="org.jasper.jLib.idar.video.transformer.IDARtoXML" name="class"/>
+            <property value="19" name="auxiliary;index"/>
+            <property value="19" name="auxiliary;index"/>
+            <property value="19" name="auxiliary;index"/>
+        </properties>
+    </pattern>
+    <pattern type="org.mule.tooling.ui.modules.core.pattern.customTransformer" name="XMLtoJson" entity-id="Java#4">
+        <properties>
+            <property name="returnClass"/>
+            <property name="ignoreBadInput"/>
+            <property name="encoding"/>
+            <property value="20" name="auxiliary;index"/>
+            <property name="mimeType"/>
+            <property value="20" name="auxiliary;index"/>
+            <property value="20" name="auxiliary;index"/>
+            <property value="org.mule.module.json.transformers.XmlToJson" name="class"/>
+            <property value="20" name="auxiliary;index"/>
+            <property value="20" name="auxiliary;index"/>
+            <property value="20" name="auxiliary;index"/>
+        </properties>
+    </pattern>
+</lane>
+<lane isChoiceOtherwiseLane="true" index="22" hadOnlyOneElement="false" entity-id="78ce0375-a699-4a27-a7d2-44d9331e0b74">
+    <pattern type="http://www.mulesoft.org/schema/mule/json/object-to-json-transformer" name="Object to JSON" entity-id="Object to JSON#1">
+        <properties>
+            <property name="returnClass"/>
+            <property name="ignoreBadInput"/>
+            <property name="encoding"/>
+            <property value="23" name="auxiliary;index"/>
+            <property name="mimeType"/>
+            <property value="23" name="auxiliary;index"/>
+            <property value="23" name="auxiliary;index"/>
+            <property name="mapper-ref"/>
+            <property name="sourceClass"/>
+            <property value="23" name="auxiliary;index"/>
+            <property value="23" name="auxiliary;index"/>
+            <property value="23" name="auxiliary;index"/>
+        </properties>
+    </pattern>
+</lane>
+                            </compartment>
+                        </splitter>
+                    </lane>
+                </compartment>
+            </splitter>
+        </lane>
+    </flow>
+    <description></description>
+</mule-configuration>
