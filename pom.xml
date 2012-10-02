@@ -4,6 +4,10 @@
     <artifactId>jasper-platform</artifactId>
     <version>1.0</version>
     <packaging>pom</packaging>
+    <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <main.basedir>${project.basedir}</main.basedir>
+    </properties>
     <modules>
         <module>jLib-cat010-codec</module>
         <module>jLib-webview-codec</module>
@@ -28,4 +32,40 @@
         <module>jApp-idarvideo-interface-rest</module>
 		<module>jCore-jasper-platform</module>
     </modules>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources-build-artifact</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.parent.basedir}/target</outputDirectory>
+                            <resources>
+                                <resource> <!-- Add jManage package -->
+                                    <directory>${project.parent.basedir}/jasperManagement</directory>
+                                    <includes>
+                                        <include>jasper-management.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource> <!-- Add /default app to expose the JMX -->
+                                <directory>${project.parent.basedir}/jasperManagement/jApp-management</directory>
+                                <targetPath>jApps/jApp-management</targetPath>
+                                 <includes>
+                                        <include>mule-config.xml</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>        
+    </build>
 </project>
