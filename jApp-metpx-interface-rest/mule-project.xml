@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <mule-project xmlns="http://www.mulesoft.com/tooling/project" runtimeId="org.mule.servers.3.2.1.CE">
-    <name>mule-app-metpx-rest-interface</name>
+    <name>jApp-metpx-interface-rest</name>
     <description></description>
 </mule-project>

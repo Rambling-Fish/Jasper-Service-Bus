@@ -30,10 +30,24 @@ public class JasperBroker extends BrokerFilter {
     	 * the connection, otherwise we addConnection and process down the chain of brokers.
     	 */
     	if(JECore.isAuthenticationValid(info.getUserName(), info.getPassword())){
-    		logger.info("jApp authenticated : " + info.getUserName() + ":" + info.getPassword());
+    		if(logger.isInfoEnabled()){
+    			logger.info("jApp authenticated : " + info.getUserName() + ":" + info.getPassword());
+    		}
     	}else{
     		logger.error("Invalid jApp name and id combination : " + info.getUserName() + ":" + info.getPassword());
 	    	throw (SecurityException)new SecurityException("Invalid jApp name and id combination : " + info.getUserName() + ":" + info.getPassword());
+    	}
+    	
+    	/*
+    	 * Check to see if jApp deploymentId matches that of the system.
+    	 */
+    	if(JECore.isValidDeploymentId(info.getUserName().split(":")[3])){
+    		if(logger.isInfoEnabled()){
+    			logger.info("jApp deploymentId matches that of the system : " + info.getUserName().split(":")[3]);
+    		}
+    	}else{
+    		logger.error("jApp deploymentId does not match that of the system. jApp deploymentId : " + info.getUserName().split(":")[3] + " and system deploymentId : " + JECore.getDeploymentID());
+	    	throw (SecurityException)new SecurityException("jApp deploymentId does not match that of the system. jApp deploymentId : " + info.getUserName().split(":")[3] + " and system deploymentId : " + JECore.getDeploymentID());
     	}
     	
     	/*
@@ -42,7 +56,9 @@ public class JasperBroker extends BrokerFilter {
     	 */
     	if(!(jAppList.containsKey(info.getPassword()))){
     		jAppList.put(info.getPassword(), info);
-    		logger.info("jApp registered in system : " + info.getUserName() + ":" + info.getPassword());
+    		if(logger.isInfoEnabled()){
+    			logger.info("jApp registered in system : " + info.getUserName() + ":" + info.getPassword());
+    		}
     	}else{
     		ConnectionInfo oldAppInfo = jAppList.get(info.getPassword());
     		logger.error("jApp not registred in system, only one instance of a jApp can be registered with Jasper Core at a time, jApp with with the following info already registered \n" +
@@ -56,7 +72,9 @@ public class JasperBroker extends BrokerFilter {
     }
     
     public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error)throws Exception{
-    	logger.info("jApp deregistered in system : " + info.getUserName() + ":" + info.getPassword());
+    	if(logger.isInfoEnabled()){
+    		logger.info("jApp deregistered in system : " + info.getUserName() + ":" + info.getPassword());
+    	}
     	jAppList.remove(info.getPassword());
     	super.removeConnection(context, info, null);
     }
