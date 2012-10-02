@@ -3,6 +3,7 @@ package org.jasper.jApp.cat010Webview.util;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.log4j.Logger;
 
 import org.jasper.jLib.webview.trax.decoder.WebViewTrax;
 import org.jasper.jLib.webview.trax.decoder.WebViewTraxMessage;
@@ -11,6 +12,7 @@ public class JasperTraxAggregator {
 
 	private static Map<String, WebViewTraxMessage> traxMap = new ConcurrentHashMap<String, WebViewTraxMessage>();
 	private static Map<String, Long> expiresMap = new ConcurrentHashMap<String, Long>();
+	private static Logger logger = Logger.getLogger("org.jasper");
 	
 	private static WebViewTrax getTraxMap(){
 		ArrayList<WebViewTraxMessage> list = new ArrayList<WebViewTraxMessage>();
@@ -27,8 +29,12 @@ public class JasperTraxAggregator {
 	}
 	
 	public static WebViewTrax putTraxMessage(WebViewTraxMessage traxMessage) {
-		traxMap.put(traxMessage.getCall_sign_name(), traxMessage);
-		expiresMap.put(traxMessage.getCall_sign_name(), System.currentTimeMillis());
+		try {
+			traxMap.put(traxMessage.getCall_sign_name(), traxMessage);
+			expiresMap.put(traxMessage.getCall_sign_name(), System.currentTimeMillis());
+		} catch (NullPointerException npe) {
+			logger.error("trax message contains null call_sign_name");
+		}
 		return getTraxMap();
 	}
 	
