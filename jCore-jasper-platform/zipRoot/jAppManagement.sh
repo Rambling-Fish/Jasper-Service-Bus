@@ -45,7 +45,7 @@ undeploy()
     echo "-----------------"
     echo
     cd jCore/mule-standalone-3.3.0/apps/
-    jAppList=`find . -maxdepth 1 -name "*-anchor.txt" | rev | cut -c 12- | rev | cut -c 3-`
+    jAppList=`find . -maxdepth 1 -name "*-anchor.txt" |grep -v jApp-management-anchor.txt | rev | cut -c 12- | rev | cut -c 3-`
     cd ../../../
     
     select CHOICE in ${jAppList[*]} Back

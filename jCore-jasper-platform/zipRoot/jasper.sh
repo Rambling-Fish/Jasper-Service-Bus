@@ -20,7 +20,7 @@ function get_m_pid {
 }
 #Jasper Console
 function get_jm_pid {
-    J_PID=`ps ax | grep java | grep jmanage | cut -d " " -f 1`
+    JM_PID=`ps ax | grep java | grep jmanage | cut -d " " -f 1`
     if [ -z $JM_PID ]; then
       JM_PID=`ps ax | grep java | grep jmanage | cut -d " " -f 2`
     fi
@@ -52,11 +52,11 @@ function stop_m {
 #Jasper Console
 function stop_jm {
    get_jm_pid
-   if [ -z $M_PID ]; then
+   if [ -z $JM_PID ]; then
       echo "Jasper Management Console is not running." 
    else
       echo -n "Stopping Jasper Management Console.."
-      kill $M_PID 
+      kill $JM_PID 
       sleep 1
       echo ".. Done."
    fi
@@ -124,10 +124,10 @@ function status_m {
 #Jasper Management Console 
 function status_jm {
    get_jm_pid
-   if [ -z  $M_PID ]; then
+   if [ -z  $JM_PID ]; then
       echo "Jasper Management Console is not running." 
    else
-      echo "asper Management Console is running, PID=$JM_PID"
+      echo "Jasper Management Console is running, PID=$JM_PID"
    fi
 }
 
