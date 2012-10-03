@@ -12,6 +12,7 @@
         <module>jTransport-jasperEngine</module>
         <module>jTransport-webview</module>
         <module>jApp-cat010-client</module>
+        <module>jApp-cat010-atims-client</module>
         <module>jApp-cat010-interface-ajax</module>
         <module>jApp-cat010-interface-eavd</module>
         <module>jApp-cat010-interface-rest</module>

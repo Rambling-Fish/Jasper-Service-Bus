@@ -43,7 +43,7 @@
 	<classpathentry kind="var" path="M2_REPO/org/mule/modules/mule-module-spring-config/3.2.1/mule-module-spring-config-3.2.1.jar" sourcepath="M2_REPO/org/mule/modules/mule-module-spring-config/3.2.1/mule-module-spring-config-3.2.1-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/mule/modules/mule-module-xml/3.2.1/mule-module-xml-3.2.1.jar" sourcepath="M2_REPO/org/mule/modules/mule-module-xml/3.2.1/mule-module-xml-3.2.1-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/mule/tests/mule-tests-functional/3.2.1/mule-tests-functional-3.2.1.jar" sourcepath="M2_REPO/org/mule/tests/mule-tests-functional/3.2.1/mule-tests-functional-3.2.1-sources.jar"/>
-	<classpathentry kind="var" path="M2_REPO/org/mule/transports/mule-transport-http/3.2.1/mule-transport-http-3.2.1.jar" sourcepath="/M2_REPO/org/mule/transports/mule-transport-http/3.2.1/"/>
+	<classpathentry kind="var" path="M2_REPO/org/mule/transports/mule-transport-http/3.2.1/mule-transport-http-3.2.1.jar" sourcepath="/M2_REPO/org/mule/transports/mule-transport-http/3.2.1/mule-transport-http-3.2.1-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/mule/transports/mule-transport-ssl/3.2.1/mule-transport-ssl-3.2.1.jar" sourcepath="M2_REPO/org/mule/transports/mule-transport-ssl/3.2.1/mule-transport-ssl-3.2.1-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/mule/transports/mule-transport-tcp/3.2.1/mule-transport-tcp-3.2.1.jar" sourcepath="M2_REPO/org/mule/transports/mule-transport-tcp/3.2.1/mule-transport-tcp-3.2.1-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/mule/transports/mule-transport-vm/3.2.1/mule-transport-vm-3.2.1.jar" sourcepath="M2_REPO/org/mule/transports/mule-transport-vm/3.2.1/mule-transport-vm-3.2.1-sources.jar"/>
