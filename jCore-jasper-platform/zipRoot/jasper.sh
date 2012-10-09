@@ -9,6 +9,8 @@ function get_j_pid {
     J_PID=`ps ax | grep java | grep JECore | cut -d " " -f 1`
     if [ -z $J_PID ]; then
       J_PID=`ps ax | grep java | grep JECore | cut -d " " -f 2`
+    elif [ -z $J_PID ]; then
+      J_PID=`ps ax | grep java | grep JECore | cut -d " " -f 3`
     fi
 }
 #Mule
@@ -16,6 +18,8 @@ function get_m_pid {
     M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d " " -f 1`
     if [ -z $M_PID ]; then
       M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d " " -f 2`
+    elif [ -z $M_PID ]; then
+      M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d " " -f 3`
     fi 
 }
 #Jasper Console
@@ -23,6 +27,8 @@ function get_jm_pid {
     JM_PID=`ps ax | grep java | grep jmanage | cut -d " " -f 1`
     if [ -z $JM_PID ]; then
       JM_PID=`ps ax | grep java | grep jmanage | cut -d " " -f 2`
+    elif [ -z $JM_PID ]; then
+      JM_PID=`ps ax | grep java | grep jmanage | cut -d " " -f 3`
     fi
 }
 #Jasper Engine 
