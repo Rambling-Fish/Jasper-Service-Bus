@@ -7,8 +7,8 @@
     <modules>
         <module>jLib-cat010-codec</module>
         <module>jLib-webview-codec</module>
-		<module>jLib-idarvideo-codec</module>
-		<module>jLib-metpx-codec</module>
+	<module>jLib-idarvideo-codec</module>
+	<module>jLib-metpx-codec</module>
         <module>jTransport-jasperEngine</module>
         <module>jTransport-webview</module>
         <module>jApp-cat010-client</module>
@@ -21,12 +21,14 @@
         <module>jApp-webview-client</module>
         <module>jApp-webview-interface-ajax</module>
         <module>jApp-webview-interface-rest</module>
-		<module>jApp-metpx-client</module>
-		<module>jApp-metpx-interface-ajax</module>
-		<module>jApp-metpx-interface-rest</module>
-		<module>jApp-idarvideo-client</module>
-		<module>jApp-idarvideo-interface-ajax</module>
+	<module>jApp-metpx-client</module>
+	<module>jApp-metpx-interface-ajax</module>
+	<module>jApp-metpx-interface-rest</module>
+	<module>jApp-idarvideo-client</module>
+	<module>jApp-idarvideo-interface-ajax</module>
         <module>jApp-idarvideo-interface-rest</module>
-		<module>jCore-jasper-platform</module>
+        <module>jTestApp-cat010-webview-traffic-client</module>
+        <module>jTestApp-cat010-webview-traffic-interface-ajax</module>
+	<module>jCore-jasper-platform</module>
     </modules>
 </project>
