@@ -10,12 +10,18 @@ public class JasperIdarVideoSimpleCache {
 	public Object getRestResponse(String msg){
 		if(msg.equals("/jasper/idarvideo/1.0/trackInfo")) {
 			try {
-				return ivm.getIntelliDARinfo();
-			} catch (NullPointerException npe) {
+				return (String) ivm.getIntelliDARinfo();
+				} catch (NullPointerException npe) {
 				logger.error("Idar Video Message is null");
-			}
+				}
+		}		
+		if(msg.equals("/jasper/idarvideo/1.0/video")) {
+			try {
+				return ivm;
+				} catch (NullPointerException npe) {
+				logger.error("Idar Video Message is null");
+				}
 		}
-		//if(msg.equals("/jasper/idarvideo/1.0/video")) return ivm.getIDARjpeg();
 		return "JASPER ASB --- Resource Not Found.";
 	}
 	
