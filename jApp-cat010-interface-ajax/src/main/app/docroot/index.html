@@ -1,4 +1,18 @@
-<head>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>CAT010-AJAX</title>
+	<link href="css/bootstrap.css" rel="stylesheet">
+	<link href="css/bootstrap-responsive.css" rel="stylesheet">
+
+	<link href="css/custom.css" rel="stylesheet">
+	<style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
 <script type="text/javascript" src="mule-resource/js/mule.js"></script>
 <script type="text/javascript">
 
@@ -37,103 +51,115 @@
 </head>
 
 <body onload="load()">
-<h1><b>Target Reports</b></h1>
-<table border="1" width="100%">
-	<tr>
-		<td width=375>Data Source ID (SAC,SIC)</td>
-		<td>
-		<div id="tr.dataSourceId"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>Message Type</td>
-		<td>
-		<div id="tr.messageType"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>Target Report Descriptor</td>
-		<td>
-		<div id="tr.targetReportDescriptor"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>Time of Day (sec after midnight UTC)</td>
-		<td>
-		<div id="tr.timeOfDay"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>Measured Position in Cartesian Coord X,Y</td>
-		<td>
-		<div id="tr.positionInCartesianCoord"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>Calculated Track Velocity in Cartesian Coord vX,vY</td>
-		<td>
-		<div id="tr.calculatedTrackVelocityInCartesianCoord"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>Track Number</td>
-		<td>
-		<div id="tr.trackNumber"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>Track Status</td>
-		<td>
-		<div id="tr.trackStatus"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>Target Size and Orientation (length, orientation, width)</td>
-		<td>
-		<div id="tr.targetSizeAndOrientation"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>Standard Deviation of Position</td>
-		<td>
-		<div id="tr.standardDeviationOfPosition"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>Sub Tracks</td>
-		<td>
-		<div id="tr.subTracks"></div>
-		</td>
-	</tr>
-</table>
-<p></p>
-<h1><b>Periodic Status Messages</b></h1>
-<table border="1" width="100%">
-	<tr>
-		<td width=300>Data Source ID (SAC,SIC)</td>
-		<td>
-		<div id="psm.dataSourceId"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>Message Type</td>
-		<td>
-		<div id="psm.messageType"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>Time of Day (sec after midnight UTC)</td>
-		<td>
-		<div id="psm.timeOfDay"></div>
-		</td>
-	</tr>
-	<tr>
-		<td>System Status</td>
-		<td>
-		<div id="psm.systemStatus"></div>
-		</td>
-	</tr>
-</table>
-
+<div class="navbar navbar-fixed-top">
+	    <div class="navbar-inner">
+	        <div class="container">
+	          <a class="brand" href="#">CAT010-AJAX</a>
+	        </div>
+		</div>
+</div>
+<div class="datacontainer">	
+	<div class="row-fluid">		
+		<div class="span12">		
+			<h1><b>Target Reports</b></h1>
+			<table class="table table-bordered table-condensed table-striped">
+				<tr>
+					<td width=375>Data Source ID (SAC,SIC)</td>
+					<td>
+					<div id="tr.dataSourceId"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>Message Type</td>
+					<td>
+					<div id="tr.messageType"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>Target Report Descriptor</td>
+					<td>
+					<div id="tr.targetReportDescriptor"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>Time of Day (sec after midnight UTC)</td>
+					<td>
+					<div id="tr.timeOfDay"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>Measured Position in Cartesian Coord X,Y</td>
+					<td>
+					<div id="tr.positionInCartesianCoord"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>Calculated Track Velocity in Cartesian Coord vX,vY</td>
+					<td>
+					<div id="tr.calculatedTrackVelocityInCartesianCoord"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>Track Number</td>
+					<td>
+					<div id="tr.trackNumber"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>Track Status</td>
+					<td>
+					<div id="tr.trackStatus"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>Target Size and Orientation (length, orientation, width)</td>
+					<td>
+					<div id="tr.targetSizeAndOrientation"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>Standard Deviation of Position</td>
+					<td>
+					<div id="tr.standardDeviationOfPosition"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>Sub Tracks</td>
+					<td>
+					<div id="tr.subTracks"></div>
+					</td>
+				</tr>
+			</table>
+			<p></p>
+			<h1><b>Periodic Status Messages</b></h1>
+			<table class="table table-bordered table-condensed table-striped">
+				<tr>
+					<td width=300>Data Source ID (SAC,SIC)</td>
+					<td>
+					<div id="psm.dataSourceId"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>Message Type</td>
+					<td>
+					<div id="psm.messageType"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>Time of Day (sec after midnight UTC)</td>
+					<td>
+					<div id="psm.timeOfDay"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>System Status</td>
+					<td>
+					<div id="psm.systemStatus"></div>
+					</td>
+				</tr>
+			</table>
+		</div>	
+	</div>
+</div>
 </body>
 </html>
