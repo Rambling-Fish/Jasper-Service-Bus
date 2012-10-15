@@ -58,6 +58,25 @@ public class WebViewConnector extends HttpPollingConnector {
 		return client;
 	}
 
+    protected void clearDispatchers()
+    {
+        if (dispatchers != null)
+        {
+            synchronized (dispatchers)
+            {
+            	try{
+	                dispatchers.clear();
+            	}catch(Throwable t){
+            		logger.warn("Catching exception when clearing dispatchers, " +
+            				"if the exception isn't caught the app isn't properly undeployed, " +
+            				"and catching the exception has no adverse affect. " +
+            				"This is an intermittent issue and there is, most likely, a race condition " +
+            				"within mule, that is causing this exception", t);
+            	}
+            }
+        }
+    }
+
 	/*
 	 * A getter to access the HTTP Client
 	 */

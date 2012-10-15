@@ -4,11 +4,14 @@ import org.mule.config.spring.parsers.collection.ChildListEntryDefinitionParser;
 import org.mule.config.spring.parsers.collection.ChildMapEntryDefinitionParser;
 import org.mule.config.spring.parsers.generic.MuleOrphanDefinitionParser;
 import org.mule.config.spring.parsers.generic.ParentDefinitionParser;
+import org.mule.config.spring.parsers.specific.ComponentDefinitionParser;
 import org.mule.config.spring.parsers.specific.FilterDefinitionParser;
 import org.mule.config.spring.parsers.specific.MessageProcessorDefinitionParser;
 import org.mule.config.spring.parsers.specific.SecurityFilterDefinitionParser;
 import org.mule.endpoint.URIBuilder;
+import org.mule.transport.http.HttpConnector;
 import org.mule.transport.http.HttpConstants;
+import org.mule.transport.http.components.RestServiceWrapper;
 import org.mule.transport.http.components.StaticResourceMessageProcessor;
 import org.mule.transport.http.config.HttpNamespaceHandler;
 import org.mule.transport.http.filters.HttpBasicAuthenticationFilter;
@@ -24,16 +27,16 @@ public class WebViewNamespaceHandler extends HttpNamespaceHandler {
 
     public void init()
     {
-        registerStandardTransportEndpoints(WebViewConnector.HTTP, URIBuilder.SOCKET_ATTRIBUTES)
-            .addAlias("contentType", HttpConstants.HEADER_CONTENT_TYPE)
-            .addAlias("method", WebViewConnector.HTTP_METHOD_PROPERTY);
+        registerStandardTransportEndpoints(HttpConnector.HTTP, URIBuilder.SOCKET_ATTRIBUTES)
+        .addAlias("contentType", HttpConstants.HEADER_CONTENT_TYPE)
+        .addAlias("method", HttpConnector.HTTP_METHOD_PROPERTY);
+    
         
         //Register our WebView Connector as the one to use
         registerConnectorDefinitionParser(WebViewConnector.class);
-      
-        //Register our WebView Connector as the polling-connector
         registerBeanDefinitionParser("polling-connector", new MuleOrphanDefinitionParser(WebViewConnector.class, true));
 
+        registerBeanDefinitionParser("rest-service-component", new ComponentDefinitionParser(RestServiceWrapper.class));
         registerBeanDefinitionParser("payloadParameterName", new ChildListEntryDefinitionParser("payloadParameterNames", ChildMapEntryDefinitionParser.VALUE));
         registerBeanDefinitionParser("requiredParameter", new ChildMapEntryDefinitionParser("requiredParams"));
         registerBeanDefinitionParser("optionalParameter", new ChildMapEntryDefinitionParser("optionalParams"));
