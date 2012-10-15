@@ -5,12 +5,14 @@ import org.jasper.jLib.webview.notam.decoder.WebViewNotamMessage;
 
 public class WebViewNotamGenerator {
 
+	private static int count = 0;
+	
 	public static WebViewNotam getNotam(){
 		
 		long millisSinceGMTMidnight = System.currentTimeMillis() % (24L * 60*60*1000);
 		String time_of_day = "" + (((double)millisSinceGMTMidnight) / 1000);
 		
-		WebViewNotamMessage notamMessage = new WebViewNotamMessage(null, "time_of_day = " + time_of_day);
+		WebViewNotamMessage notamMessage = new WebViewNotamMessage("" + count++, "time_of_day = " + time_of_day);
 		WebViewNotamMessage[] notamsArray = {notamMessage };
 		return new WebViewNotam(notamsArray);
 	}

@@ -5,14 +5,15 @@ import org.jasper.jLib.webview.trax.decoder.WebViewTraxMessage;
 
 public class WebViewTraxGenerator {
 	
+	private static int count = 0;
 	
 	public static WebViewTrax getTrax(){
 
 		long millisSinceGMTMidnight = System.currentTimeMillis() % (24L * 60*60*1000);
 		String time_of_day = "" + (((double)millisSinceGMTMidnight) / 1000);
-		
-		WebViewTraxMessage traxMessage = new WebViewTraxMessage(null, null, null, time_of_day, null, null, null, null, null,
+		WebViewTraxMessage traxMessage = new WebViewTraxMessage(null, "" + count, "" + count, time_of_day, null, null, null, null, null,
 				null, null, false, null, false, false, null, false, null, null, null, null, null, null);
+		count++;
 		WebViewTraxMessage[] traxArray = {traxMessage};
 		return new WebViewTrax(traxArray);
 	}

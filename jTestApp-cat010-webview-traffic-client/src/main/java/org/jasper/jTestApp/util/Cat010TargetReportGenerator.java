@@ -10,21 +10,23 @@ import org.jasper.jLib.cat010.codec.Cat010TrackStatus;
 
 public class Cat010TargetReportGenerator {
 	
-	private static Cat010TargetReport tr;
 	private static int posChange = 1;
 	private static double velChange = 0.5;
+	private static int posCurrent = 0;
+	private static double velCurrent = 0.0;
+	private static int count = 0;
 	
-	public static Cat010TargetReport getTargetReport(){
-		if(tr == null){
-			initalizeTR();
-		}else{
-			updateTR();
-		}
-		return tr;
+	/*
+	 * we ignore the string parameter, as our mule flow will
+	 * look for a method with a String parameter, we simply 
+	 * call the parameter-less version of this method
+	 */
+	public static Cat010TargetReport getTargetReport(String str){
+		return getTargetReport();
 	}
-	
-	private static void initalizeTR() {
-		tr = new Cat010TargetReport();
+
+	private static Cat010TargetReport getTargetReport() {
+		Cat010TargetReport tr = new Cat010TargetReport();
 		
 		tr.setDataSourceIdSac((byte) 0);
 		tr.setDataSourceIdSic((byte) 1);
@@ -46,13 +48,26 @@ public class Cat010TargetReportGenerator {
 		long millisSinceGMTMidnight = System.currentTimeMillis() % (24L * 60*60*1000);
 		tr.setTimeOfDay( ((double)millisSinceGMTMidnight) / 1000);
 		
-		tr.setPositionInCartesianCoordX(0);
-		tr.setPositionInCartesianCoordY(0);
+		tr.setPositionInCartesianCoordX(posCurrent);
+		tr.setPositionInCartesianCoordY(posCurrent);
 		
-		tr.setCalTrackVelocityInCartesianCoordX(0.0);
-		tr.setCalTrackVelocityInCartesianCoordY(0.0);
+		tr.setCalTrackVelocityInCartesianCoordX(velCurrent);
+		tr.setCalTrackVelocityInCartesianCoordY(velCurrent);
 		
-		tr.setTrackNumber(0);
+		posCurrent += posChange;
+		velCurrent += velChange;
+		
+		if(posCurrent >= 200){
+			posChange = -1;
+			velChange = -0.5;
+		}else if(posChange <= -200){
+			posChange = 1;
+			velChange = 0.5;
+		}		
+		
+		if(count > 4095) count = 0;
+		
+		tr.setTrackNumber(count);
 		
 		Cat010TrackStatus ts = new Cat010TrackStatus();
 		ts.setCnf(Cat010TrackStatus.CNF.confirmed_track);
@@ -83,36 +98,7 @@ public class Cat010TargetReportGenerator {
 		subTracks.put(0, subtrack);
 		tr.setSubTracks(subTracks);
 		
+		return tr;
 	}
-	
-	private static void updateTR() {
-		long millisSinceGMTMidnight = System.currentTimeMillis() % (24L * 60*60*1000);
-		tr.setTimeOfDay( ((double)millisSinceGMTMidnight) / 1000);
-		
-		tr.setPositionInCartesianCoordX(tr.getPositionInCartesianCoordX() + posChange);
-		tr.setPositionInCartesianCoordY(tr.getPositionInCartesianCoordY() + posChange);
-		
-		tr.setCalTrackVelocityInCartesianCoordX(tr.getCalTrackVelocityInCartesianCoordX() + velChange);
-		tr.setCalTrackVelocityInCartesianCoordY(tr.getCalTrackVelocityInCartesianCoordY() + velChange);
-		
-		if(tr.getPositionInCartesianCoordX() >= 200){
-			posChange = -1;
-			velChange = -0.5;
-		}else if(tr.getPositionInCartesianCoordX() <= -200){
-			posChange = 1;
-			velChange = 0.5;
-		}
-		
-	}
-
-	/*
-	 * we ignore the string parameter, as our mule flow will
-	 * look for a method with a String parameter, we simply 
-	 * call the parameter-less version of this method
-	 */
-	public static Cat010TargetReport getTargetReport(String str){
-		return getTargetReport();
-	}
-
 	
 }
