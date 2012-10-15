@@ -46,6 +46,7 @@ public class WebViewMessageReceiver extends PollingHttpMessageReceiver {
 	private OutboundEndpoint outboundApmEndpoint;
 	private OutboundEndpoint outboundSessionKeepAliveEndpoint;
 	private OutboundEndpoint outboundClockEndpoint;
+	private OutboundEndpoint outboundLogoutEndpoint;
 
 	//Boolean to keep track if we are logged in to webview
 	private boolean isLoggedInToWebView = false;
@@ -65,6 +66,8 @@ public class WebViewMessageReceiver extends PollingHttpMessageReceiver {
 	 */
 	private String csrftoken = "";
 	private String sessionid = "";
+	private int retryLimit = 3;
+
 	
 	private Logger logger = Logger.getLogger("org.jasper");
 		
@@ -87,7 +90,17 @@ public class WebViewMessageReceiver extends PollingHttpMessageReceiver {
     		}
     		
     		//Check to see if we are already logged in, if not attempt the login process
-    		if(!isLoggedInToWebView) webViewLogin();
+    		for(int i=0; i < retryLimit; i++) {
+    			if(!isLoggedInToWebView) webViewLogin();
+    			if(isLoggedInToWebView) {
+    				break;
+    			}
+    		}
+    
+    		if (!isLoggedInToWebView) {
+    			logger.error("Failed to login to webview - check configuration settings");
+    			return;
+    		}
     		
     		/*
     		 * The WebView connector, and by extension the MessageReciever needs to be able to poll different
@@ -100,16 +113,25 @@ public class WebViewMessageReceiver extends PollingHttpMessageReceiver {
     		if(pollingConnector.getWebViewPollingFrequencyNotam() > 500) this.schedule("sendNotam", pollingConnector.getWebViewPollingFrequencyNotam());
     		if(pollingConnector.getWebViewPollingFrequencyVideo() > 500) this.schedule("sendVideo", pollingConnector.getWebViewPollingFrequencyVideo());
     		if(pollingConnector.getWebViewPollingFrequencyApm() > 500) this.schedule("sendApm", pollingConnector.getWebViewPollingFrequencyApm());
- 
         }
         catch (Exception ex)
         {
-            this.stop();
             throw new CreateException(CoreMessages.failedToScheduleWork(), ex, this);
         }
 	}
     
-    private void webViewLogin() throws MuleException{
+    public void doDisconnect() throws Exception{
+    	webViewLogout();
+    	super.doDisconnect();
+    }
+
+	private void webViewLogout() throws MuleException {
+    	if(outboundLogoutEndpoint == null) outboundLogoutEndpoint = createOutboundEndpointForWebViewPosts("/webview/accounts/logout");
+        sendHttpRequest(outboundLogoutEndpoint, "GET", null);
+        isLoggedInToWebView = false;
+    }
+
+	private void webViewLogin() throws MuleException{
        	
     	if (!(connector instanceof WebViewConnector)){
     		logger.error("connector is not an instanceof WebViewConnector, aborting webViewLogin sequenece");
@@ -135,7 +157,14 @@ public class WebViewMessageReceiver extends PollingHttpMessageReceiver {
          * step in the login process, which is to download the initial login page, this will give us
          * the cookie info we need, specifically the csrftoken
          */
-    	sendHttpRequest(outboundLoginEndpoint, "GET", null);
+        try {
+        	sendHttpRequest(outboundLoginEndpoint, "GET", null);
+        } catch (Exception ex) {
+        	logger.warn(ex.getLocalizedMessage());
+        	isLoggedInToWebView = false;
+        	return;
+
+        }
     	
     	/*
     	 * We then create our login POST request, the body format is:

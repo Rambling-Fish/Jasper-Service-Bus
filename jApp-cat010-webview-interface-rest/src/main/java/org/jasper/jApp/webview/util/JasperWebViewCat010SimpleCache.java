@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Logger;
+
 import org.jasper.jLib.cat010.codec.Cat010TargetReport;
 import org.jasper.jLib.webview.adaps.decoder.WebViewAdaps;
 import org.jasper.jLib.webview.adaps.decoder.WebViewAdapsRunwayInfo;
@@ -24,6 +26,8 @@ public class JasperWebViewCat010SimpleCache {
 	private static WebViewTrax trax;
 	private static WebViewNotam notam;
 	private static WebViewAdaps adaps;
+	
+	private static Logger logger = Logger.getLogger("org.jasper");
 	
 	static{
 		WebViewTraxMessage traxMessage = new WebViewTraxMessage(null, null, null, null, null, null, null, null, null,
@@ -53,8 +57,12 @@ public class JasperWebViewCat010SimpleCache {
 	}
 	
 	public static void putTargetReport(Cat010TargetReport targetReport) {
-		targetReports.put(targetReport.getTrackNumber(), targetReport);
-		expiresTRMap.put(targetReport.getTrackNumber(), System.currentTimeMillis());
+		try {
+			targetReports.put(targetReport.getTrackNumber(), targetReport);
+			expiresTRMap.put(targetReport.getTrackNumber(), System.currentTimeMillis());
+		} catch (NullPointerException npe) {
+			logger.error("target report has null track number");
+		}
 	}
 	
 	public static Cat010TargetReport[] getTargetReports(){
@@ -72,8 +80,12 @@ public class JasperWebViewCat010SimpleCache {
 	}
 	
 	public static void putTraxMessage(WebViewTraxMessage traxMessage) {
-		traxMap.put(traxMessage.getCall_sign_name(), traxMessage);
-		expiresTraxMap.put(traxMessage.getCall_sign_name(), System.currentTimeMillis());
+		try {
+			traxMap.put(traxMessage.getCall_sign_name(), traxMessage);
+			expiresTraxMap.put(traxMessage.getCall_sign_name(), System.currentTimeMillis());
+		} catch (NullPointerException npe) {
+			logger.error("trax message has null call_sign_name");
+		}
 	}
 	
 	public static WebViewTraxMessage[] getTraxMap(){

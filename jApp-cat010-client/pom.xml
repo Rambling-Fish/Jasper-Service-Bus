@@ -15,7 +15,6 @@
     <description></description>
 
     <properties>
-        <main.basedir>${project.parent.basedir}</main.basedir>
         <jdk.version>1.6</jdk.version>
     </properties>
 
