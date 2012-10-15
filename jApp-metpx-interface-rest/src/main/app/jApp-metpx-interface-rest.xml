@@ -30,14 +30,14 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 	<flow name="jApp-metpx-interface-rest" doc:name="jApp-metpx-interface-rest">
 		<jasperengine:inbound-endpoint xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" topic="jms.jasper.1.0.metpx.topic" connector-ref="JEC" doc:name="JECEndpoint"/>
         <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.metpx.decoder.Bulletin" doc:name="JEC msg to Bulletin"/>
-        <component class="org.jasper.jLib.metpx.util.JasperMetpxSimpleCache" doc:name="RestCache"/>
+        <component class="org.jasper.jApp.metpx.util.JasperMetpxSimpleCache" doc:name="RestCache"/>
     </flow>
     <flow name="jApp-metpx-interface-rest-cache" doc:name="jApp-metpx-interface-rest-cache">
         <http:inbound-endpoint exchange-pattern="request-response" ref="globalHttpEndpoint" doc:name="bulletinList"/>
         <response>
             <json:object-to-json-transformer doc:name="Object to JSON"/>
         </response>
-        <component class="org.jasper.jLib.metpx.util.JasperMetpxSimpleCache" doc:name="RestCache"/>
+        <component class="org.jasper.jApp.metpx.util.JasperMetpxSimpleCache" doc:name="RestCache"/>
 	</flow>
 	
 </mule>

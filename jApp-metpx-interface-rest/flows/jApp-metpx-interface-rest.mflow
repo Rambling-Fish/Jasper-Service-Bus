@@ -48,7 +48,7 @@
             <property value="2" name="auxiliary;index"/>
         </properties>
     </global-element>
-    <flow SubFlow="false" name="jApp-metpx-interface-rest" entity-id="faf37eca-18af-43aa-987d-3a7f79dbdbc2">
+    <flow SubFlow="false" name="jApp-metpx-interface-rest" entity-id="1e73ee13-9961-4014-a893-5d22c4e8ae95">
         <properties>
             <property name="processingStrategy2"/>
             <property name="processingStrategy"/>
@@ -80,7 +80,7 @@
                     <property value="6" name="auxiliary;index"/>
                     <property value="6" name="auxiliary;index"/>
                     <property value="6" name="auxiliary;index"/>
-                    <property value="org.jasper.jLib.metpx.util.JasperMetpxSimpleCache" name="class"/>
+                    <property value="org.jasper.jApp.metpx.util.JasperMetpxSimpleCache" name="class"/>
                     <property value="6" name="auxiliary;index"/>
                     <property value="6" name="auxiliary;index"/>
                     <property value="6" name="auxiliary;index"/>
@@ -88,7 +88,7 @@
             </pattern>
         </lane>
     </flow>
-    <flow SubFlow="false" name="jApp-metpx-interface-rest-cache" entity-id="e7bb2f63-bd42-4808-a42a-d95729bc6f51">
+    <flow SubFlow="false" name="jApp-metpx-interface-rest-cache" entity-id="4bcd3fc0-12f2-4990-bc89-c2349c4503c3">
         <properties>
             <property name="processingStrategy2"/>
             <property name="processingStrategy"/>
@@ -169,7 +169,7 @@
                     <property value="11" name="auxiliary;index"/>
                     <property value="11" name="auxiliary;index"/>
                     <property value="11" name="auxiliary;index"/>
-                    <property value="org.jasper.jLib.metpx.util.JasperMetpxSimpleCache" name="class"/>
+                    <property value="org.jasper.jApp.metpx.util.JasperMetpxSimpleCache" name="class"/>
                     <property value="11" name="auxiliary;index"/>
                     <property value="11" name="auxiliary;index"/>
                     <property value="11" name="auxiliary;index"/>
