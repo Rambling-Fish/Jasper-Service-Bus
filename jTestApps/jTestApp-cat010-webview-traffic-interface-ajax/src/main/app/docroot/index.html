@@ -1,0 +1,89 @@
+<head>
+<script type="text/javascript" src="mule-resource/js/mule.js"></script>
+<script type="text/javascript">
+
+	function load() {
+    	mule.subscribe("/webview/trax", handleTrax);
+    	mule.subscribe("/webview/notam", handleNotam);
+    	mule.subscribe("/webview/adaps", handleAdaps);  
+    	mule.subscribe("/cat010/target_reports", handleTargetReports);
+    	mule.subscribe("/cat010/periodic_status_messages", handlePeriodicStatusMessages);
+    	mule.subscribe("/cat010/byte_array", handleByteArray);  
+    }
+    
+    function handleByteArray(message) {
+		var ba = dojo.fromJson(message.data);
+        if (message) {
+            document.getElementById("byteArrayRows").innerHTML = JSON.stringify(ba)
+        }  
+    }
+    function handleTargetReports(message) {
+		var tr = dojo.fromJson(message.data);
+        if (message) {
+            document.getElementById("targetReportRows").innerHTML = JSON.stringify(tr)
+        }  
+    }
+    
+    function handlePeriodicStatusMessages(message) {
+		var psm = dojo.fromJson(message.data);
+        if (message) {
+            document.getElementById("periodicStatusMessageRows").innerHTML = JSON.stringify(psm)
+        }  
+    }
+    
+    function handleTrax(message) {
+		var trax = dojo.fromJson(message.data);
+        if (message) {
+            document.getElementById("traxRows").innerHTML = JSON.stringify(trax)
+        }    
+    }
+    
+    function handleNotam(message) {
+		var notam = dojo.fromJson(message.data);
+	      if (message) {
+	            document.getElementById("notamRows").innerHTML = JSON.stringify(notam)
+	        }  
+    }
+
+    function handleAdaps(message) {
+		var adaps = dojo.fromJson(message.data);
+	      if (message) {
+	            document.getElementById("adapsRows").innerHTML = JSON.stringify(adaps)
+	        }  
+    }
+    
+</script>
+</head>
+
+<body onload="load()">
+
+<h1><b>Cat010 Byte Array</b></h1>
+<table border="1" width="100%">
+	<div id="byteArrayRows"></div>
+</table>
+<h1><b>Target Reports</b></h1>
+<table border="1" width="100%">
+	<div id="targetReportRows"></div>
+</table>
+<h1><b>Periodic Status Messages</b></h1>
+<table border="1" width="100%">
+	<div id="periodicStatusMessageRows"></div>
+</table>
+<p/>
+<h1><b>NOTAM</b></h1>
+<table border="1" width="100%">
+	<div id="notamRows"></div>
+</table>
+<p></p>
+<h1><b>ADAPS</b></h1>
+<table border="1" width="100%">
+	<div id="adapsRows"></div>
+</table>
+<p></p>
+<h1><b>TRAX</b></h1>
+<table border="1" width="100%">
+	<div id="traxRows"></div>
+</table>
+
+</body>
+</html>
