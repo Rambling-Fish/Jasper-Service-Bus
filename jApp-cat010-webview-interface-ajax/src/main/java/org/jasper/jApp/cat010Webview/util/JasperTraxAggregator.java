@@ -30,8 +30,8 @@ public class JasperTraxAggregator {
 	
 	public static WebViewTrax putTraxMessage(WebViewTraxMessage traxMessage) {
 		try {
-			traxMap.put(traxMessage.getCall_sign_name(), traxMessage);
-			expiresMap.put(traxMessage.getCall_sign_name(), System.currentTimeMillis());
+			traxMap.put(traxMessage.getTrack_number(), traxMessage);
+			expiresMap.put(traxMessage.getTrack_number(), System.currentTimeMillis());
 		} catch (NullPointerException npe) {
 			logger.error("trax message contains null call_sign_name");
 		}

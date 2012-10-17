@@ -81,8 +81,8 @@ public class JasperWebViewCat010SimpleCache {
 	
 	public static void putTraxMessage(WebViewTraxMessage traxMessage) {
 		try {
-			traxMap.put(traxMessage.getCall_sign_name(), traxMessage);
-			expiresTraxMap.put(traxMessage.getCall_sign_name(), System.currentTimeMillis());
+			traxMap.put(traxMessage.getTrack_number(), traxMessage);
+			expiresTraxMap.put(traxMessage.getTrack_number(), System.currentTimeMillis());
 		} catch (NullPointerException npe) {
 			logger.error("trax message has null call_sign_name");
 		}
