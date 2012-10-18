@@ -102,11 +102,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.jasper.jTransport</groupId>
-            <artifactId>jTransport-webview</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>activemq-all</artifactId>
             <version>5.7-SNAPSHOT</version>
@@ -116,6 +111,16 @@
             <artifactId>jTransport-jasperEngine</artifactId>
             <version>1.0</version>
         </dependency>
+   		<dependency>
+			<groupId>commons-net</groupId>
+			<artifactId>commons-net</artifactId>
+			<version>3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jasper.jLib</groupId>
+			<artifactId>jAuth-lib</artifactId>
+			<version>1.0</version>
+		</dependency>
     </dependencies>
 
 </project>

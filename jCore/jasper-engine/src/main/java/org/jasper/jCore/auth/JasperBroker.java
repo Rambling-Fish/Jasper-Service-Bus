@@ -41,7 +41,7 @@ public class JasperBroker extends BrokerFilter {
     	/*
     	 * Check to see if jApp deploymentId matches that of the system.
     	 */
-    	if(JECore.isValidDeploymentId(info.getUserName().split(":")[3])){
+    	if(JECore.isSystemDeploymentId(info.getUserName().split(":")[3])){
     		if(logger.isInfoEnabled()){
     			logger.info("jApp deploymentId matches that of the system : " + info.getUserName().split(":")[3]);
     		}
