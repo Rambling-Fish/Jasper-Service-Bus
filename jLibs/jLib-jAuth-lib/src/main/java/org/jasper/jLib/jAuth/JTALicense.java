@@ -3,25 +3,44 @@ package org.jasper.jLib.jAuth;
 import java.io.Serializable;
 import java.util.Calendar;
 
-public class JCoreLicense implements Serializable {
+public class JTALicense implements Serializable {
 
-	private static final long serialVersionUID = -3149487585283942590L;
-	
+	private static final long serialVersionUID = 3592650466203181338L;
+
+	private String vendor;
+	private String appName;
+	private String version;
 	private String deploymentId;
 	private Calendar expiry;
 	private String ntpHost;
 	private Integer ntpPort;
 	
 	private byte[] licenseKey;
-
-	public JCoreLicense(String deploymentId, Calendar expiry, String ntpHost,
-			Integer ntpPort, byte[] licenseKey) {
+	
+	public JTALicense(String vendor, String appName, String version,
+			String deploymentId, Calendar expiry, String ntpHost, Integer ntpPort,
+			byte[] licenseKey) {
 		super();
+		this.vendor = vendor;
+		this.appName = appName;
+		this.version = version;
 		this.deploymentId = deploymentId;
 		this.expiry = expiry;
 		this.ntpHost = ntpHost;
 		this.ntpPort = ntpPort;
 		this.licenseKey = licenseKey;
+	}
+
+	public String getVendor() {
+		return vendor;
+	}
+
+	public String getAppName() {
+		return appName;
+	}
+
+	public String getVersion() {
+		return version;
 	}
 
 	public String getDeploymentId() {
@@ -43,16 +62,20 @@ public class JCoreLicense implements Serializable {
 	public byte[] getLicenseKey() {
 		return licenseKey;
 	}
-	
+
 	public void setLicenseKey(byte[] licenseKey) {
 		this.licenseKey = licenseKey;
 	}
 	
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
-
+		sb.append(vendor);
+		sb.append(":");
+		sb.append(appName);
+		sb.append(":");
+		sb.append(version);
+		sb.append(":");
 		sb.append(deploymentId);
-		
 		if(expiry != null){
 			sb.append(":");
 			sb.append(expiry.get(Calendar.YEAR));

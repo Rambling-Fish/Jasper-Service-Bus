@@ -29,14 +29,14 @@ public class JasperBroker extends BrokerFilter {
     	 * values respectfully, match a generated set, if not we throw a Security Exception which will terminate
     	 * the connection, otherwise we addConnection and process down the chain of brokers.
     	 */
-    	if(JECore.isAuthenticationValid(info.getUserName(), info.getPassword())){
-    		if(logger.isInfoEnabled()){
-    			logger.info("jApp authenticated : " + info.getUserName() + ":" + info.getPassword());
-    		}
-    	}else{
-    		logger.error("Invalid jApp name and id combination : " + info.getUserName() + ":" + info.getPassword());
-	    	throw (SecurityException)new SecurityException("Invalid jApp name and id combination : " + info.getUserName() + ":" + info.getPassword());
-    	}
+//    	if(JECore.isAuthenticationValid(info.getUserName(), info.getPassword())){
+//    		if(logger.isInfoEnabled()){
+//    			logger.info("jApp authenticated : " + info.getUserName() + ":" + info.getPassword());
+//    		}
+//    	}else{
+//    		logger.error("Invalid jApp name and id combination : " + info.getUserName() + ":" + info.getPassword());
+//	    	throw (SecurityException)new SecurityException("Invalid jApp name and id combination : " + info.getUserName() + ":" + info.getPassword());
+//    	}
     	
     	/*
     	 * Check to see if jApp deploymentId matches that of the system.
