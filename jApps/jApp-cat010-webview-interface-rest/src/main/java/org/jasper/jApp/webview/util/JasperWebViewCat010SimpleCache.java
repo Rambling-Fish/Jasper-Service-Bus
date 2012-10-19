@@ -30,21 +30,14 @@ public class JasperWebViewCat010SimpleCache {
 	private static Logger logger = Logger.getLogger("org.jasper");
 	
 	static{
-		WebViewTraxMessage traxMessage = new WebViewTraxMessage(null, null, null, null, null, null, null, null, null,
-				null, null, false, null, false, false, null, false, null, null, null, null, null, null);
-		WebViewTraxMessage[] traxArray = {traxMessage};
+		WebViewTraxMessage[] traxArray = {};
 		trax = new WebViewTrax(traxArray);
 		
-		WebViewNotamMessage notamMessage = new WebViewNotamMessage(null, null);
-		WebViewNotamMessage[] notamsArray = {notamMessage };
+		WebViewNotamMessage[] notamsArray = {};
 		notam = new WebViewNotam(notamsArray);
 		
-		
-		WebViewAdapsRunwayInfo runway = new WebViewAdapsRunwayInfo(null, null, null, null, null, null, null);
-		WebViewAdapsRunwayInfo[] runways = {runway};
-		WebViewAdapsStats stats = new WebViewAdapsStats(null, null, null, null, null, null);
-		
-		adaps = new WebViewAdaps(stats, runways);
+		WebViewAdapsRunwayInfo[] runways = {};
+		adaps = new WebViewAdaps(null, runways);
 	}
 	
 	public Object getRestReponse(String msg){
@@ -88,7 +81,7 @@ public class JasperWebViewCat010SimpleCache {
 		}
 	}
 	
-	public static WebViewTraxMessage[] getTraxMap(){
+	public static WebViewTrax getTraxMap(){
 		ArrayList<WebViewTraxMessage> list = new ArrayList<WebViewTraxMessage>();
 		for(String trackNumber:traxMap.keySet()){
 			if((System.currentTimeMillis() - expiresTraxMap.get(trackNumber)) <= 5000){
@@ -99,10 +92,10 @@ public class JasperWebViewCat010SimpleCache {
 			}
 		}
 		WebViewTraxMessage[] empty = {};
-		return list.toArray(empty);
+		return new WebViewTrax(list.toArray(empty));
 	}
 	
-	public void putTrax(WebViewTrax trax){
+	public static void putTrax(WebViewTrax trax){
 		JasperWebViewCat010SimpleCache.trax = trax;
 		for(WebViewTraxMessage traxMessage:trax.getTrax()){
 			putTraxMessage(traxMessage);
