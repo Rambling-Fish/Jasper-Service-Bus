@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-configuration xmlns="http://www.mulesoft.com/tooling/messageflow" name="cat010toajax">
+    <global-unknown unknownName="JEC" entity-id="fd6a190f-fc1d-4289-857b-1570f1801175">
+        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; name=&quot;JEC&quot; vendor=&quot;${app.home}&quot; appName=&quot;cat010-interface-ajax&quot; version=&quot;1.0&quot; deploymentId=&quot;jasperLab&quot; jasperEngineURL=&quot;tcp://${cat010.interface.ajax.jasperEngineURL.host}:${cat010.interface.ajax.jasperEngineURL.port}&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;Jasper Connector&quot;/&gt;</content>
+    </global-unknown>
+    <global-element type="org.mule.tooling.ui.modules.core.global.ajaxConnector" name="AjaxGlobalConnector" entity-id="7459a472-aee9-4cca-b7c0-8d89c8282f31">
+        <properties>
+            <property value="AjaxConnector" name="name"/>
+            <property value="http://${cat010.interface.ajax.serverUrl.host}:${cat010.interface.ajax.serverUrl.port}/${cat010.interface.ajax.serverUrl.path}" name="serverUrl"/>
+            <property value="${app.home}/docroot" name="resourceBase"/>
+            <property name="disableReplyTo"/>
+            <property name="logLevel"/>
+            <property name="refsThreshold"/>
+            <property value="true" name="jsonCommented"/>
+            <property name="timeout"/>
+            <property name="interval"/>
+            <property name="maxInterval"/>
+            <property name="multiFrameInterval"/>
+        </properties>
+    </global-element>
+    <global-element type="http://www.mulesoft.org/schema/mule/jms/jmsmessage-to-object-transformer" name="JEC msg to cat010" entity-id="874e4316-fc2c-4c56-8cfb-c00d0996661b">
+        <properties>
+            <property value="org.jasper.jLib.cat010.codec.Cat010Message" name="returnClass"/>
+            <property name="ignoreBadInput"/>
+            <property name="encoding"/>
+            <property name="mimeType"/>
+            <property value="JEC_msg_to_cat010" name="name"/>
+        </properties>
+    </global-element>
+    <flow SubFlow="false" name="jApp-cat010-interface-ajax-flow-periodicStatusMessage">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+        </properties>
+        <lane hadOnlyOneElement="false" entity-id="b49486c3-3232-4444-a094-6905ea4d426c">
+            <unknown entity-id="754519ad-2c79-42fb-a51b-55bc4cab3824">
+                <content>&lt;jasperengine:inbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.cat010.topic.psm&quot; transformer-refs=&quot;JEC_msg_to_cat010&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECEndpoint&quot;/&gt;</content>
+            </unknown>
+            <pattern type="http://www.mulesoft.org/schema/mule/json/object-to-json-transformer" name="Cat010PeriodicStatusMessage to JSON" entity-id="077d27f8-2580-45c9-b028-57c41fb2dc32">
+                <properties>
+                    <property name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property name="mimeType"/>
+                    <property name="mapper-ref"/>
+                    <property value="org.jasper.jLib.cat010.codec.Cat010PeriodicStatusMessage" name="sourceClass"/>
+                </properties>
+            </pattern>
+            <endpoint message-exchange-pattern="OneWay" direction="Outbound" type="org.mule.tooling.ui.modules.core.ajax.AJAX" name="Ajax Periodic Status Messages" entity-id="ca66f881-d25d-4019-83ba-ca37cb59b051">
+                <properties>
+                    <property value="one-way" name="exchange-pattern"/>
+                    <property value="/cat010/periodic_status_messages" name="channel"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="responseTimeout"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="address"/>
+                    <property name="cacheMessages"/>
+                    <property name="messageCacheSize"/>
+                    <property value="AjaxConnector" name="connector-ref"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                </properties>
+            </endpoint>
+        </lane>
+    </flow>
+    <flow SubFlow="false" name="jApp-cat010-interface-ajax-flow-targetReport">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+        </properties>
+        <lane hadOnlyOneElement="false" entity-id="57cc259a-35ed-4b89-871c-64ca237d91f6">
+            <unknown entity-id="71e1b6a6-c3a3-4a7b-946c-4fcae300c5b6">
+                <content>&lt;jasperengine:inbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.cat010.topic.tr&quot; transformer-refs=&quot;JEC_msg_to_cat010&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECEndpoint&quot;/&gt;</content>
+            </unknown>
+            <pattern type="http://www.mulesoft.org/schema/mule/json/object-to-json-transformer" name="Cat010TargetReport to JSON" entity-id="84d1eb90-4041-423a-ae7b-714abedcf718">
+                <properties>
+                    <property name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property name="mimeType"/>
+                    <property name="mapper-ref"/>
+                    <property value="org.jasper.jLib.cat010.codec.Cat010TargetReport" name="sourceClass"/>
+                </properties>
+            </pattern>
+            <endpoint message-exchange-pattern="OneWay" direction="Outbound" type="org.mule.tooling.ui.modules.core.ajax.AJAX" name="Ajax Target Reports" entity-id="13d3e4ff-e10f-48db-b663-7b0b7616e4c1">
+                <properties>
+                    <property value="one-way" name="exchange-pattern"/>
+                    <property value="/cat010/target_reports" name="channel"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="responseTimeout"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="address"/>
+                    <property name="cacheMessages"/>
+                    <property name="messageCacheSize"/>
+                    <property value="AjaxConnector" name="connector-ref"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                </properties>
+            </endpoint>
+        </lane>
+    </flow>
+    <description>This flow will listening for incoming cat010 messages, decode them and then send them over ajax to any interested clients</description>
+</mule-configuration>

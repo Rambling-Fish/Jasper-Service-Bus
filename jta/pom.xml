@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jasper</groupId>
+        <artifactId>jasper</artifactId>
+        <version>1.1</version>
+    </parent>
+    <groupId>org.jasper.jta</groupId>
+    <artifactId>jta-parent</artifactId>
+    <packaging>pom</packaging>
+    <name>jta-parent</name>
+    <version>1.1</version>
+    <description></description>
+
+    <properties>
+        <jdk.version>1.6</jdk.version>
+    </properties>
+
+    <build>
+        <!--
+            Use a newer version of the install plugin than what your Maven uses by default. The
+            older version failed to install the project if there was no target/classes folder.
+            Since we use mule packaging on the project we actually create and attach the zip that
+            must be installed.
+        -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>2.3.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.mule.tools</groupId>
+                <artifactId>maven-mule-plugin</artifactId>
+                <version>1.6</version>
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>${jdk.version}</source>
+                    <target>${jdk.version}</target>
+                    <encoding>ISO-8859-1</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources-build-artifact-to-parent</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.parent.basedir}/target</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/target</directory>
+                                    <includes>
+                                        <include>*.zip</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-resources-build-artifact-top-parent</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.parent.basedir}/../target/jta</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.parent.basedir}/target</directory>
+                                    <includes>
+                                        <include>*.zip</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <modules>
+        <module>jta-client-cat010</module>
+        <module>jta-client-cat010-atims</module>
+        <module>jta-client-idarvideo</module>
+        <module>jta-client-metpx</module>
+        <module>jta-client-webview</module>
+        <module>jta-interface-cat010-ajax</module>
+        <module>jta-interface-cat010-eavd</module>
+        <module>jta-interface-cat010-rest</module>
+        <module>jta-interface-cat010-webview-ajax</module>
+        <module>jta-interface-cat010-webview-rest</module>
+        <module>jta-interface-idarvideo-ajax</module>
+        <module>jta-interface-idarvideo-rest</module>
+        <module>jta-interface-metpx-ajax</module>
+        <module>jta-interface-metpx-rest</module>
+        <module>jta-interface-webview-ajax</module>
+        <module>jta-interface-webview-rest</module>
+    </modules>
+    
+</project>

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema xmlns="http://www.mulesoft.org/schema/mule/webview"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:mule="http://www.mulesoft.org/schema/mule/core"
+            xmlns:http="http://www.mulesoft.org/schema/mule/http"
+            xmlns:schemadoc="http://www.mulesoft.org/schema/mule/schemadoc"
+            targetNamespace="http://www.mulesoft.org/schema/mule/webview"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified">
+
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:import namespace="http://www.mulesoft.org/schema/mule/core"
+                schemaLocation="http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd" />
+    <xsd:import namespace="http://www.mulesoft.org/schema/mule/http"
+                schemaLocation="http://www.mulesoft.org/schema/mule/http/3.2/mule-http.xsd"/>
+    <xsd:import namespace = "http://www.mulesoft.org/schema/mule/schemadoc"
+                schemaLocation = "http://www.mulesoft.org/schema/mule/schemadoc/3.2/mule-schemadoc.xsd"/>
+
+    <xsd:annotation>
+        <xsd:documentation>
+            This transport will poll a WebView server and provide the data to the rest of the system
+        </xsd:documentation>
+        <xsd:appinfo>
+            <schemadoc:short-name>WebView</schemadoc:short-name>
+            <schemadoc:page-title>WebView Transport</schemadoc:page-title>
+            <schemadoc:artifact-name>webview</schemadoc:artifact-name>
+            <schemadoc:transport-features receiveEvents="true" dispatchEvents="false" requestEvents="true" transactions="false" streaming="true">
+                <schemadoc:MEPs supported="one-way, request-response" default="request-response"/>
+            </schemadoc:transport-features>
+        </xsd:appinfo>
+    </xsd:annotation>
+
+     <xsd:element name="polling-connector" type="webviewPollingConnectorType" substitutionGroup="mule:abstract-connector">
+        <xsd:annotation>
+            <xsd:documentation>
+                Allows Mule to poll a WebView server and generate events from the result.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="webviewPollingConnectorType">
+        <xsd:complexContent>
+            <xsd:extension base="http:httpConnectorType">           
+                <xsd:attribute name="checkEtag" type="mule:substitutableBoolean">
+                    <xsd:annotation>
+                        <xsd:documentation>Whether the ETag header from the remote server is processed if the header is present.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="discardEmptyContent" type="mule:substitutableBoolean">
+                    <xsd:annotation>
+                        <xsd:documentation>Whether Mule should discard any messages from the remote server that have a zero content length. For many services, a zero length would mean there was no data to return. If the remote HTTP server does return content to say that the request is empty, users can configure a content filter on the endpoint to filter these messages out.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                
+                <!--
+                  * The following block are the polling frequencies for the different WebView endpoints, the connector will ignore any pooling
+                  * frequencies that are less than 500, though it is recommended to set to 0 to disable.
+                 -->
+                <xsd:attribute name="webViewPollingFrequencyTrax" type="mule:substitutableLong" default="1000">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            This is the polling frequency for the trax data. Set to 0 to disable.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                 </xsd:attribute>
+                 <xsd:attribute name="webViewPollingFrequencyVideo" type="mule:substitutableLong" default="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            This is the polling frequency for the video data. Set to 0 to disable.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                 </xsd:attribute>
+                 <xsd:attribute name="webViewPollingFrequencyNotam" type="mule:substitutableLong" default="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            This is the polling frequency for the notam data. Set to 0 to disable.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                 </xsd:attribute>
+                 <xsd:attribute name="webViewPollingFrequencyAdaps" type="mule:substitutableLong" default="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            This is the polling frequency for the adaps data. Set to 0 to disable.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                 </xsd:attribute>
+                 <xsd:attribute name="webViewPollingFrequencyApm" type="mule:substitutableLong" default="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            This is the polling frequency for the apm data. Set to 0 to disable.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                 </xsd:attribute>
+                
+                
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="inbound-endpoint" type="inboundEndpointType" substitutionGroup="mule:abstract-inbound-endpoint">
+        <xsd:annotation>
+            <xsd:documentation>
+                An inbound WebView endpoint will poll WebView server for info.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="inboundEndpointType">
+        <xsd:complexContent>
+            <xsd:extension base="http:inboundEndpointType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="endpoint" type="globalEndpointType" substitutionGroup="mule:abstract-global-endpoint">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures a global WebView endpoint that can be referenced by services. Services can augment the configuration defined in the global endpoint with local configuration elements.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="globalEndpointType">
+        <xsd:complexContent>
+            <xsd:restriction base="http:globalEndpointType">
+           		<xsd:attribute name="port" type="mule:substitutablePortNumber" default="80"/>
+          		<xsd:attribute name="path" type="xsd:string" default="webview/accounts/login"/>
+            	<xsd:attribute name="contentType" type="xsd:string" default="application/x-www-form-urlencoded"/>
+            </xsd:restriction>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+<!--    <xsd:element name="static-resource-handler" type="staticResourceHandlerType" substitutionGroup="mule:abstract-message-processor">-->
+<!--        <xsd:annotation>-->
+<!--            <xsd:documentation>-->
+<!--                Serves up static content for use with http. (Since Mule 3.2)-->
+<!--            </xsd:documentation>-->
+<!--        </xsd:annotation>-->
+<!--    </xsd:element>-->
+<!--    <xsd:complexType name="staticResourceHandlerType">-->
+<!--        <xsd:complexContent>-->
+<!--            <xsd:extension base="mule:abstractInterceptingMessageProcessorType">-->
+<!--                <xsd:attribute name="resourceBase" type="xsd:string" use="required">-->
+<!--                    <xsd:annotation>-->
+<!--                        <xsd:documentation>-->
+<!--                            The resource base for where documents are served up from.-->
+<!--                        </xsd:documentation>-->
+<!--                    </xsd:annotation>-->
+<!--                </xsd:attribute>-->
+<!--                <xsd:attribute name="defaultFile" type="xsd:string" use="optional" default="index.html">-->
+<!--                    <xsd:annotation>-->
+<!--                        <xsd:documentation>-->
+<!--                            The default file to sever when a directory is specified. The default value is 'index.html'.-->
+<!--                        </xsd:documentation>-->
+<!--                    </xsd:annotation>-->
+<!--                </xsd:attribute>-->
+<!--            </xsd:extension>-->
+<!--        </xsd:complexContent>-->
+<!--    </xsd:complexType>-->
+
+</xsd:schema>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>MetPX</title>
+	<link href="css/bootstrap.css" rel="stylesheet">
+	<link href="css/bootstrap-responsive.css" rel="stylesheet">
+
+	<link href="css/custom.css" rel="stylesheet">
+	<style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+	<script type="text/javascript" src="mule-resource/js/mule.js"></script>
+	<script type="text/javascript">
+
+		function load() {
+	    	mule.subscribe("/metpx/bulletin", handleBulletin);
+
+	    }
+		
+		function handleBulletin(message){
+			var BulletinMsg = dojo.fromJson(message.data);
+			 
+	        if (message) {
+				
+	        	
+				tableContent = "<table id='targets' class='table table-bordered table-condensed table-striped'>";
+				tableContent += "<thead><th spancol='2'>MetPX Bulletin</th></thead>";
+				tableContent += "<tbody>";
+				tableContent += "<tr><td>Header</td><td>" + BulletinMsg.header + "</td><tr>";
+				tableContent += "<tr><td>From</td><td>" + BulletinMsg.from + "</td><tr>";
+				tableContent += "<tr><td>Country</td><td>" + BulletinMsg.country + "</td><tr>";
+				tableContent += "<tr><td>Scope</td><td>" + BulletinMsg.scope + "</td><tr>";
+				tableContent += "<tr><td>Origin</td><td>" + BulletinMsg.origin + "</td><tr>";
+				tableContent += "<tr><td>Time</td><td>" + BulletinMsg.time + "</td><tr>";
+				tableContent += "<tr><td>Destination</td><td>" + BulletinMsg.destination + "</td><tr>";
+				tableContent += "<tr><td>Content</td><td>" + BulletinMsg.content + "</td><tr>";
+				tableContent += "<tbody></table>";
+				document.getElementById("bulletinTable").innerHTML = tableContent;
+				/* 
+				"content":" RMK NXT FCST BY 261800Z=\n BECMG 2706/2708 VRB03KT\n TEMPO 2623/2712 OVC015\n FM262300 26010KT P6SM OVC025\n TEMPO 2617/2623 4SM -SHRA BR OVC010\n FM261700 24012KT P6SM OVC020\n PROB30 2615/2617 2SM SHRAGS BR BKN005 OVC060CB\n TEMPO 2615/2617 3SM SHRA -SHGS BR SCT005 OVC015\n","country":"CN","time":"261500","header":"FTCN38 CWAO 261500 AAC","scope":"38","destination":"TAF AMD CYYR 261542Z 2615/2712 08005KT 1/2SM FG OVC002","from":"FT","origin":"CWAO"
+				
+				*/
+	        } 
+				
+			
+			}
+			
+
+	</script>
+</head>
+
+	<body onload="load()">
+	<div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#">MetPX-AJAX</a>
+        </div>
+      </div>
+    </div>
+    <div class="datacontainer">	
+    	<div class="row-fluid">		
+			<div class="span12">
+				<div id="bulletinTable" class="well">
+					<h1>Loading...<img src="img/ajax-loader.gif"></h1>
+				</div>
+			</div>	
+	</div>
+	</div>
+</body>
+</html>

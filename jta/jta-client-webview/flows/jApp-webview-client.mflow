@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-configuration xmlns="http://www.mulesoft.com/tooling/messageflow" name="mule-app-webview-rest-interface">
+    <global-unknown unknownName="JEC" entity-id="d0ef0c22-e021-4369-b025-37527db8aa44">
+        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; name=&quot;JEC&quot; vendor=&quot;jasper&quot; appName=&quot;webview-client&quot; version=&quot;1.0&quot; deploymentId=&quot;jasperLab&quot; jAppAuthKey=&quot;4eb7f41c94c0ee0fbbaef419855090974c306a39&quot; jasperEngineURL=&quot;tcp://${webview.client.jasperEngineURL.host}:${webview.client.jasperEngineURL.port}&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;Jasper Connector&quot;/&gt;</content>
+    </global-unknown>
+    <global-unknown unknownName="globalWebViewEndpoint" entity-id="59e57ee3-ef9c-47d8-a12f-5055204b0e86">
+        <content>&lt;webview:endpoint xmlns:webview=&quot;http://www.mulesoft.org/schema/mule/webview&quot; name=&quot;globalWebViewEndpoint&quot; host=&quot;${webview.client.inbound.webviewEndpoint.host}&quot; user=&quot;${webview.client.inbound.webviewEndpoint.user}&quot; password=&quot;${webview.client.inbound.webviewEndpoint.password}&quot;/&gt;</content>
+    </global-unknown>
+    <global-unknown unknownName="webViewConnector" entity-id="24841162-1d25-4ce0-a3f0-819b4fe51a76">
+        <content>&lt;webview:polling-connector xmlns:webview=&quot;http://www.mulesoft.org/schema/mule/webview&quot; name=&quot;webViewConnector&quot; webViewPollingFrequencyTrax=&quot;${webview.client.webviewConnector.pollingFrequency.trax}&quot; webViewPollingFrequencyVideo=&quot;0&quot; webViewPollingFrequencyNotam=&quot;${webview.client.webviewConnector.pollingFrequency.notam}&quot; webViewPollingFrequencyAdaps=&quot;${webview.client.webviewConnector.pollingFrequency.adaps}&quot; webViewPollingFrequencyApm=&quot;0&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;WebView Polling Connector&quot;/&gt;</content>
+    </global-unknown>
+    <flow SubFlow="false" name="jApp-webview-client-flow">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+        </properties>
+        <lane hadOnlyOneElement="false" entity-id="55245ca3-2080-4e94-8775-caf817a22e9d">
+            <unknown entity-id="2189cea5-4165-4ee6-992d-eb87f1fbee8a">
+                <content>&lt;webview:inbound-endpoint xmlns:webview=&quot;http://www.mulesoft.org/schema/mule/webview&quot; ref=&quot;globalWebViewEndpoint&quot; connector-ref=&quot;webViewConnector&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;webViewEndpoint&quot;/&gt;</content>
+            </unknown>
+            <pattern type="http://www.mulesoft.org/schema/mule/core/object-to-string-transformer" name="Object to String" entity-id="80f19901-851a-42bb-9aa2-8e609948a21a">
+                <properties>
+                    <property name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property name="mimeType"/>
+                </properties>
+            </pattern>
+            <splitter type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="15f3ad84-a8b7-4819-bc6a-fa1c722c728a">
+                <properties>
+                    <property-collection name="ed18f128-7db0-4c93-88d3-5c8617cb3632">
+                        <property value="INBOUND:MessageType=adaps" name="choice.expression"/>
+                    </property-collection>
+                    <property-collection name="9915c1c8-d4a4-4ade-accf-5ca170cc2c96">
+                        <property value="INBOUND:MessageType=notam" name="choice.expression"/>
+                    </property-collection>
+                    <property-collection name="49a09658-0d4e-4eb5-b324-34eb1f901862">
+                        <property value="true" name="choice.otherwise"/>
+                    </property-collection>
+                    <property-collection name="551238b0-9c8e-47d3-bcd4-3e0be84a1989">
+                        <property value="INBOUND:MessageType=trax" name="choice.expression"/>
+                    </property-collection>
+                </properties>
+                <pattern type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="f7ea5a04-c1d9-4eb5-9670-3eca428e8491"/>
+                <compartment entity-id="5b8e9724-4569-4301-999f-057eb49356ce">
+                    <lane hadOnlyOneElement="false" entity-id="551238b0-9c8e-47d3-bcd4-3e0be84a1989">
+                        <pattern type="org.mule.tooling.ui.modules.core.pattern.customTransformer" name="TraxTransformer" entity-id="bfc01702-426a-4bcc-ba57-2d2688afcf83">
+                            <properties>
+<property name="returnClass"/>
+<property name="ignoreBadInput"/>
+<property name="encoding"/>
+<property name="mimeType"/>
+<property value="org.jasper.jLib.webview.trax.transformer.StringToWebViewTrax" name="class"/>
+                            </properties>
+                        </pattern>
+                        <unknown entity-id="6cb7c36a-d51f-47aa-a0d5-4e51c415432e">
+                            <content>&lt;jasperengine:outbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.webview.topic.trax&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECTraxEndpoint&quot;/&gt;</content>
+                        </unknown>
+                    </lane>
+                    <lane hadOnlyOneElement="false" entity-id="9915c1c8-d4a4-4ade-accf-5ca170cc2c96">
+                        <pattern type="org.mule.tooling.ui.modules.core.pattern.customTransformer" name="NotamTransformer" entity-id="e04aa1c8-3b65-464f-b2ac-1adb087e2c60">
+                            <properties>
+<property name="returnClass"/>
+<property name="ignoreBadInput"/>
+<property name="encoding"/>
+<property name="mimeType"/>
+<property value="org.jasper.jLib.webview.notam.transformer.StringToWebViewNotam" name="class"/>
+                            </properties>
+                        </pattern>
+                        <unknown entity-id="f4981960-4435-4682-9cdb-677495f958da">
+                            <content>&lt;jasperengine:outbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.webview.topic.notam&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECNotamEndpoint&quot;/&gt;</content>
+                        </unknown>
+                    </lane>
+                    <lane hadOnlyOneElement="false" entity-id="ed18f128-7db0-4c93-88d3-5c8617cb3632">
+                        <pattern type="org.mule.tooling.ui.modules.core.pattern.customTransformer" name="AdapsTransformer" entity-id="753b37e8-b793-4ff0-a810-a100745c0dbd">
+                            <properties>
+<property name="returnClass"/>
+<property name="ignoreBadInput"/>
+<property name="encoding"/>
+<property name="mimeType"/>
+<property value="org.jasper.jLib.webview.adaps.transformer.StringToWebViewAdaps" name="class"/>
+                            </properties>
+                        </pattern>
+                        <unknown entity-id="642b15ba-6cac-4630-a8ed-1473b81fe66e">
+                            <content>&lt;jasperengine:outbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.webview.topic.adaps&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECAdapsEndpoint&quot;/&gt;</content>
+                        </unknown>
+                    </lane>
+                    <lane hadOnlyOneElement="false" entity-id="49a09658-0d4e-4eb5-b324-34eb1f901862">
+                        <pattern type="http://www.mulesoft.org/schema/mule/core/logger" name="ErrorLogger" entity-id="5b1b04dc-59a1-4579-809c-b81e750f8000">
+                            <properties>
+<property name="message"/>
+<property value="ERROR" name="level"/>
+<property value="WebView message not recognized" name="category"/>
+                            </properties>
+                        </pattern>
+                    </lane>
+                </compartment>
+            </splitter>
+        </lane>
+    </flow>
+    <description></description>
+</mule-configuration>

@@ -1,0 +1,139 @@
+<head>
+<script type="text/javascript" src="mule-resource/js/mule.js"></script>
+<script type="text/javascript">
+
+	function load() {
+    	mule.subscribe("/cat010/target_reports", handleTargetReports);
+    	mule.subscribe("/cat010/periodic_status_messages", handlePeriodicStatusMessages);  
+    }
+    
+    function handleTargetReports(message) {
+		var cat010Msg = dojo.fromJson(message.data);
+        if (message) {
+			document.getElementById("tr.dataSourceId").innerHTML                            = cat010Msg.dataSourceIdSac + "," + cat010Msg.dataSourceIdSic;
+			document.getElementById("tr.messageType").innerHTML                             = cat010Msg.messageType;
+			document.getElementById("tr.targetReportDescriptor").innerHTML                  = JSON.stringify(cat010Msg.targetReportDescriptor);
+			document.getElementById("tr.timeOfDay").innerHTML                               = cat010Msg.timeOfDay;
+			document.getElementById("tr.positionInCartesianCoord").innerHTML                = cat010Msg.positionInCartesianCoordX + "m, " + cat010Msg.positionInCartesianCoordY + "m";
+			document.getElementById("tr.calculatedTrackVelocityInCartesianCoord").innerHTML = cat010Msg.calTrackVelocityInCartesianCoordX + "m/s, " + cat010Msg.calTrackVelocityInCartesianCoordY + "m/s";
+			document.getElementById("tr.trackNumber").innerHTML                             = cat010Msg.trackNumber;
+			document.getElementById("tr.trackStatus").innerHTML                             = JSON.stringify(cat010Msg.trackStatus);
+			document.getElementById("tr.targetSizeAndOrientation").innerHTML                = cat010Msg.targetLength + "m, " + cat010Msg.targetOrientation + " degrees, " + cat010Msg.targetLength + "m";
+			document.getElementById("tr.standardDeviationOfPosition").innerHTML             = cat010Msg.standardDeviationOfX + "m, " + cat010Msg.standardDeviationOfX + " m, " + cat010Msg.convariance + "m^2";
+			document.getElementById("tr.subTracks").innerHTML                               = JSON.stringify(cat010Msg.subTracks);
+        }
+    }
+    
+    function handlePeriodicStatusMessages(message) {
+		var cat010Msg = dojo.fromJson(message.data);
+        if (message) {
+			document.getElementById("psm.dataSourceId").innerHTML = cat010Msg.dataSourceIdSac + "," + cat010Msg.dataSourceIdSic;
+			document.getElementById("psm.messageType").innerHTML  = cat010Msg.messageType;
+			document.getElementById("psm.timeOfDay").innerHTML    = cat010Msg.timeOfDay;
+			document.getElementById("psm.systemStatus").innerHTML = JSON.stringify(cat010Msg.systemStatus);
+        }
+    }
+</script>
+</head>
+
+<body onload="load()">
+<h1><b>Target Reports</b></h1>
+<table border="1" width="100%">
+	<tr>
+		<td width=375>Data Source ID (SAC,SIC)</td>
+		<td>
+		<div id="tr.dataSourceId"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Message Type</td>
+		<td>
+		<div id="tr.messageType"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Target Report Descriptor</td>
+		<td>
+		<div id="tr.targetReportDescriptor"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Time of Day (sec after midnight UTC)</td>
+		<td>
+		<div id="tr.timeOfDay"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Measured Position in Cartesian Coord X,Y</td>
+		<td>
+		<div id="tr.positionInCartesianCoord"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Calculated Track Velocity in Cartesian Coord vX,vY</td>
+		<td>
+		<div id="tr.calculatedTrackVelocityInCartesianCoord"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Track Number</td>
+		<td>
+		<div id="tr.trackNumber"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Track Status</td>
+		<td>
+		<div id="tr.trackStatus"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Target Size and Orientation (length, orientation, width)</td>
+		<td>
+		<div id="tr.targetSizeAndOrientation"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Standard Deviation of Position</td>
+		<td>
+		<div id="tr.standardDeviationOfPosition"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Sub Tracks</td>
+		<td>
+		<div id="tr.subTracks"></div>
+		</td>
+	</tr>
+</table>
+<p></p>
+<h1><b>Periodic Status Messages</b></h1>
+<table border="1" width="100%">
+	<tr>
+		<td width=300>Data Source ID (SAC,SIC)</td>
+		<td>
+		<div id="psm.dataSourceId"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Message Type</td>
+		<td>
+		<div id="psm.messageType"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>Time of Day (sec after midnight UTC)</td>
+		<td>
+		<div id="psm.timeOfDay"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>System Status</td>
+		<td>
+		<div id="psm.systemStatus"></div>
+		</td>
+	</tr>
+</table>
+
+</body>
+</html>

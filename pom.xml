@@ -1,34 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jasper</groupId>
-    <artifactId>jasper-platform</artifactId>
-    <version>1.0</version>
+    <artifactId>jasper</artifactId>
+    <version>1.1</version>
     <packaging>pom</packaging>
     <modules>
-        <module>jLib-cat010-codec</module>
-        <module>jLib-webview-codec</module>
-	<module>jLib-idarvideo-codec</module>
-	<module>jLib-metpx-codec</module>
-        <module>jTransport-jasperEngine</module>
-        <module>jTransport-webview</module>
-        <module>jApp-cat010-client</module>
-        <module>jApp-cat010-atims-client</module>
-        <module>jApp-cat010-interface-ajax</module>
-        <module>jApp-cat010-interface-eavd</module>
-        <module>jApp-cat010-interface-rest</module>
-        <module>jApp-cat010-webview-interface-ajax</module>
-        <module>jApp-cat010-webview-interface-rest</module>
-        <module>jApp-webview-client</module>
-        <module>jApp-webview-interface-ajax</module>
-        <module>jApp-webview-interface-rest</module>
-	<module>jApp-metpx-client</module>
-	<module>jApp-metpx-interface-ajax</module>
-	<module>jApp-metpx-interface-rest</module>
-	<module>jApp-idarvideo-client</module>
-	<module>jApp-idarvideo-interface-ajax</module>
-        <module>jApp-idarvideo-interface-rest</module>
-        <module>jTestApp-cat010-webview-traffic-client</module>
-        <module>jTestApp-cat010-webview-traffic-interface-ajax</module>
-	<module>jCore-jasper-platform</module>
+        <module>jLib</module>
+        <module>jTransport</module>
+        <module>jta</module>
+        <module>jtaTest</module>
+        <module>jasper-platform</module>
     </modules>
 </project>
