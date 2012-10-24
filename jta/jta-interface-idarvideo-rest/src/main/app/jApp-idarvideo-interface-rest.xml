@@ -25,8 +25,8 @@ http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/
 http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
 	<jasperengine:connector
 		xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" name="JEC"
-		vendor="jasper" appName="idarvideo-interface-rest" version="1.0"
-		deploymentId="jasperLab" jAppAuthKey="af5f818f2a780a74a54494bdbfe3d5d40388dfc1"
+		vendor="jasper" appName="jta-interface-idarvideo-rest" version="1.1"
+		deploymentId="jasperLab"
 		jasperEngineURL="tcp://${idarvideo.interface.rest.jasperEngineURL.host}:${idarvideo.interface.rest.jasperEngineURL.port}"
 		doc:name="JasperEngineConnector" />
 	<http:endpoint host="${idarvideo.interface.rest.http.endpoint.host}"

@@ -1,16 +1,10 @@
 package org.mule.transport.jasperengine;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.util.Properties;
 
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
+import org.mule.api.DefaultMuleException;
 import org.mule.api.MuleContext;
 import org.mule.api.MuleException;
 import org.mule.api.config.MuleProperties;
@@ -42,9 +36,9 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     	try {
 			license = JAuthHelper.loadJTALicenseFromFile(muleContext.getRegistry().get(MuleProperties.APP_HOME_DIRECTORY_PROPERTY) + "/" + appName + JAuthHelper.JTA_LICENSE_FILE_SUFFIX);
 			if(!validJTALicense()){
-				this.doStop();
+				throw new DefaultMuleException("Invalid JTA license key");
 			}else{				
-				setPassword(new String(license.getLicenseKey()));
+				setPassword(JAuthHelper.bytesToHex((license.getLicenseKey())));
 				setBrokerURL(jasperEngineURL);
 				setUsername(vendor + ":" + appName + ":" + version + ":" + deploymentId);
 				super.doInitialise();
@@ -54,29 +48,8 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 		} catch (MuleException e) {
 			e.printStackTrace();
 		}
-    	System.out.println("doInitialise() about to return");
     }
     
-    public void doConnect(){
-    	System.out.println("doConnect()");
-    	try {
-			super.doConnect();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-    	System.out.println("doConnect() about to return");
-    }
-    
-    public void doStart(){
-    	System.out.println("doStart()");
-    	try {
-			super.doStart();
-		} catch (MuleException e) {
-			e.printStackTrace();
-		}
-    	System.out.println("doStart() about to return");
-    }
-
     private boolean validJTALicense() {
     	return ( (license.getVendor().equals(vendor)) && 
     			 (license.getAppName().equals(appName)) &&

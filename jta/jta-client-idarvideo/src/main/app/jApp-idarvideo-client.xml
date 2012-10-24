@@ -18,8 +18,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd 
 http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd ">
 	<jasperengine:connector name="JEC" vendor="jasper"
-		appName="idarvideo-client" version="1.0" deploymentId="jasperLab"
-		jAppAuthKey="4962f2adac5b849119642dab261b281af9824ea9"
+		appName="jta-client-idarvideo" version="1.1" deploymentId="jasperLab"
 		jasperEngineURL="tcp://${idarvideo.client.jasperEngineURL.host}:${idarvideo.client.jasperEngineURL.port}"
 		doc:name="JasperEngineConnector" />
 	<tcp:polling-connector name="TCP_Polling"

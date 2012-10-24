@@ -7,7 +7,7 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
 http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
-    <jasperengine:connector name="JEC" vendor="jasper" appName="webview-interface-rest" version="1.0" deploymentId="jasperLab" jAppAuthKey="3d29e09d2ca3fb7c661b75df0e71f393a63dfa0c" jasperEngineURL="tcp://${webview.interface.rest.jasperEngineURL.host}:${webview.interface.rest.jasperEngineURL.port}" doc:name="Jasper Connector"/>
+    <jasperengine:connector name="JEC" vendor="jasper" appName="jta-interface-webview-rest" version="1.1" deploymentId="jasperLab" jasperEngineURL="tcp://${webview.interface.rest.jasperEngineURL.host}:${webview.interface.rest.jasperEngineURL.port}" doc:name="Jasper Connector"/>
     <http:endpoint host="${webview.interface.rest.http.endpoint.host}" port="${webview.interface.rest.http.endpoint.port}" path="${webview.interface.rest.http.endpoint.path}" name="globalHttpEndpoint" doc:name="HTTP"/>
     <flow name="jApp-webview-interface-rest-trax-flow" doc:name="jApp-webview-interface-rest-trax-flow">
         <jasperengine:inbound-endpoint topic="jms.jasper.1.0.webview.topic.trax" connector-ref="JEC" doc:name="JECEndpoint"/>

@@ -7,7 +7,7 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
 http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
-    <jasperengine:connector name="JEC" vendor="${app.home}" appName="cat010-interface-ajax" version="1.0" deploymentId="jasperLab" jasperEngineURL="tcp://${cat010.interface.ajax.jasperEngineURL.host}:${cat010.interface.ajax.jasperEngineURL.port}" doc:name="Jasper Connector"/>
+    <jasperengine:connector name="JEC" vendor="jasper" appName="jta-interface-cat010-ajax" version="1.1" deploymentId="jasperLab" jasperEngineURL="tcp://${cat010.interface.ajax.jasperEngineURL.host}:${cat010.interface.ajax.jasperEngineURL.port}" doc:name="Jasper Connector"/>
     <ajax:connector name="AjaxConnector" serverUrl="http://${cat010.interface.ajax.serverUrl.host}:${cat010.interface.ajax.serverUrl.port}/${cat010.interface.ajax.serverUrl.path}" resourceBase="${app.home}/docroot" jsonCommented="true" doc:name="AjaxGlobalConnector"/>
     <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.cat010.codec.Cat010Message" name="JEC_msg_to_cat010" doc:name="JEC msg to cat010"/>
     <flow name="jApp-cat010-interface-ajax-flow-periodicStatusMessage" doc:name="jApp-cat010-interface-ajax-flow-periodicStatusMessage">

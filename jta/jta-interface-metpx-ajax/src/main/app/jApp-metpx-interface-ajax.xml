@@ -22,8 +22,8 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
 	<jasperengine:connector
 		xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" name="JEC"
-		vendor="jasper" appName="metpx-interface-ajax" version="1.0" 
-		deploymentId="jasperLab" jAppAuthKey="d007a660687a841ed3ab074cc60377b46ad1ef91"
+		vendor="jasper" appName="jta-interface-metpx-ajax" version="1.1" 
+		deploymentId="jasperLab"
 		jasperEngineURL="tcp://${metpx.interface.ajax.jasperEngineURL.host}:${metpx.interface.ajax.jasperEngineURL.port}"
 		doc:name="Jasper Connector" />
 	<ajax:connector name="AjaxConnector"

@@ -5,7 +5,7 @@ http://www.mulesoft.org/schema/mule/udp http://www.mulesoft.org/schema/mule/udp/
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
 http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
-    <jasperengine:connector name="JEC" vendor="jasper" appName="cat010-atims-client" version="1.0" deploymentId="jasperLab" jAppAuthKey="8cb8359a07f6c36f72f36e822fe5980e266c3490" jasperEngineURL="tcp://${cat010.atims.client.jasperEngineURL.host}:${cat010.atims.client.jasperEngineURL.port}" doc:name="JasperEngineConnector"/>
+    <jasperengine:connector name="JEC" vendor="jasper" appName="jta-client-cat010-atims" version="1.1" deploymentId="jasperLab" jasperEngineURL="tcp://${cat010.atims.client.jasperEngineURL.host}:${cat010.atims.client.jasperEngineURL.port}" doc:name="JasperEngineConnector"/>
     <flow name="jApp-cat010-atims-client-flow" doc:name="jApp-cat010-atims-client-flow">
         <udp:inbound-endpoint host="${cat010.atims.client.inbound.cat010endpoint.host}" port="${cat010.atims.client.inbound.cat010endpoint.port}" responseTimeout="10000" doc:name="cat010InboundEndpoint"/>
         <all doc:name="All">

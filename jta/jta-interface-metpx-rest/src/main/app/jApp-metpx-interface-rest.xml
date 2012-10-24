@@ -20,8 +20,8 @@ http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/
 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd ">
 	<jasperengine:connector
 		xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" name="JEC"
-		vendor="jasper" appName="metpx-interface-rest" version="1.0"
-		deploymentId="jasperLab" jAppAuthKey="1df2e1249e5bb32fd1896223e71cc14a0dc03110"
+		vendor="jasper" appName="jta-interface-metpx-rest" version="1.1"
+		deploymentId="jasperLab"
 		jasperEngineURL="tcp://${metpx.interface.rest.jasperEngineURL.host}:${metpx.interface.rest.jasperEngineURL.port}"
 		doc:name="Jasper Connector" />
 	<http:endpoint host="${metpx.interface.rest.http.endpoint.host}"

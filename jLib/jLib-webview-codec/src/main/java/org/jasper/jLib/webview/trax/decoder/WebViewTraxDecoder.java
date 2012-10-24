@@ -3,8 +3,6 @@ package org.jasper.jLib.webview.trax.decoder;
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.xml.DOMConfigurator;
-
 import org.jasper.jLib.webview.trax.decoder.WebViewTraxMessage.TargetType;
 import org.jasper.jLib.webview.trax.decoder.WebViewTraxMessage.TrackInfoSize;
 import org.jasper.jLib.webview.trax.decoder.WebViewTraxMessage.TrackInfoType;
@@ -61,7 +59,6 @@ public class WebViewTraxDecoder {
 	
 	public static WebViewTrax doDecode(String msg){
 		ArrayList<WebViewTraxMessage> trax = new ArrayList<WebViewTraxMessage>();
-		DOMConfigurator.configure("../conf/log4j.xml");
 		
 		if(isValidTraxResponse(msg)){
 			//ArrayList<String> rows = getTraxRows(msg);

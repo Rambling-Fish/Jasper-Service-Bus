@@ -23,7 +23,7 @@ public class JasperBroker extends BrokerFilter {
         super(next);  
     }
 
-    public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {       
+    public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {  
     	/*
     	 * During connection setup we validate that the jAppID and jAppAuthKey stored in the username and password
     	 * values respectfully, match a generated set, if not we throw a Security Exception which will terminate

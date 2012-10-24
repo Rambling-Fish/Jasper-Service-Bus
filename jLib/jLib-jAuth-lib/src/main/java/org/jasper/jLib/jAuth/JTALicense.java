@@ -83,6 +83,12 @@ public class JTALicense implements Serializable {
 			sb.append(expiry.get(Calendar.MONTH) +1);
 			sb.append("-");
 			sb.append(expiry.get(Calendar.DAY_OF_MONTH));
+			sb.append("-");
+			sb.append(expiry.get(Calendar.HOUR_OF_DAY));
+			sb.append("-");
+			sb.append(expiry.get(Calendar.MINUTE));
+			sb.append("-");
+			sb.append(expiry.get(Calendar.SECOND));
 		}
 		
 		if(ntpHost != null){

@@ -7,7 +7,6 @@ import java.util.concurrent.ScheduledFuture;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.log4j.Logger;
-import org.apache.log4j.xml.DOMConfigurator;
 import org.mule.DefaultMuleEvent;
 import org.mule.DefaultMuleMessage;
 import org.mule.MessageExchangePattern;
@@ -80,7 +79,6 @@ public class WebViewMessageReceiver extends PollingHttpMessageReceiver {
         try
         {
     		WebViewConnector pollingConnector;
-    		DOMConfigurator.configure("../conf/log4j.xml");
     		
     		// we need to check if the connector which creates us is a WebVeiw connector, if not we throw an exception
     		if (connector instanceof WebViewConnector){

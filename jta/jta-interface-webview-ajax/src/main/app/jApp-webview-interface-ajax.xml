@@ -9,7 +9,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
 http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
-    <jasperengine:connector name="JEC" vendor="jasper" appName="webview-interface-ajax" version="1.0" deploymentId="jasperLab" jAppAuthKey="c1fb3bdd64a0f28a2357da70913087a90d32524f" jasperEngineURL="tcp://${webview.interface.ajax.jasperEngineURL.host}:${webview.interface.ajax.jasperEngineURL.port}" doc:name="Jasper Connector"/>
+    <jasperengine:connector name="JEC" vendor="jasper" appName="jta-interface-webview-ajax" version="1.1" deploymentId="jasperLab" jasperEngineURL="tcp://${webview.interface.ajax.jasperEngineURL.host}:${webview.interface.ajax.jasperEngineURL.port}" doc:name="Jasper Connector"/>
     <ajax:connector name="AjaxConnector" serverUrl="http://${webview.interface.ajax.serverUrl.host}:${webview.interface.ajax.serverUrl.port}/${webview.interface.ajax.serverUrl.path}" resourceBase="${app.home}/docroot" jsonCommented="true" doc:name="AjaxGlobalConnector"/>
     <flow name="jApp-webview-interface-ajax-trax-flow" doc:name="jApp-webview-interface-ajax-trax-flow">
         <jasperengine:inbound-endpoint topic="jms.jasper.1.0.webview.topic.trax" connector-ref="JEC" doc:name="JECEndpoint"/>

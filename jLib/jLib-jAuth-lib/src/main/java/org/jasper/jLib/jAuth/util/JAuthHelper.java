@@ -71,5 +71,30 @@ public class JAuthHelper {
 			oin.close();
 		}
 	}
-
+	
+	public static String bytesToHex(byte[] bytes) {
+	    final char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+	    char[] hexChars = new char[bytes.length * 2];
+	    int v;
+	    for ( int j = 0; j < bytes.length; j++ ) {
+	        v = bytes[j] & 0xFF;
+	        hexChars[j * 2] = hexArray[v >>> 4];
+	        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+	    }
+	    return new String(hexChars);
+	}
+	
+	public static byte[] hexToBytes(String hex) {
+	    final String hexArray = "0123456789ABCDEF";
+	    byte[] byteArray = new byte[hex.length()/2];
+	    char[] hexChars = hex.toUpperCase().toCharArray();
+	    int v;
+	    for ( int j = 0; j < hex.length(); j += 2 ) {
+	        v = hexArray.indexOf(hexChars[j]) & 0x0F;
+	        v = v << 4;
+	        v = v | (hexArray.indexOf(hexChars[j+1]) & 0x0F);
+	        byteArray[j/2] = (byte)v;
+	    }
+	    return byteArray;
+	}
 }

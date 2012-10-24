@@ -8,7 +8,7 @@ http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/q
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
 http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
-    <jasperengine:connector name="JEC" vendor="jasper" appName="jTestApp-cat010-webview-traffic-client" version="1.0" deploymentId="jasperLab" jAppAuthKey="cc6c89d6788d8d7cb3557923fb157437cb6a8819" jasperEngineURL="tcp://${cat010.webview.traffic.client.jasperEngineURL.host}:${cat010.webview.traffic.client.jasperEngineURL.port}" doc:name="Jasper Connector"></jasperengine:connector>
+    <jasperengine:connector name="JEC" vendor="jasper" appName="jtaTest-client-cat010-webview-traffic" version="1.1" deploymentId="jasperLab" jasperEngineURL="tcp://${cat010.webview.traffic.client.jasperEngineURL.host}:${cat010.webview.traffic.client.jasperEngineURL.port}" doc:name="Jasper Connector"></jasperengine:connector>
     <ajax:connector name="AjaxConnector" serverUrl="http://${cat010.webview.traffic.client.serverUrl.host}:${cat010.webview.traffic.client.serverUrl.port}/${cat010.webview.traffic.client.serverUrl.path}" resourceBase="${app.home}/docroot" jsonCommented="true" doc:name="AjaxGlobalConnector"/>
     <flow name="jTestApp-cat010-webview-traffic-client-traffic-stats-flow" doc:name="jTestApp-cat010-webview-traffic-client-traffic-stats-flow">
         <quartz:inbound-endpoint jobName="eventTimer0" repeatInterval="507" startDelay="1" responseTimeout="10000" doc:name="Quartz">

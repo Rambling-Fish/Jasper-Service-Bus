@@ -145,45 +145,19 @@ public class JECore {
 		}
 		System.out.println("audit callaed and isValidLicenseKeyExpiry = " + isValidLicenseKeyExpiry());
 	}
-
-	/**
-	 * @param args
-	 * @throws Exception 
-	 */
-	public static void main(String[] args) throws Exception {
-	    
-    	Properties prop = new Properties();
-    	 
-    	try {
-            //load a properties file
-    		prop.load(new FileInputStream(System.getProperty("jsb-property-file")));
-    		if(System.getProperty("jsb-log4j-xml") != null) DOMConfigurator.configure(System.getProperty("jsb-log4j-xml"));
-    	} catch (IOException ex) {
-    		ex.printStackTrace();
-    	}
-    	
-    	JECore core = JECore.getInstance();
-    	 	
-    	core.loadKeys(System.getProperty("jsb-keystore"));
-    	
-    	if(core.isValidLicenseKey()){
-    		if(core.isValidLicenseKeyExpiry()){
-    			logger.error("SYSTEM STARTING");
-    			JasperBrokerService brokerService = new JasperBrokerService();
-    			Connector connector = brokerService.addConnector("tcp://"+ prop.getProperty("jsbUrlHost") + ":" + prop.getProperty("jsbUrlPort"));	
-    			brokerService.start();
-			}else{
-    			logger.error("license key expired, jsb not starting"); 
-    		}		
-    	}else{
-			logger.error("invalid license key, jsb not starting"); 
-    	}
-		core.setupAudit();
-	}
-
+	
 	public boolean isJTAAuthenticationValid(String userName, String password) {
 		System.out.println("username = " + userName);
-		JTALicense lic = getJTALicense(password.getBytes());
+		
+		JTALicense lic = getJTALicense(JAuthHelper.hexToBytes(password));
+		
+		if(userName.equals( lic.getVendor() + ":" + lic.getAppName() + ":" +
+                lic.getVersion() + ":" + lic.getDeploymentId())){
+			System.out.println("valid licenseKey : " + lic);
+		}else{
+			System.out.println("invalid licenseKey" + lic);
+		}
+		
 		return userName.equals( lic.getVendor() + ":" + lic.getAppName() + ":" +
 				                lic.getVersion() + ":" + lic.getDeploymentId());
 	}
@@ -231,4 +205,38 @@ public class JECore {
         return new JTALicense(vendor, appName, version, deploymentId, expiry, ntpHost, ntpPort, null);
 	}
 
+	/**
+	 * @param args
+	 * @throws Exception 
+	 */
+	public static void main(String[] args) throws Exception {
+	    
+    	Properties prop = new Properties();
+    	 
+    	try {
+            //load a properties file
+    		prop.load(new FileInputStream(System.getProperty("jsb-property-file")));
+    		if(System.getProperty("jsb-log4j-xml") != null) DOMConfigurator.configure(System.getProperty("jsb-log4j-xml"));
+    	} catch (IOException ex) {
+    		ex.printStackTrace();
+    	}
+    	
+    	JECore core = JECore.getInstance();
+    	 	
+    	core.loadKeys(System.getProperty("jsb-keystore"));
+    	
+    	if(core.isValidLicenseKey()){
+    		if(core.isValidLicenseKeyExpiry()){
+    			logger.error("SYSTEM STARTING");
+    			JasperBrokerService brokerService = new JasperBrokerService();
+    			Connector connector = brokerService.addConnector("tcp://"+ prop.getProperty("jsbUrlHost") + ":" + prop.getProperty("jsbUrlPort"));	
+    			brokerService.start();
+			}else{
+    			logger.error("license key expired, jsb not starting"); 
+    		}		
+    	}else{
+			logger.error("invalid license key, jsb not starting"); 
+    	}
+		core.setupAudit();
+	}
 }
