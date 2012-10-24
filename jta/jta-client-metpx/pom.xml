@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jasper.jta</groupId>
+        <artifactId>jta-parent</artifactId>
+        <version>1.1</version>
+    </parent>
+    <groupId>org.jasper.jta</groupId>
+    <artifactId>jta-client-metpx</artifactId>
+    <packaging>mule</packaging>
+    <name>jta-client-metpx</name>
+    <version>1.1</version>
+    <description></description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jasper.jLib</groupId>
+            <artifactId>jLib-metpx-codec</artifactId>
+            <version>1.1</version>
+        </dependency>
+		<dependency>
+		  <groupId>com.rabbitmq</groupId>
+		  <artifactId>amqp-client</artifactId>
+		  <version>2.8.6</version>
+		</dependency>
+		<dependency>
+		  <groupId>org.mule.transports</groupId>
+		  <artifactId>mule-transport-amqp</artifactId>
+		  <version>3.3.0</version>
+		</dependency>
+    </dependencies>
+    <repositories>
+        <repository>
+            <id>muleforge-repo</id>
+            <name>MuleForge Repository</name>
+            <url>http://repository.muleforge.org</url>
+            <layout>default</layout>
+        </repository>
+		
+		<repository>
+		  <id>muleforge-nexus-repo</id>
+		  <name>MuleForge Repository</name>
+		  <url>https://repository.mulesoft.org/nexus/content/repositories/releases</url>
+		  <layout>default</layout>
+		</repository>
+
+        <repository>
+            <id>codehaus-repo</id>
+            <name>Codehaus Repository</name>
+            <url>http://dist.codehaus.org/mule/dependencies/maven2</url>
+            <layout>default</layout>
+        </repository>
+    </repositories>
+</project>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:ajax="http://www.mulesoft.org/schema/mule/ajax" xmlns:tcp="http://www.mulesoft.org/schema/mule/tcp"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core"
+	xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp" xmlns:json="http://www.mulesoft.org/schema/mule/json"
+	xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jasperengine="http://www.mulesoft.org/schema/mule/jasperengine"
+	version="CE-3.3.0"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ajax http://www.mulesoft.org/schema/mule/ajax/current/mule-ajax.xsd 
+http://www.mulesoft.org/schema/mule/tcp http://www.mulesoft.org/schema/mule/tcp/current/mule-tcp.xsd 
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd 
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd 
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd 
+http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd 
+http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd ">
+	<jasperengine:connector
+		xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" name="JEC"
+		vendor="jasper" appName="jta-interface-idarvideo-ajax" version="1.1"
+		deploymentId="jasperLab"
+		jasperEngineURL="tcp://${idarvideo.interface.ajax.jasperEngineURL.host}:${idarvideo.interface.ajax.jasperEngineURL.port}"
+		doc:name="JasperEngineConnector" />
+	<tcp:polling-connector name="TCP_Polling"
+		validateConnections="false" sendBufferSize="0" receiveBufferSize="0"
+		receiveBacklog="0" clientSoTimeout="10000" serverSoTimeout="10000"
+		socketSoLinger="0" doc:name="TCP Polling">
+		<tcp:custom-protocol class="org.jasper.jLib.idar.video.codec.IDARTcpProtocol" />
+	</tcp:polling-connector>
+	<ajax:connector name="AjaxConnector"
+		serverUrl="http://${idarvideo.interface.ajax.serverUrl.host}:${idarvideo.interface.ajax.serverUrl.port}/${idarvideo.interface.ajax.serverUrl.path}"
+		resourceBase="${app.home}/docroot"
+		jsonCommented="true" doc:name="AjaxGlobalConnector" />
+	<flow name="idar-video-interface-ajax" doc:name="idar-video-interface-ajax">
+		<jasperengine:inbound-endpoint
+			xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" topic="jms.jasper.1.0.idarvideo.topic"
+			connector-ref="JEC" doc:name="JECEndpoint"></jasperengine:inbound-endpoint>
+		<jms:jmsmessage-to-object-transformer
+			returnClass="org.jasper.jLib.idar.video.codec.IDARVideoMessage" doc:name="JEC msg to IDARVideoMessage" />
+		<all doc:name="All">
+			<processor-chain>
+				<custom-transformer class="org.jasper.jLib.idar.video.transformer.IDARtoJPEG"
+					doc:name="JPEGfromObject" />
+				<all doc:name="All">
+					<processor-chain>
+						<ajax:outbound-endpoint channel="/intellidar/img"
+							responseTimeout="10000" connector-ref="AjaxConnector" doc:name="AjaxGlobalConnector" />
+					</processor-chain>
+					<processor-chain>
+						<file:outbound-endpoint path="${app.home}/docroot/img"
+							outputPattern="intelliDAR.jpg" responseTimeout="10000" doc:name="File" />
+					</processor-chain>
+				</all>
+			</processor-chain>
+			<processor-chain>
+				<custom-transformer class="org.jasper.jLib.idar.video.transformer.IDARtoXML"
+					doc:name="XMLfromObject" />
+				<custom-transformer class="org.mule.module.json.transformers.XmlToJson"
+					doc:name="XMLtoJson" />
+				<ajax:outbound-endpoint channel="/intellidar/targets"
+					responseTimeout="10000" connector-ref="AjaxConnector" doc:name="AjaxGlobalConnector" />
+			</processor-chain>
+		</all>
+	</flow>
+</mule>
