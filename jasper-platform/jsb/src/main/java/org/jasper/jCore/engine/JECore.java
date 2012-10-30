@@ -143,7 +143,7 @@ public class JECore {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("audit callaed and isValidLicenseKeyExpiry = " + isValidLicenseKeyExpiry());
+		System.out.println("audit called and isValidLicenseKeyExpiry = " + isValidLicenseKeyExpiry());
 	}
 	
 	public boolean isJTAAuthenticationValid(String userName, String password) {
