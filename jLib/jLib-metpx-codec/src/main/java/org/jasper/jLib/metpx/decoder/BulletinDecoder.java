@@ -6,6 +6,7 @@ import org.jasper.jLib.metpx.decoder.Bulletin;
 
 public class BulletinDecoder {
 	public Bulletin doDecode(byte[] byteArray) {
+		if(byteArray == null) return null;
 		ArrayList<String> rows;
 		String messageString = new String(byteArray);
 		int rowCount = 0;

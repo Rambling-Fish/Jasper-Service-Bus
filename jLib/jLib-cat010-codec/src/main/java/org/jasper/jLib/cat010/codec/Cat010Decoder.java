@@ -58,6 +58,8 @@ public class Cat010Decoder {
 	
 	public static Cat010Message doDecode(byte[] array) throws Exception{
 		
+		if(array == null) return null;
+		
 		//Check if message is CAT010
 		if (!isMessageCat010(array)) throw new Exception("Message not an CAT010 message. MSG = " + array);
 		
@@ -78,14 +80,14 @@ public class Cat010Decoder {
 			msg = new Cat010TargetReport();
 			break;
 		case 2:
-			throw new Exception("Recieved Start of Update Cycle Message - currently not unsupported");
+			throw new Exception("Received Start of Update Cycle Message - currently not supported");
 		case 3:
 			msg = new Cat010PeriodicStatusMessage();
 			break;
 		case 4:
-			throw new Exception("Recieved Event-triggered Status Message - currently not unsupported");
+			throw new Exception("Received Event-triggered Status Message - currently not supported");
 		default:
-			throw new Exception("Unsupported Message type");
+			throw new Exception("Unknown Message type");
 		}
 		
 		/*
