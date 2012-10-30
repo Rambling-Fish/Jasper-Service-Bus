@@ -92,6 +92,7 @@ public class TestIDARVideoDecoder {
 		BufferedReader br  = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/IDARTestInput.txt")));
 		String strBytes;
 		StringBuffer buff = new StringBuffer();
+		byte[] msg2 = {(byte)0x55,(byte)0xAA,(byte)0x55,(byte)0xAA,(byte)0xAA,(byte)0x55,(byte)0xAA,(byte)0x55};
 		try {
 		while((strBytes = br.readLine()) != null) {
 			buff.append(strBytes);
@@ -99,6 +100,8 @@ public class TestIDARVideoDecoder {
 		byte[] msg = buff.toString().getBytes();
 			InputStream is = new ByteArrayInputStream(msg);
 			tcpProtocol.read(is);
+			InputStream is2 = new ByteArrayInputStream(msg2);
+			tcpProtocol.read(is2);
 		} catch (IOException io) {
 			TestCase.fail("Exception: " + io);
 		}
