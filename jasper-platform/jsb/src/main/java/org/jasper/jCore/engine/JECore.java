@@ -143,7 +143,7 @@ public class JECore {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("audit callaed and isValidLicenseKeyExpiry = " + isValidLicenseKeyExpiry());
+		System.out.println("audit called and isValidLicenseKeyExpiry = " + isValidLicenseKeyExpiry());
 	}
 	
 	public boolean isJTAAuthenticationValid(String userName, String password) {
@@ -227,7 +227,7 @@ public class JECore {
     	
     	if(core.isValidLicenseKey()){
     		if(core.isValidLicenseKeyExpiry()){
-    			logger.error("SYSTEM STARTING");
+    			logger.warn("SYSTEM STARTING");
     			JasperBrokerService brokerService = new JasperBrokerService();
     			Connector connector = brokerService.addConnector("tcp://"+ prop.getProperty("jsbUrlHost") + ":" + prop.getProperty("jsbUrlPort"));	
     			brokerService.start();
