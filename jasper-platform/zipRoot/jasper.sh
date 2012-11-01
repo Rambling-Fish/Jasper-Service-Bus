@@ -8,7 +8,7 @@ function get_j_pid {
 }
 
 function get_m_pid {
-    M_PID=`pgrep -f Dmule`
+    M_PID=`pgrep -f wrapper.pidfile`
 }
 
 function stop_j {
