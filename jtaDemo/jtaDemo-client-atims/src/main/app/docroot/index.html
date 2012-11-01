@@ -1,0 +1,27 @@
+<head>
+<script type="text/javascript" src="mule-resource/js/mule.js"></script>
+<script type="text/javascript">
+
+	function load() {
+    	mule.subscribe("/traffic/stats", handleTrafficStats);  
+    }
+    
+    function handleTrafficStats(message) {
+		var stats = dojo.fromJson(message.data);
+        if (message) {
+            document.getElementById("trafficStatsRow").innerHTML = JSON.stringify(stats)
+        }  
+    }
+
+</script>
+</head>
+
+<body onload="load()">
+
+<h1><b>Traffic Stats</b></h1>
+<table border="1" width="100%">
+	<div id="trafficStatsRow"></div>
+</table>
+
+</body>
+</html>

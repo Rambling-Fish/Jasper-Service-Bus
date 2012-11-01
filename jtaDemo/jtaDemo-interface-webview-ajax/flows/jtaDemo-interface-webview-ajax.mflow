@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-configuration xmlns="http://www.mulesoft.com/tooling/messageflow" name="mule-app-webview-rest-interface">
+    <global-unknown unknownName="JEC" entity-id="e9559e0b-fc5d-44d9-96ad-f79777556f6f">
+        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; name=&quot;JEC&quot; vendor=&quot;jasper&quot; appName=&quot;jtaDemo-interface-webview-ajax&quot; version=&quot;1.1&quot; deploymentId=&quot;jasperLab&quot; jasperEngineURL=&quot;tcp://${cat010-webview.interface.ajax.jasperEngineURL.host}:${cat010-webview.interface.ajax.jasperEngineURL.port}&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;Jasper Connector&quot;/&gt;</content>
+    </global-unknown>
+    <global-element type="org.mule.tooling.ui.modules.core.global.ajaxConnector" name="AjaxGlobalConnector" entity-id="5e169bf3-c93d-45f5-9c95-f380f27a66b3">
+        <properties>
+            <property value="AjaxConnector" name="name"/>
+            <property value="http://${cat010-webview.interface.ajax.serverUrl.host}:${cat010-webview.interface.ajax.serverUrl.port}/${cat010-webview.interface.ajax.serverUrl.path}" name="serverUrl"/>
+            <property value="${app.home}/docroot" name="resourceBase"/>
+            <property name="disableReplyTo"/>
+            <property name="logLevel"/>
+            <property name="refsThreshold"/>
+            <property value="true" name="jsonCommented"/>
+            <property name="timeout"/>
+            <property name="interval"/>
+            <property name="maxInterval"/>
+            <property name="multiFrameInterval"/>
+        </properties>
+    </global-element>
+    <flow SubFlow="false" name="jApp-cat010-webview-interface-ajax-publish-flow">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+        </properties>
+        <lane hadOnlyOneElement="false" entity-id="6f8708e9-5f59-42e3-8c72-a3d95be4598a">
+            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="TraxAggregator" entity-id="ec3f6909-c175-471b-9389-cc425d45404e">
+                <properties>
+                    <property name="class"/>
+                    <property-collection name="@http://www.mulesoft.org/schema/mule/core/singleton-object;0">
+                        <property value="org.jasper.jtaDemo.cat010Webview.util.JasperTraxAggregatorSvgOutput" name="class"/>
+                    </property-collection>
+                </properties>
+            </pattern>
+            <pattern type="http://www.mulesoft.org/schema/mule/json/object-to-json-transformer" name="Object to JSON" entity-id="637fb897-9686-4de5-bed0-2b497c2860a4">
+                <properties>
+                    <property name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property name="mimeType"/>
+                    <property name="mapper-ref"/>
+                    <property name="sourceClass"/>
+                </properties>
+            </pattern>
+            <endpoint message-exchange-pattern="OneWay" direction="Outbound" type="org.mule.tooling.ui.modules.core.ajax.AJAX" name="Ajax WebView Trax" entity-id="8088d767-ee0e-48b1-8b70-5054a90f6b38">
+                <properties>
+                    <property value="one-way" name="exchange-pattern"/>
+                    <property value="/webview/svgtrax" name="channel"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="responseTimeout"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="address"/>
+                    <property name="cacheMessages"/>
+                    <property name="messageCacheSize"/>
+                    <property value="AjaxConnector" name="connector-ref"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                </properties>
+            </endpoint>
+        </lane>
+    </flow>
+    <flow SubFlow="false" name="jApp-cat010-webview-interface-ajax-cat010-flow">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+        </properties>
+        <lane hadOnlyOneElement="false" entity-id="596521ec-006d-4cf0-ac95-af1033ab8861">
+            <unknown entity-id="8f0d272b-8d22-4863-9d89-7daff9d098f0">
+                <content>&lt;jasperengine:inbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.cat010.topic.tr&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECEndpoint&quot;/&gt;</content>
+            </unknown>
+            <pattern type="http://www.mulesoft.org/schema/mule/jms/jmsmessage-to-object-transformer" name="JEC msg to Cat010TargetReport" entity-id="3d66d952-2c83-4b7f-a171-662ab43990e9">
+                <properties>
+                    <property value="org.jasper.jLib.cat010.codec.Cat010TargetReport" name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property name="mimeType"/>
+                </properties>
+            </pattern>
+            <pattern type="org.mule.tooling.ui.modules.core.pattern.customTransformer" name="Cat010TargetReportToWebViewTrax" entity-id="1ea0cd98-ecf4-47ed-b3eb-c8eb40a6010c">
+                <properties>
+                    <property name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property name="mimeType"/>
+                    <property value="org.jasper.jLib.cat010.transformer.Cat010TargetReportToWebViewTrax" name="class"/>
+                </properties>
+            </pattern>
+            <pattern type="http://www.mulesoft.org/schema/mule/core/flow-ref" name="Flow Reference" entity-id="ff6b98c6-c026-4ef8-9d4b-1b0928d7d809">
+                <properties>
+                    <property value="jApp-cat010-webview-interface-ajax-publish-flow" name="name"/>
+                </properties>
+            </pattern>
+        </lane>
+    </flow>
+    <flow SubFlow="false" name="jApp-cat010-webview-interface-ajax-trax-flow">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+        </properties>
+        <lane hadOnlyOneElement="false" entity-id="c9315086-7623-4bb5-9e31-c7f73f70b0c2">
+            <unknown entity-id="e06229d8-c901-4841-a959-3953f57085b7">
+                <content>&lt;jasperengine:inbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.webview.topic.trax&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECEndpoint&quot;/&gt;</content>
+            </unknown>
+            <pattern type="http://www.mulesoft.org/schema/mule/jms/jmsmessage-to-object-transformer" name="JEC msg to WebViewTrax" entity-id="d2d1dfb8-dbbc-4590-b8b1-e54bdac25061">
+                <properties>
+                    <property value="org.jasper.jLib.webview.trax.decoder.WebViewTrax" name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property name="mimeType"/>
+                </properties>
+            </pattern>
+            <pattern type="http://www.mulesoft.org/schema/mule/core/flow-ref" name="Flow Reference" entity-id="071dd41c-1425-4c97-874b-270d6781b8ec">
+                <properties>
+                    <property value="jApp-cat010-webview-interface-ajax-publish-flow" name="name"/>
+                </properties>
+            </pattern>
+        </lane>
+    </flow>
+    <flow SubFlow="false" name="jApp-cat010-webview-interface-ajax-quartz-flow">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+        </properties>
+        <lane hadOnlyOneElement="false" entity-id="1bd30d4f-e3ee-4f9e-9fb0-ee382fbe1cb2">
+            <endpoint message-exchange-pattern="OneWay" direction="Inbound" type="http://www.mulesoft.org/schema/mule/quartz/endpoint" name="Quartz" entity-id="0563c8a4-0811-4baf-b6b5-c65386fbe678">
+                <properties>
+                    <property value="one-way" name="exchange-pattern"/>
+                    <property value="eventTimer" name="jobName"/>
+                    <property name="cronExpression"/>
+                    <property value="10000" name="repeatInterval"/>
+                    <property name="repeatCount"/>
+                    <property value="2" name="startDelay"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="address"/>
+                    <property value="10000" name="responseTimeout"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="connector-ref"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property-collection name="@http://www.mulesoft.org/schema/mule/quartz/event-generator-job;0">
+                        <property-collection name="@http://www.mulesoft.org/schema/mule/quartz/payload;1">
+                            <property value="tick-tock" name="text"/>
+                        </property-collection>
+                    </property-collection>
+                </properties>
+            </endpoint>
+            <pattern type="http://www.mulesoft.org/schema/mule/core/flow-ref" name="Flow Reference" entity-id="289dfa39-4512-452e-a517-e60b653038e6">
+                <properties>
+                    <property value="jApp-cat010-webview-interface-ajax-publish-flow" name="name"/>
+                </properties>
+            </pattern>
+        </lane>
+    </flow>
+    <description></description>
+</mule-configuration>

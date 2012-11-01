@@ -1,0 +1,63 @@
+<head>
+<script type="text/javascript" src="mule-resource/js/mule.js"></script>
+<script type="text/javascript">
+
+	function load() {
+    	mule.subscribe("/webview/svgtrax", handleSvgTrax);  
+    }
+    
+    function handleSvgTrax(message) {
+		var targets = dojo.fromJson(message.data);
+        if (message) {
+            var tg = document.getElementById("targetGroup")
+            
+            while (tg.firstChild) {
+                tg.removeChild(tg.firstChild);
+            }  
+
+			for (var i = 0; i < targets.length; i++) {
+			    var circ = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+				circ.setAttribute('class', 'style');
+				circ.setAttribute('cx', targets[i].x);
+				circ.setAttribute('cy', targets[i].y);
+				circ.setAttribute('r', '10');				
+				
+	            var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+	           	text.setAttribute('class', 'labels');
+		        text.setAttribute('x', targets[i].textX);
+		        text.setAttribute('y', targets[i].textY);
+		        var textNode = document.createTextNode(targets[i].trackId);
+		        text.appendChild(textNode);
+
+		        tg.appendChild(circ);
+	            tg.appendChild(text);
+			}
+        }  
+    }
+
+</script>
+</head>
+<body onload="load()">
+<h1>MAP</h1>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" version="1.0"> 
+
+  <defs id="shapes_and_styles">
+    <style type="text/css"><![CDATA[
+      .styleLink { stroke:#000000; stroke-width:5; }
+      .style { fill:#5050A0; fill-opacity:0.5; stroke:#000000; stroke-width:1.5; }
+      .style_ensU { fill:none; stroke:#5050A0; stroke-width:2; }
+      .style_ensV { fill:none; stroke:#50A050; stroke-width:2; }
+      .labels {font-size:15px; font-style:normal; font-family:Bitstream Vera Sans
+    ]]></style>
+  </defs>
+   
+  <rect  width="800" height="800" style="fill:blue;stroke:navy;stroke-width:5;fill-opacity:0.1;stroke-opacity:0.9"/>
+  <line class="styleLink" x1="400" y1="0" x2="400" y2="800"/>
+  <line class="styleLink" x1="0" y1="400" x2="800" y2="400"/>
+  
+  <g id="targetGroup"/>
+  
+
+</svg>
+</body>
+</html>
