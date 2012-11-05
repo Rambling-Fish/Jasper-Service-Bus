@@ -13,10 +13,7 @@ function get_j_pid {
       if [ -z "$J_PID" ]
       then 
       J_PID=`ps ax | grep java | grep JECore | cut -d' ' -f3`
-      echo "J_PID $J_PID"
-      else echo "J_PID $J_PID"
       fi    
-    else echo "J_PID= $J_PID"
     fi
 }
 
@@ -29,10 +26,7 @@ function get_m_pid {
       if [ -z "$M_PID" ]
       then
       M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d' ' -f3`
-      echo "M_PID= $M_PID"
-      else echo "M_PID= $M_PID"
       fi
-    else echo "M_PID= $M_PID"
     fi 
 }
 
