@@ -5,26 +5,34 @@ J_PID=""
 M_PID=""
 
 function get_j_pid {
-    J_PID=`ps ax | grep java | grep JECore | cut -d " " -f 1`
-    if [ -z $J_PID ]; then
-      J_PID=`ps ax | grep java | grep JECore | cut -d " " -f 2`
-    elif [ -z $J_PID ]; then
-      J_PID=`ps ax | grep java | grep JECore | cut -d " " -f 3`
+    J_PID=""
+    J_PID=`ps ax | grep java | grep JECore | cut -d' ' -f1`
+    if [ -z "$J_PID" ]
+    then 
+      J_PID=`ps ax | grep java | grep JECore | cut -d' ' -f2`
+      if [ -z "$J_PID" ]
+      then 
+      J_PID=`ps ax | grep java | grep JECore | cut -d' ' -f3`
+      fi    
     fi
 }
 
 function get_m_pid {
-    M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d " " -f 1`
-    if [ -z $M_PID ]; then
-      M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d " " -f 2`
-    elif [ -z $M_PID ]; then
-      M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d " " -f 3`
+    M_PID=""
+    M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d' ' -f1`
+    if [ -z "$M_PID" ]
+    then
+      M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d' ' -f2`
+      if [ -z "$M_PID" ]
+      then
+      M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d' ' -f3`
+      fi
     fi 
 }
 
 function stop_j {
    get_j_pid
-   if [ -z $J_PID ]; then
+   if [ -z "$J_PID" ]; then
       echo "JSB is not running." 
    else
       echo -n "Stopping JSB.."
@@ -36,7 +44,7 @@ function stop_j {
 
 function stop_m {
    get_m_pid
-   if [ -z $M_PID ]; then
+   if [ -z "$M_PID" ]; then
       echo "JTA Server is not running." 
    else
       echo -n "Stopping JTA Server.."
@@ -48,27 +56,30 @@ function stop_m {
 
 function start_j {
    get_j_pid
-if [ -z $J_PID ]; then
+if [ -z "$J_PID" ]; then
       echo  "Starting JSB.."
       cd jsb-core
       ./jsbStart.sh &
       cd ..
+      sleep 5
       get_j_pid
       echo "Done. PID=$J_PID"
-   else
+      #java -jar agent.jar --port=7777 --host=localhost start $J_PID
+      else
       echo "JSB is already running, PID=$J_PID"
    fi
 }
 
 function start_m {
    get_m_pid
-if [ -z $M_PID ]; then
+if [ -z "$M_PID" ]; then
       echo  "Starting JTA Server.."
       cd jsb-core/mule-standalone-3.3.0/bin
       ./mule &
       cd ../../../
+      sleep 5
       get_m_pid
-      echo "Done. PID=$M_PID"
+      echo "Done. PID=$M_PID"      
    else
       echo "JTA Server is already running, PID=$M_PID"
    fi
@@ -76,7 +87,7 @@ if [ -z $M_PID ]; then
 
 function status_j {
    get_j_pid
-   if [ -z  $J_PID ]; then
+   if [ -z  "$J_PID" ]; then
       echo "JSB is not running." 
    else
       echo "JSB is running, PID=$J_PID"
@@ -85,7 +96,7 @@ function status_j {
 
 function status_m {
    get_m_pid
-   if [ -z  $M_PID ]; then
+   if [ -z  "$M_PID" ]; then
       echo "JTA Server is not running." 
    else
       echo "JTA Server is running, PID=$M_PID"
