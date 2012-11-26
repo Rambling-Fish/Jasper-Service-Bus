@@ -124,15 +124,45 @@ function status {
 }
 
 case "$1" in
-   start)
-     start
-   ;;
-   stop)
-     stop
-   ;;
-   status)
-     status
-   ;;
-   *)
-      echo "Usage: $0 {start|stop|status}"
+    start)
+        case "$2" in
+        jsb)
+            start_j
+        ;;
+        jta)
+            start_m
+        ;;
+        *)
+            start
+        ;;
+        esac
+    ;;            
+    stop)
+        case "$2" in
+        jsb)
+            stop_j
+        ;;
+        jta)
+            stop_m
+        ;;
+        *)
+            stop
+        ;;
+        esac
+    ;;
+    status)
+        case "$2" in
+        jsb)
+            status_j
+        ;;
+        jta)
+            status_m
+        ;;
+        *)
+            status
+        ;;
+        esac
+    ;;
+    *) echo "Usage: $0 {start|stop|status} [jsb|jta]"
+;;    
 esac
