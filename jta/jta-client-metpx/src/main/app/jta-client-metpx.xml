@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:jasperengine="http://www.mulesoft.org/schema/mule/jasperengine"
+	xmlns:json="http://www.mulesoft.org/schema/mule/json"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans"
+	xmlns:core="http://www.mulesoft.org/schema/mule/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="CE-3.3.0"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
+http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd 
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd 
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/3.1/mule-amqp.xsd 
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd ">
+	<amqp:connector name="amqpConnector" host="${metpx.client.amqp.host}"
+		port="${metpx.client.amqp.port}" virtualHost="${metpx.client.amqp.virtualHost}"
+		username="${metpx.client.amqp.username}" password="${metpx.client.amqp.password}" />
+
+	<amqp:endpoint name="weatherExchange" exchangeName="metpx"
+		exchangeType="fanout" exchangeAutoDelete="false">
+	</amqp:endpoint>
+	<jasperengine:connector
+		xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" name="JEC"
+		vendor="jasper" appName="jta-client-metpx" version="1.1" deploymentId="jasperLab"
+		jasperEngineURL="${jasperEngineURL}"
+		doc:name="Jasper Connector" />
+	<http:endpoint host="${metpx.interface.rest.http.endpoint.host}"
+		port="${metpx.interface.rest.http.endpoint.port}" path="${metpx.interface.rest.http.endpoint.path}"
+		name="globalHttpEndpoint" doc:name="HTTP" />
+	<flow name="jta-client-metpx-flow" doc:name="jta-client-metpx-flow">
+		<amqp:inbound-endpoint exchangeName="metpx"
+			exchangeAutoDelete="false" exchangeType="fanout" queueName="metpx"
+			queueAutoDelete="false" queueDurable="true" routingKey="#"
+			consumerTag="mule-audit-trail">
+		</amqp:inbound-endpoint>
+		<custom-transformer
+			class="org.jasper.jLib.metpx.transformer.ByteArrayToBulletin" doc:name="ByteArrayToBulletin" />
+		
+		<choice doc:name="Choice">
+			<when
+				expression="message.payload is org.jasper.jLib.metpx.decoder.Bulletin">
+				<processor-chain>
+					<jasperengine:outbound-endpoint xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" topic="jms.jasper.1.0.metpx.topic" connector-ref="JEC" doc:name="JECMetPXEndpoint"/>
+				</processor-chain>
+			</when>
+			<otherwise>
+				<processor-chain>
+					<logger level="ERROR" doc:name="ErrorLogger" />
+				</processor-chain>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <mule-configuration xmlns="http://www.mulesoft.com/tooling/messageflow" name="mule-app-webview-rest-interface">
-    <global-unknown unknownName="JEC" entity-id="8ce6e063-684d-4811-8018-6fe2f595778f">
-        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; name=&quot;JEC&quot; vendor=&quot;jasper&quot; appName=&quot;jtaDemo-client-webview&quot; version=&quot;1.1&quot; deploymentId=&quot;jasperLab&quot; jasperEngineURL=&quot;tcp://${cat010.webview.traffic.client.jasperEngineURL.host}:${cat010.webview.traffic.client.jasperEngineURL.port}&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;Jasper Connector&quot;/&gt;</content>
+    <global-unknown unknownName="JEC" entity-id="6ca6f66e-ab68-4528-b0e1-e1b2c6916013">
+        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; name=&quot;JEC&quot; vendor=&quot;jasper&quot; appName=&quot;jtaDemo-client-webview&quot; version=&quot;1.1&quot; deploymentId=&quot;jasperLab&quot; jasperEngineURL=&quot;${jasperEngineURL}&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;Jasper Connector&quot;/&gt;</content>
     </global-unknown>
     <flow SubFlow="false" name="jtaDemo-client-webview-flow">
         <properties>
@@ -10,8 +10,8 @@
             <property name="bussinessEventsLabel"/>
             <property name="tracking:enable-default-events"/>
         </properties>
-        <lane hadOnlyOneElement="false" entity-id="ad254321-956c-4cc5-af78-d9b601948639">
-            <endpoint message-exchange-pattern="OneWay" direction="Inbound" type="http://www.mulesoft.org/schema/mule/quartz/endpoint" name="Quartz" entity-id="a1a86d7d-5817-4555-9053-94c6b52e58aa">
+        <lane hadOnlyOneElement="false" entity-id="23dd396b-d293-41f5-a33a-0f44543f97b7">
+            <endpoint message-exchange-pattern="OneWay" direction="Inbound" type="http://www.mulesoft.org/schema/mule/quartz/endpoint" name="Quartz" entity-id="3671f269-6f28-4493-bbe0-0f0cadd616d3">
                 <properties>
                     <property value="one-way" name="exchange-pattern"/>
                     <property value="eventTimer" name="jobName"/>
@@ -36,12 +36,12 @@
                     </property-collection>
                 </properties>
             </endpoint>
-            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="TraxGenerator" entity-id="2ad0e4a0-96d4-4169-b97d-39c2dd187b56">
+            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="TraxGenerator" entity-id="6ab27aac-bbf5-4f9b-99a8-8b8e3629b26b">
                 <properties>
-                    <property value="org.jasper.jTestApp.util.WebViewTraxGenerator" name="class"/>
+                    <property value="org.jasper.jtaDemo.util.WebViewTraxGenerator" name="class"/>
                 </properties>
             </pattern>
-            <unknown entity-id="9259f695-9746-48dc-86b5-09fd6e71e715">
+            <unknown entity-id="63acfb2d-4b50-411e-81b0-8328636b81d5">
                 <content>&lt;jasperengine:outbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.webview.topic.trax&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECWebViewTraxEndpoint&quot;/&gt;</content>
             </unknown>
         </lane>

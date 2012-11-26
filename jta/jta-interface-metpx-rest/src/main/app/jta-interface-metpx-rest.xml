@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp" xmlns:context="http://www.springframework.org/schema/context" xmlns:jasperengine="http://www.mulesoft.org/schema/mule/jasperengine" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="CE-3.3.0" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd 
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/3.1/mule-amqp.xsd 
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd 
+http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
+    <jasperengine:connector name="JEC" vendor="jasper" appName="jta-interface-metpx-rest" version="1.1" deploymentId="jasperLab" jasperEngineURL="${jasperEngineURL}" doc:name="Jasper Connector"/>
+    <http:endpoint host="${rest.http.endpoint.host}" port="${rest.http.endpoint.port}" path="${rest.http.endpoint.path}" name="globalHttpEndpoint" doc:name="HTTP"/>
+    <flow name="jta-interface-metpx-rest" doc:name="jta-interface-metpx-rest">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.metpx.topic" connector-ref="JEC" doc:name="JECEndpoint"/>
+        <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.metpx.decoder.Bulletin" doc:name="JEC msg to Bulletin"/>
+        <component class="org.jasper.jta.metpx.util.JasperMetpxSimpleCache" doc:name="RestCache"/>
+    </flow>
+    <flow name="jta-interface-metpx-rest-cache" doc:name="jta-interface-metpx-rest-cache">
+        <http:inbound-endpoint exchange-pattern="request-response" ref="globalHttpEndpoint" doc:name="bulletinList"/>
+        <response>
+            <json:object-to-json-transformer doc:name="Object to JSON"/>
+        </response>
+        <component class="org.jasper.jta.metpx.util.JasperMetpxSimpleCache" doc:name="RestCache"/>
+    </flow>
+</mule>

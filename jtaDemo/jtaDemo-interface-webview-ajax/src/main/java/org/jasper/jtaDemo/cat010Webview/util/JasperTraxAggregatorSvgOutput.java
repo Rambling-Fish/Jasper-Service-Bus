@@ -28,13 +28,23 @@ public class JasperTraxAggregatorSvgOutput {
 		return new WebViewTrax(list.toArray(empty));
 	}
 	
+	private static int getInt(String str){
+		int value = 0;
+		try{
+			value = Integer.parseInt(str);
+		}catch (NumberFormatException e) {
+			value = 0;
+		}
+		return value;
+	}
+	
 	public static SimpleTarget[] getTraxMap(String str) throws Exception{
 		WebViewTrax traxMap = getTraxMap();
 		SimpleTarget[] targets = new SimpleTarget[traxMap.getTrax().length];
 		int count = 0;
 		for(WebViewTraxMessage trax : traxMap.getTrax()){
-			int x = 400 + (Integer.parseInt(trax.getCart_coord_x()) / 10);
-			int y = 400 + (Integer.parseInt(trax.getCart_coord_y()) / 10);
+			int x = 400 + (getInt(trax.getCart_coord_x()) / 10);
+			int y = 400 + (getInt(trax.getCart_coord_y()) / 10);
 			int x1 = (trax.getTrack_number().length() > 1) ? x-8 : x-4;
 			int y1 = y+5;
 			targets[count] = new SimpleTarget(trax.getTrack_number(), x, y, x1, y1);

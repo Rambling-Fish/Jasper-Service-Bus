@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:jasperengine="http://www.mulesoft.org/schema/mule/jasperengine" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:webview="http://www.mulesoft.org/schema/mule/webview" version="CE-3.3.0" xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
+http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/webview http://www.mulesoft.org/schema/mule/webview/current/mule-webview.xsd ">
+    <jasperengine:connector name="JEC" vendor="jasper" appName="jta-client-webview" version="1.1" deploymentId="jasperLab" jasperEngineURL="${jasperEngineURL}" doc:name="Jasper Connector"/>
+    <webview:endpoint name="globalWebViewEndpoint" host="${inbound.webviewEndpoint.host}" user="${inbound.webviewEndpoint.user}" password="${inbound.webviewEndpoint.password}"/>
+    <webview:polling-connector name="webViewConnector" webViewPollingFrequencyTrax="${webviewConnector.pollingFrequency.trax}" webViewPollingFrequencyVideo="0" webViewPollingFrequencyNotam="${webviewConnector.pollingFrequency.notam}" webViewPollingFrequencyAdaps="${webviewConnector.pollingFrequency.adaps}" webViewPollingFrequencyApm="0" doc:name="WebView Polling Connector"></webview:polling-connector>
+    <flow name="jta-client-webview-flow" doc:name="jta-client-webview-flow">
+        <webview:inbound-endpoint ref="globalWebViewEndpoint" connector-ref="webViewConnector" doc:name="webViewEndpoint"/>
+        <object-to-string-transformer doc:name="Object to String"/>
+        <choice doc:name="Choice">
+            <when expression="header:INBOUND:MessageType=trax">
+                <processor-chain>
+                    <custom-transformer class="org.jasper.jLib.webview.trax.transformer.StringToWebViewTrax" doc:name="TraxTransformer"/>
+                    <jasperengine:outbound-endpoint topic="jms.jasper.1.0.webview.topic.trax" connector-ref="JEC" doc:name="JECTraxEndpoint"/>
+                </processor-chain>
+            </when>
+            <when expression="header:INBOUND:MessageType=notam">
+                <processor-chain>
+                    <custom-transformer class="org.jasper.jLib.webview.notam.transformer.StringToWebViewNotam" doc:name="NotamTransformer"/>
+                    <jasperengine:outbound-endpoint topic="jms.jasper.1.0.webview.topic.notam" connector-ref="JEC" doc:name="JECNotamEndpoint"/>
+                </processor-chain>
+            </when>
+            <when expression="header:INBOUND:MessageType=adaps">
+                <processor-chain>
+                    <custom-transformer class="org.jasper.jLib.webview.adaps.transformer.StringToWebViewAdaps" doc:name="AdapsTransformer"/>
+                    <jasperengine:outbound-endpoint topic="jms.jasper.1.0.webview.topic.adaps" connector-ref="JEC" doc:name="JECAdapsEndpoint"/>
+                </processor-chain>
+            </when>
+            <otherwise>
+                <processor-chain>
+                    <logger level="ERROR" category="WebView message not recognized" doc:name="ErrorLogger"/>
+                </processor-chain>
+            </otherwise>
+        </choice>
+    </flow>
+</mule>

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:ajax="http://www.mulesoft.org/schema/mule/ajax" xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:quartz="http://www.mulesoft.org/schema/mule/quartz" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:jasperengine="http://www.mulesoft.org/schema/mule/jasperengine" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="CE-3.3.0" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd 
+http://www.mulesoft.org/schema/mule/ajax http://www.mulesoft.org/schema/mule/ajax/current/mule-ajax.xsd 
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd 
+http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/quartz/current/mule-quartz.xsd 
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
+http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
+    <jasperengine:connector name="JEC" vendor="jasper" appName="jtaTest-client-cat010-webview-traffic" version="1.1" deploymentId="jasperLab" jasperEngineURL="${jasperEngineURL}" doc:name="Jasper Connector"/>
+    <ajax:connector name="AjaxConnector" serverUrl="http://${ajax.serverUrl.host}:${ajax.serverUrl.port}/${ajax.serverUrl.path}" resourceBase="${app.home}/docroot" jsonCommented="true" doc:name="AjaxGlobalConnector"/>
+    <flow name="jtaTest-client-cat010-webview-traffic-stats-flow" doc:name="jtaTest-client-cat010-webview-traffic-stats-flow">
+        <quartz:inbound-endpoint jobName="eventTimer0" repeatInterval="507" startDelay="1" responseTimeout="10000" doc:name="Quartz">
+            <quartz:event-generator-job>
+                <quartz:payload>tick-tock</quartz:payload>
+            </quartz:event-generator-job>
+        </quartz:inbound-endpoint>
+        <component class="org.jasper.jTestApp.util.SimpleCacheAndStats" doc:name="SimpleCacheAndStats"/>
+        <json:object-to-json-transformer sourceClass="java.lang.String" doc:name="String to JSON"/>
+        <ajax:outbound-endpoint channel="/traffic/stats" connector-ref="AjaxConnector" doc:name="TrafficStats"/>
+    </flow>
+    <flow name="jtaTest-client-cat010-webview-traffic-cat010-byteArray-send-flow" doc:name="jtaTest-client-cat010-webview-traffic-cat010-byteArray-send-flow">
+        <quartz:inbound-endpoint jobName="eventTimer1" repeatInterval="101" startDelay="5" responseTimeout="10000" doc:name="Quartz">
+            <quartz:event-generator-job>
+                <quartz:payload>tick-tock</quartz:payload>
+            </quartz:event-generator-job>
+        </quartz:inbound-endpoint>
+        <component class="org.jasper.jTestApp.util.Cat010ByteArrayGenerator" doc:name="ByteArrayGenerator"/>
+        <all doc:name="All">
+            <processor-chain>
+                <component class="org.jasper.jTestApp.util.PutInSimpleCache" doc:name="PutInSimpleCache"/>
+            </processor-chain>
+            <processor-chain>
+                <jasperengine:outbound-endpoint topic="jms.jasper.1.0.cat010.topic.byteArray" connector-ref="JEC" doc:name="JECCat010ByteArrayEndpoint"/>
+            </processor-chain>
+        </all>
+    </flow>
+    <flow name="jtaTest-client-cat010-webview-traffic-cat010-tr-send-flow" doc:name="jtaTest-client-cat010-webview-traffic-cat010-tr-send-flow">
+        <quartz:inbound-endpoint jobName="eventTimer2" repeatInterval="102" startDelay="6" responseTimeout="10000" doc:name="Quartz">
+            <quartz:event-generator-job>
+                <quartz:payload>tick-tock</quartz:payload>
+            </quartz:event-generator-job>
+        </quartz:inbound-endpoint>
+        <component class="org.jasper.jTestApp.util.Cat010TargetReportGenerator" doc:name="TargetReportGenerator"/>
+        <all doc:name="All">
+            <processor-chain>
+                <component class="org.jasper.jTestApp.util.PutInSimpleCache" doc:name="PutInSimpleCache"/>
+            </processor-chain>
+            <processor-chain>
+                <jasperengine:outbound-endpoint topic="jms.jasper.1.0.cat010.topic.tr" connector-ref="JEC" doc:name="JECCat010TREndpoint"/>
+            </processor-chain>
+        </all>
+    </flow>
+    <flow name="jtaTest-client-cat010-webview-traffic-cat010-psm-send-flow" doc:name="jtaTest-client-cat010-webview-traffic-cat010-psm-send-flow">
+        <quartz:inbound-endpoint jobName="eventTimer3" repeatInterval="103" startDelay="7" responseTimeout="10000" doc:name="Quartz">
+            <quartz:event-generator-job>
+                <quartz:payload>tick-tock</quartz:payload>
+            </quartz:event-generator-job>
+        </quartz:inbound-endpoint>
+        <component class="org.jasper.jTestApp.util.Cat010PeriodicStatusMessageGenerator" doc:name="TargetReportGenerator"/>
+        <all doc:name="All">
+            <processor-chain>
+                <component class="org.jasper.jTestApp.util.PutInSimpleCache" doc:name="PutInSimpleCache"/>
+            </processor-chain>
+            <processor-chain>
+                <jasperengine:outbound-endpoint topic="jms.jasper.1.0.cat010.topic.psm" connector-ref="JEC" doc:name="JECCat010PSMEndpoint"/>
+            </processor-chain>
+        </all>
+    </flow>
+    <flow name="jtaTest-client-cat010-webview-traffic-webview-trax-send-flow" doc:name="jtaTest-client-cat010-webview-traffic-webview-trax-send-flow">
+        <quartz:inbound-endpoint jobName="eventTimer4" repeatInterval="104" startDelay="8" responseTimeout="10000" doc:name="Quartz">
+            <quartz:event-generator-job>
+                <quartz:payload>tick-tock</quartz:payload>
+            </quartz:event-generator-job>
+        </quartz:inbound-endpoint>
+        <component class="org.jasper.jTestApp.util.WebViewTraxGenerator" doc:name="TraxGenerator"/>
+        <all doc:name="All">
+            <processor-chain>
+                <component class="org.jasper.jTestApp.util.PutInSimpleCache" doc:name="PutInSimpleCache"/>
+            </processor-chain>
+            <processor-chain>
+                <jasperengine:outbound-endpoint topic="jms.jasper.1.0.webview.topic.trax" connector-ref="JEC" doc:name="JECWebViewTraxEndpoint"/>
+            </processor-chain>
+        </all>
+    </flow>
+    <flow name="jtaTest-client-cat010-webview-traffic-webview-adaps-send-flow" doc:name="jtaTest-client-cat010-webview-traffic-webview-adaps-send-flow">
+        <quartz:inbound-endpoint jobName="eventTimer5" repeatInterval="105" startDelay="9" responseTimeout="10000" doc:name="Quartz">
+            <quartz:event-generator-job>
+                <quartz:payload>tick-tock</quartz:payload>
+            </quartz:event-generator-job>
+        </quartz:inbound-endpoint>
+        <component class="org.jasper.jTestApp.util.WebViewAdapsGenerator" doc:name="AdapsGenerator"/>
+        <all doc:name="All">
+            <processor-chain>
+                <component class="org.jasper.jTestApp.util.PutInSimpleCache" doc:name="PutInSimpleCache"/>
+            </processor-chain>
+            <processor-chain>
+                <jasperengine:outbound-endpoint topic="jms.jasper.1.0.webview.topic.adaps" connector-ref="JEC" doc:name="JECWebViewAdapsEndpoint"/>
+            </processor-chain>
+        </all>
+    </flow>
+    <flow name="jtaTest-client-cat010-webview-traffic-webview-notam-send-flow" doc:name="jtaTest-client-cat010-webview-traffic-webview-notam-send-flow">
+        <quartz:inbound-endpoint jobName="eventTimer6" repeatInterval="106" startDelay="10" responseTimeout="10000" doc:name="Quartz">
+            <quartz:event-generator-job>
+                <quartz:payload>tick-tock</quartz:payload>
+            </quartz:event-generator-job>
+        </quartz:inbound-endpoint>
+        <component class="org.jasper.jTestApp.util.WebViewNotamGenerator" doc:name="NotamGenerator"/>
+        <all doc:name="All">
+            <processor-chain>
+                <component class="org.jasper.jTestApp.util.PutInSimpleCache" doc:name="PutInSimpleCache"/>
+            </processor-chain>
+            <processor-chain>
+                <jasperengine:outbound-endpoint topic="jms.jasper.1.0.webview.topic.notam" connector-ref="JEC" doc:name="JECWebViewNotamEndpoint"/>
+            </processor-chain>
+        </all>
+    </flow>
+    <flow name="jtaTest-client-cat010-webview-traffic-cat010-byteArray-recieve-flow" doc:name="jtaTest-client-cat010-webview-traffic-cat010-byteArray-recieve-flow">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.cat010.topic.byteArray" connector-ref="JEC" doc:name="JECCat010ByteArrayEndpoint"/>
+        <jms:jmsmessage-to-object-transformer returnClass="byte[]" doc:name="JEC msg to ByteArray"/>
+        <component class="org.jasper.jTestApp.util.RemoveFromSimpleCache" doc:name="RemoveFromSimpleCache"/>
+    </flow>
+    <flow name="jtaTest-client-cat010-webview-traffic-cat010-tr-recieve-flow" doc:name="jtaTest-client-cat010-webview-traffic-cat010-tr-recieve-flow">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.cat010.topic.tr" connector-ref="JEC" doc:name="JECCat010TREndpoint"/>
+        <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.cat010.codec.Cat010TargetReport" doc:name="JEC msg to Cat010TargetReport"/>
+        <component class="org.jasper.jTestApp.util.RemoveFromSimpleCache" doc:name="RemoveFromSimpleCache"/>
+    </flow>
+    <flow name="jtaTest-client-cat010-webview-traffic-cat010-psm-recieve-flow" doc:name="jtaTest-client-cat010-webview-traffic-cat010-psm-recieve-flow">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.cat010.topic.psm" connector-ref="JEC" doc:name="JECCat010PSMEndpoint"/>
+        <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.cat010.codec.Cat010PeriodicStatusMessage" doc:name="JEC msg to Cat010PeriodicStatusMessage"/>
+        <component class="org.jasper.jTestApp.util.RemoveFromSimpleCache" doc:name="RemoveFromSimpleCache"/>
+    </flow>
+    <flow name="jtaTest-client-cat010-webview-traffic-webview-trax-recieve-flow" doc:name="jtaTest-client-cat010-webview-traffic-webview-trax-recieve-flow">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.webview.topic.trax" connector-ref="JEC" doc:name="JECWebViewTraxEndpoint"/>
+        <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.webview.trax.decoder.WebViewTrax" doc:name="JEC msg to WebViewTrax"/>
+        <component class="org.jasper.jTestApp.util.RemoveFromSimpleCache" doc:name="RemoveFromSimpleCache"/>
+    </flow>
+    <flow name="jtaTest-client-cat010-webview-traffic-webview-adaps-recieve-flow" doc:name="jtaTest-client-cat010-webview-traffic-webview-adaps-recieve-flow">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.webview.topic.adaps" connector-ref="JEC" doc:name="JECWebViewAdapsEndpoint"/>
+        <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.webview.adaps.decoder.WebViewAdaps" doc:name="JEC msg to WebViewAdaps"/>
+        <component class="org.jasper.jTestApp.util.RemoveFromSimpleCache" doc:name="RemoveFromSimpleCache"/>
+    </flow>
+    <flow name="jtaTest-client-cat010-webview-traffic-webview-notam-recieve-flow" doc:name="jtaTest-client-cat010-webview-traffic-webview-notam-recieve-flow">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.webview.topic.notam" connector-ref="JEC" doc:name="JECWebViewNotamEndpoint"/>
+        <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.webview.notam.decoder.WebViewNotam" doc:name="JEC msg to WebViewNotam"/>
+        <component class="org.jasper.jTestApp.util.RemoveFromSimpleCache" doc:name="RemoveFromSimpleCache"/>
+    </flow>
+</mule>

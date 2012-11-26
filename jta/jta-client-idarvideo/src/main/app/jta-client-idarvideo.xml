@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:tcp="http://www.mulesoft.org/schema/mule/tcp" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:ajax="http://www.mulesoft.org/schema/mule/ajax" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:jasperengine="http://www.mulesoft.org/schema/mule/jasperengine" xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="CE-3.3.0" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tcp http://www.mulesoft.org/schema/mule/tcp/current/mule-tcp.xsd 
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
+http://www.mulesoft.org/schema/mule/ajax http://www.mulesoft.org/schema/mule/ajax/current/mule-ajax.xsd 
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
+http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd 
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd 
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd 
+http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd ">
+    <jasperengine:connector name="JEC" vendor="jasper" appName="jta-client-idarvideo" version="1.1" deploymentId="jasperLab" jasperEngineURL="${jasperEngineURL}" doc:name="JasperEngineConnector"/>
+    <tcp:polling-connector name="TCP_Polling" validateConnections="false" sendBufferSize="0" receiveBufferSize="0" receiveBacklog="0" clientSoTimeout="10000" serverSoTimeout="10000" socketSoLinger="0" doc:name="TCP Polling">
+        <tcp:custom-protocol class="org.jasper.jLib.idar.video.codec.IDARTcpProtocol"/>
+    </tcp:polling-connector>
+    <flow name="jta-client-idarvideo-flow" doc:name="jta-client-idarvideo-flow">
+        <tcp:inbound-endpoint host="${idarvideo.client.tcp.inbound.host}" port="${idarvideo.client.tcp.inbound.port}" responseTimeout="${idarvideo.client.tcp.inbound.timeOut}" connector-ref="TCP_Polling" doc:name="TCP"/>
+        <custom-transformer class="org.jasper.jLib.idar.video.transformer.ByteArrayToIDARVideoMessage" doc:name="ByteToIDARVideo"/>
+        <choice doc:name="Choice">
+            <when expression="message.payload is org.jasper.jLib.idar.video.codec.IDARVideoMessage">
+                <processor-chain>
+                    <jasperengine:outbound-endpoint topic="jms.jasper.1.0.idarvideo.topic" connector-ref="JEC" doc:name="JECAdapsEndpoint"/>
+                </processor-chain>
+            </when>
+            <otherwise>
+                <processor-chain>
+                    <logger level="ERROR" doc:name="ErrorLogger"/>
+                </processor-chain>
+            </otherwise>
+        </choice>
+    </flow>
+</mule>

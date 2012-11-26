@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-configuration xmlns="http://www.mulesoft.com/tooling/messageflow" name="cat010toajax">
+    <global-unknown unknownName="JEC" entity-id="501a6db4-1739-4d15-a4da-4df0969f4896">
+        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; name=&quot;JEC&quot; vendor=&quot;jasper&quot; appName=&quot;jta-client-cat010-atims&quot; version=&quot;1.1&quot; deploymentId=&quot;jasperLab&quot; jasperEngineURL=&quot;${jasperEngineURL}&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JasperEngineConnector&quot;/&gt;</content>
+    </global-unknown>
+    <flow SubFlow="false" name="jta-client-cat010-atims-flow">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+        </properties>
+        <lane hadOnlyOneElement="false" entity-id="ae0c4f39-a822-4636-ae66-e5e77a938eec">
+            <endpoint message-exchange-pattern="RequestResponse" direction="Inbound" type="http://www.mulesoft.org/schema/mule/udp/endpoint" name="cat010InboundEndpoint" entity-id="38d957aa-4a16-4c3c-b05b-b0f85db59faa">
+                <properties>
+                    <property value="request-response" name="exchange-pattern"/>
+                    <property name="exchange-pattern"/>
+                    <property value="${inbound.cat010endpoint.host}" name="host"/>
+                    <property value="${inbound.cat010endpoint.port}" name="port"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="address"/>
+                    <property value="10000" name="responseTimeout"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="connector-ref"/>
+                    <property name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="responseTransformer-refs"/>
+                </properties>
+            </endpoint>
+            <splitter type="org.mule.tooling.ui.modules.core.pattern.all" name="All" entity-id="f65e5dcb-b3e3-4fff-9ef3-0ecd296cc351">
+                <pattern type="org.mule.tooling.ui.modules.core.pattern.all" name="All" entity-id="d957eee9-833d-4cda-989b-a12954812d78"/>
+                <compartment entity-id="3f79bf7c-210a-46f0-9242-573678c62650">
+                    <lane hadOnlyOneElement="false" entity-id="745f5b96-62a7-4e27-9d6c-c0b0b949c06a">
+                        <unknown entity-id="1b036d6a-7c30-4c8c-ac57-432c6783602b">
+                            <content>&lt;jasperengine:outbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.cat010.topic.byteArray&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECAdapsEndpoint&quot;/&gt;</content>
+                        </unknown>
+                    </lane>
+                    <lane hadOnlyOneElement="false" entity-id="cc0cd048-9c19-4f6c-aaee-5fc07165b0ce">
+                        <pattern type="org.mule.tooling.ui.modules.core.pattern.customTransformer" name="getCat010Message" entity-id="a9304e59-360a-43ac-99bc-c147b3edda71">
+                            <properties>
+<property name="returnClass"/>
+<property name="ignoreBadInput"/>
+<property name="encoding"/>
+<property name="mimeType"/>
+<property value="org.jasper.jLib.cat010.transformer.ByteArrayOrCat010WithOriginalByteArrayToCat010Message" name="class"/>
+                            </properties>
+                        </pattern>
+                        <splitter type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="659ebb4b-751c-4d8d-b7bf-d9c3c3fb3698">
+                            <properties>
+<property-collection name="0a517be2-6715-49a8-a3c8-a48ef2d43b4b">
+    <property value="message.payload is org.jasper.jLib.cat010.codec.Cat010TargetReport" name="choice.expression"/>
+</property-collection>
+<property-collection name="55545de7-f57d-415d-926c-bc8fc335c402">
+    <property value="message.payload is org.jasper.jLib.cat010.codec.Cat010PeriodicStatusMessage" name="choice.expression"/>
+</property-collection>
+<property-collection name="e504f11d-d000-4316-bc9d-b5a0400615b9">
+    <property value="true" name="choice.otherwise"/>
+</property-collection>
+                            </properties>
+                            <pattern type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="385b4183-d573-4016-807e-a96bd272cd4e"/>
+                            <compartment entity-id="e6c3551e-2dfe-4d4b-a6b4-56d526e49f61">
+<lane hadOnlyOneElement="false" entity-id="55545de7-f57d-415d-926c-bc8fc335c402">
+    <unknown entity-id="e5e80d02-9e71-434a-9de9-f43775731609">
+        <content>&lt;jasperengine:outbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.cat010.topic.psm&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECAdapsEndpoint&quot;/&gt;</content>
+    </unknown>
+</lane>
+<lane hadOnlyOneElement="false" entity-id="0a517be2-6715-49a8-a3c8-a48ef2d43b4b">
+    <unknown entity-id="0fe126a8-fdaa-482f-a47e-5e1e1f9296c0">
+        <content>&lt;jasperengine:outbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.cat010.topic.tr&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECAdapsEndpoint&quot;/&gt;</content>
+    </unknown>
+</lane>
+<lane hadOnlyOneElement="false" entity-id="e504f11d-d000-4316-bc9d-b5a0400615b9">
+    <pattern type="http://www.mulesoft.org/schema/mule/core/logger" name="ErrorLogger" entity-id="af5eb3e8-a4f8-4535-9443-07394a81a0c8">
+        <properties>
+            <property name="message"/>
+            <property value="ERROR" name="level"/>
+            <property name="category"/>
+        </properties>
+    </pattern>
+</lane>
+                            </compartment>
+                        </splitter>
+                    </lane>
+                </compartment>
+            </splitter>
+        </lane>
+    </flow>
+    <description>This flow will listening for incoming cat010 messages, decode them and then send them over ajax to any interested clients</description>
+</mule-configuration>

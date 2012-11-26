@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:ajax="http://www.mulesoft.org/schema/mule/ajax" xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:jasperengine="http://www.mulesoft.org/schema/mule/jasperengine" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="CE-3.3.0" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ajax http://www.mulesoft.org/schema/mule/ajax/current/mule-ajax.xsd 
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd 
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd 
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
+http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
+    <jasperengine:connector name="JEC" vendor="jasper" appName="jtaTest-interface-cat010-webview-traffic-ajax" version="1.1" deploymentId="jasperLab" jasperEngineURL="${jasperEngineURL}" doc:name="Jasper Connector"/>
+    <ajax:connector name="AjaxConnector" serverUrl="http://${ajax.serverUrl.host}:${ajax.serverUrl.port}/${ajax.serverUrl.path}" resourceBase="${app.home}/docroot" jsonCommented="true" doc:name="AjaxGlobalConnector"/>
+    <flow name="jtaTest-interface-cat010-webview-traffic-ajax-cat010-byteArray-flow" doc:name="jtaTest-interface-cat010-webview-traffic-ajax-cat010-byteArray-flow">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.cat010.topic.byteArray" connector-ref="JEC" doc:name="JECCat010ByteArrayEndpoint"/>
+        <jms:jmsmessage-to-object-transformer returnClass="byte[]" doc:name="JEC msg to ByteArray"/>
+        <custom-transformer class="org.jasper.jTestApp.transformer.ByteArrayToString" doc:name="ByteArrayToString"/>
+        <json:object-to-json-transformer sourceClass="java.lang.String" doc:name="String to JSON"/>
+        <ajax:outbound-endpoint channel="/cat010/byte_array" connector-ref="AjaxConnector" doc:name="Byte Array"/>
+    </flow>
+    <flow name="jtaTest-interface-cat010-webview-traffic-ajax-cat010-tr-flow" doc:name="jtaTest-interface-cat010-webview-traffic-ajax-cat010-tr-flow">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.cat010.topic.tr" connector-ref="JEC" doc:name="JECCat010TREndpoint"/>
+		<jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.cat010.codec.Cat010TargetReport" doc:name="JEC msg to Cat010TargetReport"/>
+        <json:object-to-json-transformer sourceClass="org.jasper.jLib.cat010.codec.Cat010TargetReport" doc:name="Cat010TargetReport to JSON"/>
+        <ajax:outbound-endpoint channel="/cat010/target_reports" connector-ref="AjaxConnector" doc:name="Ajax Target Reports"/>
+    </flow>
+    <flow name="jtaTest-interface-cat010-webview-traffic-ajax-cat010-psm-flow" doc:name="jtaTest-interface-cat010-webview-traffic-ajax-cat010-psm-flow">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.cat010.topic.psm" connector-ref="JEC" doc:name="JECCat010PSMEndpoint"/>
+  		<jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.cat010.codec.Cat010PeriodicStatusMessage" doc:name="JEC msg to Cat010PeriodicStatusMessage"/>
+        <json:object-to-json-transformer sourceClass="org.jasper.jLib.cat010.codec.Cat010PeriodicStatusMessage" doc:name="Cat010PeriodicStatusMessage to JSON"/>
+        <ajax:outbound-endpoint channel="/cat010/periodic_status_messages" connector-ref="AjaxConnector" doc:name="Ajax Periodic Status Messages"/>
+    </flow>
+    
+    <flow name="jtaTest-interface-cat010-webview-traffic-ajax-webview-trax-flow" doc:name="jtaTest-interface-cat010-webview-traffic-ajax-webview-trax-flow">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.webview.topic.trax" connector-ref="JEC" doc:name="JECWebViewTraxEndpoint"/>
+        <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.webview.trax.decoder.WebViewTrax" doc:name="JEC msg to WebViewTrax"/>
+        <json:object-to-json-transformer sourceClass="org.jasper.jLib.webview.trax.decoder.WebViewTrax" doc:name="Object to JSON"/>
+        <ajax:outbound-endpoint channel="/webview/trax" connector-ref="AjaxConnector" doc:name="Ajax WebView Trax"/>
+    </flow>
+    <flow name="jtaTest-interface-cat010-webview-traffic-ajax-webview-adaps-flow" doc:name="jtaTest-interface-cat010-webview-traffic-ajax-webview-adaps-flow">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.webview.topic.adaps" connector-ref="JEC" doc:name="JECWebViewAdapsEndpoint"/>
+        <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.webview.adaps.decoder.WebViewAdaps" doc:name="JEC msg to WebViewAdaps"/>
+        <json:object-to-json-transformer sourceClass="org.jasper.jLib.webview.adaps.decoder.WebViewAdaps" doc:name="Object to JSON"/>
+        <ajax:outbound-endpoint channel="/webview/adaps" connector-ref="AjaxConnector" doc:name="Ajax WebView Adaps"/>
+    </flow>
+    <flow name="jtaTest-interface-cat010-webview-traffic-ajax-webview-notam-flow" doc:name="jtaTest-interface-cat010-webview-traffic-ajax-webview-notam-flow">
+        <jasperengine:inbound-endpoint topic="jms.jasper.1.0.webview.topic.notam" connector-ref="JEC" doc:name="JECWebViewNotamEndpoint"/>
+        <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.webview.notam.decoder.WebViewNotam" doc:name="JEC msg to WebViewNotam"/>
+        <json:object-to-json-transformer sourceClass="org.jasper.jLib.webview.notam.decoder.WebViewNotam" doc:name="Object to JSON"/>
+        <ajax:outbound-endpoint channel="/webview/notam" connector-ref="AjaxConnector" doc:name="Ajax WebView Notam"/>
+    </flow>
+    
+</mule>

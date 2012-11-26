@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-configuration xmlns="http://www.mulesoft.com/tooling/messageflow" name="iDARVideo">
+    <global-unknown unknownName="JEC" entity-id="59d8631c-043c-409c-b392-497677c40ea7">
+        <content>&lt;jasperengine:connector xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; name=&quot;JEC&quot; vendor=&quot;jasper&quot; appName=&quot;jta-interface-idarvideo-rest&quot; version=&quot;1.1&quot; deploymentId=&quot;jasperLab&quot; jasperEngineURL=&quot;${jasperEngineURL}&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JasperEngineConnector&quot;/&gt;</content>
+    </global-unknown>
+    <global-element type="http://www.mulesoft.org/schema/mule/http/endpoint" name="HTTP" entity-id="df0b5262-bac7-4e5e-9904-c02281fd166d">
+        <properties>
+            <property name="exchange-pattern"/>
+            <property value="http://www.mulesoft.org/schema/mule/http/endpoint" name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute"/>
+            <property name="httpLabel"/>
+            <property value="${rest.http.endpoint.host}" name="host"/>
+            <property value="${rest.http.endpoint.port}" name="port"/>
+            <property value="${rest.http.endpoint.path}" name="path"/>
+            <property name="method"/>
+            <property value="globalHttpEndpoint" name="name"/>
+            <property name="businessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+            <property name="address"/>
+            <property name="encoding"/>
+            <property name="disableTransportTransformer"/>
+            <property name="mimeType"/>
+            <property name="responseTimeout"/>
+            <property name="followRedirects"/>
+            <property name="connector-ref"/>
+            <property name="ref"/>
+            <property name="transformer-refs"/>
+            <property name="responseTransformer-refs"/>
+            <property name="user"/>
+            <property name="password"/>
+            <property name="contentType"/>
+            <property name="keep-alive"/>
+        </properties>
+    </global-element>
+    <flow SubFlow="false" name="jta-interface-idarvideo-rest-cache-write-flow">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+        </properties>
+        <lane hadOnlyOneElement="false" entity-id="b301dd1e-2044-4900-850d-25bbc0e7ea24">
+            <unknown entity-id="ac2880f1-3d21-4665-9815-3ef8eecd9cc7">
+                <content>&lt;jasperengine:inbound-endpoint xmlns:jasperengine=&quot;http://www.mulesoft.org/schema/mule/jasperengine&quot; topic=&quot;jms.jasper.1.0.idarvideo.topic&quot; connector-ref=&quot;JEC&quot; xmlns:doc=&quot;http://www.mulesoft.org/schema/mule/documentation&quot; doc:name=&quot;JECEndpoint&quot;/&gt;</content>
+            </unknown>
+            <pattern type="http://www.mulesoft.org/schema/mule/jms/jmsmessage-to-object-transformer" name="JEC msg to IDARVideoMessage" entity-id="985d8904-2fc8-4c29-8cab-70f5edb425c6">
+                <properties>
+                    <property value="org.jasper.jLib.idar.video.codec.IDARVideoMessage" name="returnClass"/>
+                    <property name="ignoreBadInput"/>
+                    <property name="encoding"/>
+                    <property name="mimeType"/>
+                </properties>
+            </pattern>
+            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="JasperIdarVideo SimpleCache" entity-id="06c9b157-4aca-43ec-9e06-dff13fc7d1fb">
+                <properties>
+                    <property value="org.jasper.engine.idarvideo.cache.JasperIdarVideoSimpleCache" name="class"/>
+                </properties>
+            </pattern>
+        </lane>
+    </flow>
+    <flow SubFlow="false" name="jta-interface-idarvideo-rest-cache-read-flow">
+        <properties>
+            <property name="processingStrategy2"/>
+            <property name="processingStrategy"/>
+            <property name="bussinessEventsLabel"/>
+            <property name="tracking:enable-default-events"/>
+        </properties>
+        <lane hadOnlyOneElement="false" entity-id="3eaae11d-4cf0-4911-bfc9-6120b0c4288a">
+            <endpoint message-exchange-pattern="OneWay" direction="Inbound" type="http://www.mulesoft.org/schema/mule/http/endpoint" name="bulletinList" entity-id="5a3d39b2-c9a9-43dd-9668-11d86c7f6b04">
+                <properties>
+                    <property value="one-way" name="exchange-pattern"/>
+                    <property value="request-response" name="exchange-pattern"/>
+                    <property value="http://www.mulesoft.org/schema/mule/http/endpoint" name="org.mule.tooling.ui.modules.core.widgets.meta.ModeAttribute"/>
+                    <property name="httpLabel"/>
+                    <property name="host"/>
+                    <property name="port"/>
+                    <property name="path"/>
+                    <property name="method"/>
+                    <property name="businessEventsLabel"/>
+                    <property name="tracking:enable-default-events"/>
+                    <property name="address"/>
+                    <property name="encoding"/>
+                    <property name="disableTransportTransformer"/>
+                    <property name="mimeType"/>
+                    <property name="responseTimeout"/>
+                    <property name="followRedirects"/>
+                    <property name="connector-ref"/>
+                    <property value="globalHttpEndpoint" name="ref"/>
+                    <property name="transformer-refs"/>
+                    <property name="responseTransformer-refs"/>
+                    <property name="user"/>
+                    <property name="password"/>
+                    <property name="contentType"/>
+                    <property name="keep-alive"/>
+                </properties>
+            </endpoint>
+            <pattern type="http://www.mulesoft.org/schema/mule/core/component" name="JasperIdarVideo SimpleCache" entity-id="19fda529-f9b3-4bbb-b1af-cf49cb7661ca">
+                <properties>
+                    <property value="org.jasper.engine.idarvideo.cache.JasperIdarVideoSimpleCache" name="class"/>
+                </properties>
+            </pattern>
+            <splitter type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="4dadf58a-edcf-43c1-bf44-a4b128aa3119">
+                <properties>
+                    <property-collection name="775c1027-d24c-46fe-be2e-0e6793bd474f">
+                        <property value="true" name="choice.otherwise"/>
+                    </property-collection>
+                    <property-collection name="2d6337af-1660-4978-ab31-ec78ccd76cf4">
+                        <property value="message.payload is org.jasper.jLib.idar.video.codec.IDARVideoMessage" name="choice.expression"/>
+                    </property-collection>
+                </properties>
+                <pattern type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="c5792b64-0412-4834-867d-81ee1ace0ea3"/>
+                <compartment entity-id="7cf619ad-e085-4b3c-b47d-9b4303160bab">
+                    <lane hadOnlyOneElement="false" entity-id="2d6337af-1660-4978-ab31-ec78ccd76cf4">
+                        <pattern type="org.mule.tooling.ui.modules.core.pattern.customTransformer" name="JPEGfromObject" entity-id="c36004f6-d700-41c5-ac96-ad7af07c35de">
+                            <properties>
+<property name="returnClass"/>
+<property name="ignoreBadInput"/>
+<property name="encoding"/>
+<property name="mimeType"/>
+<property value="org.jasper.jLib.idar.video.transformer.IDARtoJPEG" name="class"/>
+                            </properties>
+                        </pattern>
+                        <endpoint message-exchange-pattern="OneWay" direction="Outbound" type="http://www.mulesoft.org/schema/mule/file/endpoint" name="File" entity-id="2607a08d-2351-46cc-a2d2-30d5bef34de3">
+                            <properties>
+<property value="one-way" name="exchange-pattern"/>
+<property value="${app.home}/docroot" name="path"/>
+<property value="intelliDAR.jpg" name="outputPattern"/>
+<property name="moveToPattern"/>
+<property name="moveToDirectory"/>
+<property name="pollingFrequency"/>
+<property name="fileAge"/>
+<property name="businessEventsLabel"/>
+<property name="tracking:enable-default-events"/>
+<property name="address"/>
+<property value="10000" name="responseTimeout"/>
+<property name="encoding"/>
+<property name="disableTransportTransformer"/>
+<property value="image/jpeg" name="mimeType"/>
+<property name="comparator"/>
+<property name="reverseOrder"/>
+<property name="connector-ref"/>
+<property name="ref"/>
+<property name="transformer-refs"/>
+                            </properties>
+                        </endpoint>
+                    </lane>
+                    <lane hadOnlyOneElement="false" entity-id="775c1027-d24c-46fe-be2e-0e6793bd474f">
+                        <splitter type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="b28df6a2-8598-45ee-a7a3-460dc4baf589">
+                            <properties>
+<property-collection name="0f3f0a99-861d-4a2a-a672-c475d39b8ba6">
+    <property value="true" name="choice.otherwise"/>
+</property-collection>
+<property-collection name="7eeb12e9-c749-4f43-8a5d-83ccfbdc16dd">
+    <property value="message.payload != 'JASPER ASB --- Resource Not Found.'" name="choice.expression"/>
+</property-collection>
+                            </properties>
+                            <pattern type="org.mule.tooling.ui.modules.core.pattern.cbr" name="Choice" entity-id="ad646674-c69f-4736-b632-c95eed465613"/>
+                            <compartment entity-id="bb632c5a-9af1-4761-ae7d-a38e9a46d3fa">
+<lane hadOnlyOneElement="false" entity-id="7eeb12e9-c749-4f43-8a5d-83ccfbdc16dd">
+    <pattern type="org.mule.tooling.ui.modules.core.pattern.customTransformer" name="XMLfromObject" entity-id="d4973290-3813-433e-9fd3-48a0cd3e53d4">
+        <properties>
+            <property name="returnClass"/>
+            <property name="ignoreBadInput"/>
+            <property name="encoding"/>
+            <property name="mimeType"/>
+            <property value="org.jasper.jLib.idar.video.transformer.IDARtoXML" name="class"/>
+        </properties>
+    </pattern>
+    <pattern type="org.mule.tooling.ui.modules.core.pattern.customTransformer" name="XMLtoJson" entity-id="eb48a4cc-c505-4a7b-b7c3-32b8e0ff8cae">
+        <properties>
+            <property name="returnClass"/>
+            <property name="ignoreBadInput"/>
+            <property name="encoding"/>
+            <property name="mimeType"/>
+            <property value="org.mule.module.json.transformers.XmlToJson" name="class"/>
+        </properties>
+    </pattern>
+</lane>
+<lane hadOnlyOneElement="false" entity-id="0f3f0a99-861d-4a2a-a672-c475d39b8ba6">
+    <pattern type="http://www.mulesoft.org/schema/mule/json/object-to-json-transformer" name="Object to JSON" entity-id="0b171dfc-2b4d-4727-9386-e6399ae488b1">
+        <properties>
+            <property name="returnClass"/>
+            <property name="ignoreBadInput"/>
+            <property name="encoding"/>
+            <property name="mimeType"/>
+            <property name="mapper-ref"/>
+            <property name="sourceClass"/>
+        </properties>
+    </pattern>
+</lane>
+                            </compartment>
+                        </splitter>
+                    </lane>
+                </compartment>
+            </splitter>
+        </lane>
+    </flow>
+    <description></description>
+</mule-configuration>
