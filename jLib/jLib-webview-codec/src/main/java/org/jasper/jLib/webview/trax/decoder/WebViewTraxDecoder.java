@@ -3,6 +3,7 @@ package org.jasper.jLib.webview.trax.decoder;
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
+
 import org.jasper.jLib.webview.trax.decoder.WebViewTraxMessage.TargetType;
 import org.jasper.jLib.webview.trax.decoder.WebViewTraxMessage.TrackInfoSize;
 import org.jasper.jLib.webview.trax.decoder.WebViewTraxMessage.TrackInfoType;
@@ -59,9 +60,8 @@ public class WebViewTraxDecoder {
 	
 	public static WebViewTrax doDecode(String msg){
 		ArrayList<WebViewTraxMessage> trax = new ArrayList<WebViewTraxMessage>();
-		
+
 		if(isValidTraxResponse(msg)){
-			//ArrayList<String> rows = getTraxRows(msg);
 			ArrayList<String> rows = traxRows;
 			for(String row:rows){
 				WebViewTraxMessage decodedRow = decodeRow(row);
@@ -130,28 +130,51 @@ public class WebViewTraxDecoder {
 		return traxRows;
 	}
 	
-	private static ArrayList<String> getTraxHeader(String msg) {
+	private static ArrayList<String> getTraxHeader(String msg, String search) {
 		String[] rows = msg.split("\n");
 		ArrayList<String> traxHeader = new ArrayList<String>(); 
 		for(String row : rows){
-			if(row.startsWith("starttrax(")) {
+			if(row.startsWith(search)) {
 				traxHeader.add(row);
-				//break;
 			}
 		}
 		return traxHeader;
 	}
 
 	private static boolean isValidTraxResponse(String msg) {
-		ArrayList<String> header = getTraxHeader(msg);
-		
-		// message had zero or more than 1 'starttrax' row
-		if(header.size() != 1) {
-			logger.warn("TRAX msg contains zero or more than one starttrax rows\n" + msg);
+		if(msg == null) {
+			logger.warn("Trax message is null");
 			return false;
 		}
+		ArrayList<String> startTrax = getTraxHeader(msg, "starttrax(");
+		ArrayList<String> endTrax = getTraxHeader(msg, "endtrax(");
 		
-		String[] tmp = header.get(0).split(",");
+		// message had zero or more than 1 'starttrax' row
+		if(startTrax.size() == 0) {
+			logger.warn("TRAX msg does not contain a starttrax row\n" + msg);
+			return false;
+		}
+		else {
+			if(startTrax.size() > 1) {
+				logger.warn("TRAX msg contains more than one starttrax row\n" + msg);
+				return false;
+			}
+		}
+			
+		
+		// message had zero or more than 1 'endtrax' row
+		if(endTrax.size() == 0) {
+			logger.warn("TRAX msg does not contain an endtrax row\n" + msg);
+			return false;
+		}
+		else {
+			if(endTrax.size() > 1) {
+				logger.warn("TRAX msg contains more than one endtrax row\n" + msg);
+				return false;
+			}
+		}
+		
+		String[] tmp = startTrax.get(0).split(",");
 		int totalRows;
 		
 		// ensure that field in the starttrax that indicates the number of trax rows in this msg
@@ -159,10 +182,10 @@ public class WebViewTraxDecoder {
 		try {
 		    totalRows = Integer.parseInt(tmp[0].split("\\(")[1].trim());
 		} catch (NumberFormatException e) {
-			logger.warn("Total number of Trax rows not valid: " + header.toString());
+			logger.warn("Total number of Trax rows not valid: " + startTrax.toString());
 			return false;
 		} catch (ArrayIndexOutOfBoundsException ex) {
-			logger.warn("Total number of Trax rows not present: " + header.toString());
+			logger.warn("Total number of Trax rows not present: " + startTrax.toString());
 			return false;
 		}
 		
@@ -250,13 +273,13 @@ public class WebViewTraxDecoder {
 		"trax(1,,12850,74571,ZZZZ,ZZZZ,ZZZZ,ZZZZ,10200,26661,151,False,59,False,False,8,False,0,1,1,266,169,5,0)\n" +
 		"trax(1,853,12853,74571,ZZZZ,ZZZZ,ZZZZ,ZZZZ,1626,815,0,False,0,False,False,64,False,0,0,1,56,21,5,0)\n" +
 		"trax(0,973,16973,72614)\n" +
-		"trax(n0,,13718,58585)\n" +
+		"trax(0,,13718,58585)\n" +
 		"endtrax(8,74571)";
 		
 		
 		WebViewTrax trax = doDecode(record);
 		
-	}
+	} 
 	
 	
 }

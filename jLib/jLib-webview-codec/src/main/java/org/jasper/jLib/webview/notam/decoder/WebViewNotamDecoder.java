@@ -61,6 +61,7 @@ public class WebViewNotamDecoder {
 	}
 
 	private static boolean isValidNotamResponse(String msg) {
+		if(msg == null) return false;
 		String[] rows = msg.split("\n");
 		int numStart = 0;
 		int numEnd   = 0;

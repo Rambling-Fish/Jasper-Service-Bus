@@ -28,6 +28,7 @@ public class IDARVideoDecoder {
 
 
 	public IDARVideoMessage doDecode(byte[] byteArray) {
+		if(byteArray == null) return null;
 				
 		byte[] jpegImage = setImage(byteArray);
 		int imageSize = getImageSize(byteArray);

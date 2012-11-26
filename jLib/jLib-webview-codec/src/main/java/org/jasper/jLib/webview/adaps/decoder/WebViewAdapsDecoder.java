@@ -36,6 +36,7 @@ public class WebViewAdapsDecoder {
 	}
 	
 	private static WebViewAdapsStats getAdapsStats(String msg){
+		if(msg == null) return null;
 		
 		String[] rows = msg.split("\n");
 		String statsLine = null;
@@ -45,7 +46,7 @@ public class WebViewAdapsDecoder {
 				break;
 			}
 		}
-		if( statsLine == null) return null;
+		if( statsLine == null || statsLine.isEmpty()) return null;
 		
 		String[] stats = statsLine.split(",");
 		String fir = "";
@@ -57,19 +58,20 @@ public class WebViewAdapsDecoder {
 		
 		for(String stat:stats){
 			String[] keyValuePair = stat.split(";");
-			if(keyValuePair.length != 2) break;
-			if ("fir".equals(keyValuePair[0])){
-				fir = keyValuePair[1].trim();
-			}else if ("last_update_time".equals(keyValuePair[0])){
-				last_update_time = keyValuePair[1].trim();
-			}else if ("gusting".equals(keyValuePair[0])){
-				gusting = keyValuePair[1].trim();
-			}else if ("windspeed".equals(keyValuePair[0])){
-				windspeed = keyValuePair[1].trim();
-			}else if ("adapsaltimeter".equals(keyValuePair[0])){
-				adaps_altimeter = keyValuePair[1].trim();
-			}else if ("winddirection".equals(keyValuePair[0])){
-				wind_direction = keyValuePair[1].trim();
+			if(keyValuePair.length == 2) {
+				if ("fir".equals(keyValuePair[0])){
+					fir = keyValuePair[1].trim();
+				}else if ("last_update_time".equals(keyValuePair[0])){
+					last_update_time = keyValuePair[1].trim();
+				}else if ("gusting".equals(keyValuePair[0])){
+					gusting = keyValuePair[1].trim();
+				}else if ("windspeed".equals(keyValuePair[0])){
+					windspeed = keyValuePair[1].trim();
+				}else if ("adapsaltimeter".equals(keyValuePair[0])){
+					adaps_altimeter = keyValuePair[1].trim();
+				}else if ("winddirection".equals(keyValuePair[0])){
+					wind_direction = keyValuePair[1].trim();
+				}
 			}
 			
 		}
@@ -89,21 +91,23 @@ public class WebViewAdapsDecoder {
 		
 		for(String info:line){
 			String[] keyValuePair = info.split(":");
-			if ("rwy".equals(keyValuePair[0])){
-				runway = keyValuePair[1];
-			}else if ("rvra".equals(keyValuePair[0])){
-				rvr_a = keyValuePair[1];
-			}else if ("rvrb".equals(keyValuePair[0])){
-				rvr_b = keyValuePair[1];
-			}else if ("el".equals(keyValuePair[0])){
-				edge_lights = keyValuePair[1];
-			}else if ("loc".equals(keyValuePair[0])){
-				loc = "OK";
-			}else if ("gp".equals(keyValuePair[0])){
-				gp = "OK";
-			}else if ("dme".equals(keyValuePair[0])){
-				dme = "OK";
-			}	
+			if(keyValuePair.length == 2) {
+				if ("rwy".equals(keyValuePair[0])){
+					runway = keyValuePair[1];
+				}else if ("rvra".equals(keyValuePair[0])){
+					rvr_a = keyValuePair[1];
+				}else if ("rvrb".equals(keyValuePair[0])){
+					rvr_b = keyValuePair[1];
+				}else if ("el".equals(keyValuePair[0])){
+					edge_lights = keyValuePair[1];
+				}else if ("loc".equals(keyValuePair[0])){
+					loc = "OK";
+				}else if ("gp".equals(keyValuePair[0])){
+					gp = "OK";
+				}else if ("dme".equals(keyValuePair[0])){
+					dme = "OK";
+				}
+			}
 		}
 		
 		return new WebViewAdapsRunwayInfo(runway, rvr_a, rvr_b, edge_lights, loc, gp, dme);
@@ -121,7 +125,10 @@ public class WebViewAdapsDecoder {
 	}
 
 	private static boolean isValidAdapsResponse(String msg) {
-		return true;
+		if(msg == null)
+			return false;
+		else
+		 return true;
 	}
 
 	public static void main(String arg[]){
