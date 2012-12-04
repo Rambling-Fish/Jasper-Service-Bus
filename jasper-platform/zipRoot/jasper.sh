@@ -55,6 +55,10 @@ function stop_m {
 }
 
 function start_j {
+   if ! [ -x jsb-core/jsbStart.sh ]; then
+      echo "*** Warning: JSB has not been setup. Run ./setup jsb first"
+      exit 0
+   fi
    get_j_pid
 if [ -z "$J_PID" ]; then
       echo  "Starting JSB.."
@@ -71,6 +75,10 @@ if [ -z "$J_PID" ]; then
 }
 
 function start_m {
+   if ! [ -d jsb-core/mule-standalone-3.3.0 ]; then
+      echo "*** Warning: JTA has not been setup. Run ./setup jta first"
+      exit 0
+  fi
    get_m_pid
 if [ -z "$M_PID" ]; then
       echo  "Starting JTA Server.."
