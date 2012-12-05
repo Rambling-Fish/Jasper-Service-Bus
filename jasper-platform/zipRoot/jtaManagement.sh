@@ -138,6 +138,45 @@ configure_JTA()
     done    
 }
 
+configure_global_JasperEngineURL() {
+   clear
+   echo "Configure jasperEngineURL in all JTAs"
+   echo "-------------------------------------"
+   echo
+   JTAList=`ls JTAs`
+   if [ -z "$JTAList" ]; then
+      echo "No JTAs to configure - hit enter to return to menu"
+      read value
+      menuScreen
+   else
+   pattern="jasperEngineURL"
+   echo "Enter new value (format: tcp://host:port): "
+   read replacement
+   echo "Set jasperEngineURL as $replacement in all JTAs? (y/n/q)"
+   read choice
+   if [ "$choice" == "n" ];then
+      configure_global_JasperEngineURL
+   else
+      if [ "$choice" == "y" ]; then
+         for f in $JTAList
+            do 
+               FILENAME="JTAs/$f/mule-app.properties"
+               echo "Processing $FILENAME"
+               propvalue=`sed '/^\#/d' $FILENAME | grep $pattern | tail -n 1 | sed 's/^.*=//;s/^[[:space:]]*//;s/[[:space:]]*$//'`
+               A="`echo | tr '\012' '\001' `"
+               sed -i -e "s$A$pattern=$propvalue$A$pattern=$replacement$A" $FILENAME
+               rm "$FILENAME-e" 
+            done
+         echo "Hit any key to return to menu"
+         read newChoice
+         menuScreen
+      else
+         menuScreen
+      fi
+   fi
+   fi
+}
+
 menuScreen()
 {
     clear
@@ -145,7 +184,7 @@ menuScreen()
     echo "JTA Management"
     echo "---------------"
     echo
-    options=("Deploy JTA" "Undeploy JTA" "Configure JTA" "Quit")
+    options=("Deploy JTA" "Undeploy JTA" "Configure JTA" "Configure Jasper Engine URL for all JTAs" "Quit")
     select opt in "${options[@]}"
     do
         case $opt in
@@ -159,6 +198,10 @@ menuScreen()
                 ;;
             "Configure JTA")
                 configure
+                break
+                ;;
+            "Configure Jasper Engine URL for all JTAs")
+                configure_global_JasperEngineURL
                 break
                 ;;
             "Quit")
