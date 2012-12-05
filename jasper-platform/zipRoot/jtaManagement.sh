@@ -145,9 +145,15 @@ configure_global_JasperEngineURL() {
    echo
    JTAList=`ls JTAs`
    if [ -z "$JTAList" ]; then
-      echo "No JTAs to configure - hit enter to return to menu"
-      read value
-      menuScreen
+      select CHOICE in ${JTAList[*]} Back
+         do
+            case "$CHOICE" in
+            Back)
+               menuScreen
+               break
+               ;;
+            esac
+         done  
    else
    pattern="jasperEngineURL"
    echo "Enter new value (format: tcp://host:port): "
