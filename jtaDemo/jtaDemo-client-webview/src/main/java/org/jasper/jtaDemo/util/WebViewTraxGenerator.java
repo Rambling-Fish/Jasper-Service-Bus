@@ -2,6 +2,8 @@ package org.jasper.jtaDemo.util;
 
 import org.jasper.jLib.webview.trax.decoder.WebViewTrax;
 import org.jasper.jLib.webview.trax.decoder.WebViewTraxMessage;
+import org.jasper.jLib.webview.trax.decoder.WebViewTraxMessage.TargetType;
+import org.jasper.jLib.webview.trax.decoder.WebViewTraxMessage.TrackInfoType;
 
 public class WebViewTraxGenerator {
 	
@@ -23,8 +25,8 @@ public class WebViewTraxGenerator {
 
 		long millisSinceGMTMidnight = System.currentTimeMillis() % (24L * 60*60*1000);
 		String time_of_day = "" + (((double)millisSinceGMTMidnight) / 1000);
-		WebViewTraxMessage traxMessage = new WebViewTraxMessage(null, "" + (count+4), "" + (count+4), time_of_day, null, null, null, null, "" + x[count].intValue(), "" + y.intValue(),
-				null, false, null, false, false, null, false, null, null, null, null, null, null);
+		WebViewTraxMessage traxMessage = new WebViewTraxMessage(TargetType.valid, "" + (count+4), "" + (count+4), time_of_day, null, null, null, null, "" + x[count].intValue(), "" + y.intValue(),
+				null, false, null, false, false, null, false, null, TrackInfoType.aircraft, null, null, null, null);
 
 		WebViewTraxMessage[] traxArray = {traxMessage};
 		

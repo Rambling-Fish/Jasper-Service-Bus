@@ -94,10 +94,10 @@ public class JECore {
 				currentTime.setTime(ntpResponse.getMessage().getTransmitTimeStamp().getDate());
 			}
 			
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss zzz");
+//			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss zzz");
 			
-			System.out.println("current time = " + format.format(currentTime.getTime()));
-			System.out.println("expiry time  = " + format.format(license.getExpiry().getTime()));
+//			System.out.println("current time = " + format.format(currentTime.getTime()));
+//			System.out.println("expiry time  = " + format.format(license.getExpiry().getTime()));
 			return currentTime.before(license.getExpiry());
 		}
 	}
@@ -143,20 +143,10 @@ public class JECore {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("audit called and isValidLicenseKeyExpiry = " + isValidLicenseKeyExpiry());
 	}
 	
-	public boolean isJTAAuthenticationValid(String userName, String password) {
-		System.out.println("username = " + userName);
-		
+	public boolean isJTAAuthenticationValid(String userName, String password) {		
 		JTALicense lic = getJTALicense(JAuthHelper.hexToBytes(password));
-		
-		if(userName.equals( lic.getVendor() + ":" + lic.getAppName() + ":" +
-                lic.getVersion() + ":" + lic.getDeploymentId())){
-			System.out.println("valid licenseKey : " + lic);
-		}else{
-			System.out.println("invalid licenseKey" + lic);
-		}
 		
 		return userName.equals( lic.getVendor() + ":" + lic.getAppName() + ":" +
 				                lic.getVersion() + ":" + lic.getDeploymentId());
@@ -171,8 +161,6 @@ public class JECore {
 			e.printStackTrace();
 			return null;
 		}
-
-		System.out.println("decrypted string = " + password);
 		
 		String[] jtaInfo = password.split(":");
         if(jtaInfo.length < 4) return null;
