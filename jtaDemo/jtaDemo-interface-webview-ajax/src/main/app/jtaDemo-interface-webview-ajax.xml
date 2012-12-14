@@ -29,7 +29,7 @@ http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/
         <flow-ref name="jtaDemo-interface-webview-ajax-publish-flow" doc:name="Flow Reference"/>
     </flow>
     <flow name="jtaDemo-interface-webview-ajax-quartz-flow" doc:name="jtaDemo-interface-webview-ajax-quartz-flow">
-        <quartz:inbound-endpoint jobName="eventTimer" repeatInterval="10000" startDelay="2" responseTimeout="10000" doc:name="Quartz">
+        <quartz:inbound-endpoint jobName="eventTimer" repeatInterval="10000" startDelay="5" responseTimeout="10000" doc:name="Quartz">
             <quartz:event-generator-job>
                 <quartz:payload>tick-tock</quartz:payload>
             </quartz:event-generator-job>

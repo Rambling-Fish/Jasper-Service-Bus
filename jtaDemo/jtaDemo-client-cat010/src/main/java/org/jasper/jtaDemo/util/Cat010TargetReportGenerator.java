@@ -10,21 +10,16 @@ import org.jasper.jLib.cat010.codec.Cat010TrackStatus;
 
 public class Cat010TargetReportGenerator {
 		
-	private static double[] velCurrent = {0.0,0.0,0.0,0.0};
-	
-	private static int[] xMax = {3500,3000,2500,2000};
-	private static int[] yMax = {3500,2500,3000,2000};
-	private static int[] x = {3500,3000,2500,2000};
-	private static int[] y = {3500,2500,3000,2000};
-	private static int[] xD = {-250,-200,-150,-100};
-	private static int[] yD = {-250,-200,-150,-100};
+	private static int[] xMax = {180,325};
+	private static int[] xMin = {-265,-47};
+	private static int[] xArray = {0,0};
+	private static int[] xChange = {-1,2};
+
 	
 	private static final int cart_coord_x_offset = 2680; //TODO make configurable
 	private static final int cart_coord_y_offset = 2001; //TODO make configurable
 
-	private static boolean[] changeX = {false,true,true,false};
-	
-	private static int count = 0;
+	private static boolean x1 = true;
 	
 	/*
 	 * we ignore the string parameter, as our mule flow will
@@ -58,30 +53,32 @@ public class Cat010TargetReportGenerator {
 		long millisSinceGMTMidnight = System.currentTimeMillis() % (24L * 60*60*1000);
 		tr.setTimeOfDay( ((double)millisSinceGMTMidnight) / 1000);
 		
-		if(changeX[count]){
-			x[count] += xD[count];
-			if(x[count] >= xMax[count] || x[count] <= (-1)*xMax[count]){
-				changeX[count] = false;
-				xD[count] *= -1;
+		int y = 0;
+		int x = (x1)?xArray[0]:xArray[1];
+		if(x1){
+			y=x*73483/100000+78;
+			xArray[0] += xChange[0];
+			if(xArray[0] > xMax[0] || xArray[0] < xMin[0]){
+				xChange[0] *= (-1);
 			}
 		}else{
-			y[count] += yD[count];
-			if(y[count] >= yMax[count] || y[count] <= (-1)*yMax[count]){
-				changeX[count] = true;
-				yD[count] *= -1;
+			y=x*(-63709)/100000+130;
+			xArray[1] += xChange[1];
+			if(xArray[1] > xMax[1] || xArray[1] < xMin[1]){
+				xChange[1] *= (-1);
 			}
 		}
 		
-		tr.setPositionInCartesianCoordX(x[count] + cart_coord_x_offset);
-		tr.setPositionInCartesianCoordY(y[count] + cart_coord_y_offset);
+		tr.setPositionInCartesianCoordX(x*10 + cart_coord_x_offset);
+		tr.setPositionInCartesianCoordY(y*10 + cart_coord_y_offset);
 		
-		tr.setCalTrackVelocityInCartesianCoordX(velCurrent[count]);
-		tr.setCalTrackVelocityInCartesianCoordY(velCurrent[count]);
-			
-		count++;
-		count %= 4;
+		tr.setCalTrackVelocityInCartesianCoordX(0.0);
+		tr.setCalTrackVelocityInCartesianCoordY(0.0);
 		
-		tr.setTrackNumber(count);
+		int id = (x1)?0:1; 
+		tr.setTrackNumber(id);
+		x1=!x1;
+		
 		
 		Cat010TrackStatus ts = new Cat010TrackStatus();
 		ts.setCnf(Cat010TrackStatus.CNF.confirmed_track);

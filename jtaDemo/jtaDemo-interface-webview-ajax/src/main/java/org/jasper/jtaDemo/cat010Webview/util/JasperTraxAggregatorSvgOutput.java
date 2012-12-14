@@ -45,8 +45,8 @@ public class JasperTraxAggregatorSvgOutput {
 		for(WebViewTraxMessage trax : traxMap.getTrax()){
 			int x = 400 + (getInt(trax.getCart_coord_x()) / 10);
 			int y = 400 + (getInt(trax.getCart_coord_y()) / 10);
-			int x1 = (trax.getTrack_number().length() > 1) ? x-8 : x-4;
-			int y1 = y+5;
+			int x1 = (trax.getTrack_number().length() > 1) ? x-7 : x-3;
+			int y1 = y+4;
 			targets[count] = new SimpleTarget(trax.getTrack_number(), x, y, x1, y1);
 			count++;
 		}

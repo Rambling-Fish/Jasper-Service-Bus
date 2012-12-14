@@ -7,8 +7,8 @@ public class WebViewTraxGenerator {
 	
 	private static Double[] ySign = {1.0,1.0,1.0,1.0};
 	private static Double[] x = {0.0,0.0,0.0,0.0};
-	private static Double[] r = {2000.0,1500.0,1000.0,500.0};
-	private static Double[] increment = {50.0,40.0,30.0,20.0};
+	private static Double[] r = {2000.0,2500.0,3750.0,3500.0};
+	private static Double[] increment = {10.0,30.0,-15.0,20.0};
 	
 	private static int count = 0;	
 	public static WebViewTrax getTrax(){
