@@ -1,0 +1,19 @@
+#!/bin/sh
+
+case "$1" in
+   start)
+      cd /opt/jasper/jasper-1.1/jsb-core/mule-standalone-3.3.0/bin
+      ./mule &
+      cd ../../../
+      ;;
+   stop)
+      # No-op
+      ;;
+   restart|reload|force-reload)
+      # No-op
+      ;;
+   *)
+      # No-op
+      ;;
+esac
+exit 0

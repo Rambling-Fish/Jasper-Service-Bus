@@ -3,6 +3,9 @@
 
 J_PID=""
 M_PID=""
+UNAME=`uname`
+OS="$UNAME"
+PWD=`pwd`
 
 function get_j_pid {
     J_PID=""
@@ -38,6 +41,9 @@ function stop_j {
       echo -n "Stopping JSB.."
       kill $J_PID 
       sleep 1
+      if [ "$OS" == 'Linux' ]; then
+         rm /etc/init.d/jsbAutoStart
+      fi
       echo ".. Done."
    fi
 }
@@ -48,7 +54,10 @@ function stop_m {
       echo "JTA Server is not running." 
    else
       echo -n "Stopping JTA Server.."
-      kill $M_PID 
+      kill $M_PID
+      if [ "$OS" == 'Linux' ]; then
+         rm /etc/init.d/jtaStart
+      fi 
       sleep 1
       echo ".. Done."
    fi
@@ -68,7 +77,11 @@ if [ -z "$J_PID" ]; then
       sleep 5
       get_j_pid
       echo "Done. PID=$J_PID"
-      #java -jar agent.jar --port=7777 --host=localhost start $J_PID
+      if [ "$OS" == 'Linux' ]; then
+         if [ ! -L /etc/init.d/jsbAutoStart ]; then
+            ln -s "$PWD"/jsb-core/jsbAutoStart /etc/init.d/jsbAutoStart
+         fi
+      fi
       else
       echo "JSB is already running, PID=$J_PID"
    fi
@@ -87,7 +100,12 @@ if [ -z "$M_PID" ]; then
       cd ../../../
       sleep 5
       get_m_pid
-      echo "Done. PID=$M_PID"      
+      echo "Done. PID=$M_PID" 
+      if [ "$OS" == 'Linux' ]; then
+         if [ ! -L /etc/init.d/jtaStart ]; then
+            ln -s "$PWD"/jsb-core/jtaStart /etc/init.d/jtaStart
+         fi
+      fi     
    else
       echo "JTA Server is already running, PID=$M_PID"
    fi
