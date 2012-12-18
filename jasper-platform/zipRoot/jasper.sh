@@ -56,7 +56,7 @@ function stop_m {
       echo -n "Stopping JTA Server.."
       kill $M_PID
       if [ "$OS" == 'Linux' ]; then
-         rm /etc/init.d/jtaStart
+         rm /etc/init.d/jtaAutoStart
       fi 
       sleep 1
       echo ".. Done."
@@ -102,8 +102,8 @@ if [ -z "$M_PID" ]; then
       get_m_pid
       echo "Done. PID=$M_PID" 
       if [ "$OS" == 'Linux' ]; then
-         if [ ! -L /etc/init.d/jtaStart ]; then
-            ln -s "$PWD"/jsb-core/jtaStart /etc/init.d/jtaStart
+         if [ ! -L /etc/init.d/jtaAutoStart ]; then
+            ln -s "$PWD"/jsb-core/jtaAutoStart /etc/init.d/jtaAutoStart
          fi
       fi     
    else
