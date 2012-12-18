@@ -17,7 +17,14 @@
 
 			for (var i = 0; i < targets.length; i++) {
 			    var circ = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-				circ.setAttribute('class', 'style');
+			    
+			    if(targets[i].target_type == "aircraft"){
+					circ.setAttribute('class', 'styleAircraft');
+			    }else if(targets[i].target_type == "vehicle"){
+					circ.setAttribute('class', 'styleVehicle');
+			    }else{
+					circ.setAttribute('class', 'styleOther');
+			    }
 				circ.setAttribute('cx', targets[i].x);
 				circ.setAttribute('cy', targets[i].y);
 				circ.setAttribute('r', '5');				
@@ -43,7 +50,9 @@
   <defs id="shapes_and_styles">
     <style type="text/css"><![CDATA[
       .styleLine { stroke:#000000; stroke-width:1;stroke-opacity:0.5; }
-      .style { fill:#5050A0; fill-opacity:0.5; stroke:#000000; stroke-width:1.0; }
+      .styleAircraft { fill:blue; fill-opacity:0.5; stroke:#000000; stroke-width:1.0; }
+      .styleVehicle { fill:red; fill-opacity:0.5; stroke:#000000; stroke-width:1.0; }
+      .styleOther { fill:green; fill-opacity:0.5; stroke:#000000; stroke-width:1.0; }
       .labels {font-size:10px; font-style:normal; font-family:Bitstream Vera Sans
     ]]></style>
   </defs>

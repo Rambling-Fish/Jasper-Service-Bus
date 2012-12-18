@@ -45,7 +45,7 @@ public class Cat010TargetReportGenerator {
 		trd.setRab(Cat010TargetReportDescriptor.RAB.report_from_field_monitor__fixed_transponder);
 		trd.setSim(Cat010TargetReportDescriptor.SIM.simulated_target_report);
 		trd.setSpi(Cat010TargetReportDescriptor.SPI.absense_of_SPI);
-		trd.setTot(Cat010TargetReportDescriptor.TOT.undetermined);
+		trd.setTot(Cat010TargetReportDescriptor.TOT.ground_vehicle);
 		trd.setTst(Cat010TargetReportDescriptor.TST.test_target);
 		trd.setTyp(Cat010TargetReportDescriptor.TYP.not_defined);
 		tr.setTargetReportDescriptor(trd);

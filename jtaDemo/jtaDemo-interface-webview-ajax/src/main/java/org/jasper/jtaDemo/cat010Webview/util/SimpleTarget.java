@@ -14,16 +14,18 @@ public class SimpleTarget implements Serializable{
 	private int y;
 	private int textX;
 	private int textY;
+	private String target_type;
 	
 	
 	
-	public SimpleTarget(String trackId, int x, int y, int textX, int textY) {
+	public SimpleTarget(String trackId, int x, int y, int textX, int textY, String target_type) {
 		super();
 		this.trackId = trackId;
 		this.x = x;
 		this.y = y;
 		this.textX = textX;
 		this.textY = textY;
+		this.setTarget_type(target_type);
 	}
 	public String getTrackId() {
 		return trackId;
@@ -54,6 +56,12 @@ public class SimpleTarget implements Serializable{
 	}
 	public void setTextY(int textY) {
 		this.textY = textY;
+	}
+	public void setTarget_type(String target_type) {
+		this.target_type = target_type;
+	}
+	public String getTarget_type() {
+		return target_type;
 	}
 	
 }

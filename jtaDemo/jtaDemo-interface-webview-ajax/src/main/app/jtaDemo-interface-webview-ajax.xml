@@ -8,7 +8,7 @@ http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/q
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
 http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
-    <jasperengine:connector name="JEC" vendor="jasper" appName="jtaDemo-interface-webview-ajax" version="1.1" deploymentId="jasperLab" jasperEngineURL="${jasperEngineURL}" doc:name="Jasper Connector"/>
+    <jasperengine:connector name="JEC" vendor="jasper" appName="jtaDemo-interface-webview-ajax" version="1.1" deploymentId="jasperLab" jasperEngineURL="${jasperEngineURL}" doc:name="Jasper Connector"></jasperengine:connector>
     <ajax:connector name="AjaxConnector" serverUrl="http://${ajax.serverUrl.host}:${ajax.serverUrl.port}/${ajax.serverUrl.path}" resourceBase="${app.home}/docroot" jsonCommented="true" doc:name="AjaxGlobalConnector"/>
     <flow name="jtaDemo-interface-webview-ajax-publish-flow" doc:name="jtaDemo-interface-webview-ajax-publish-flow">
         <component doc:name="TraxAggregator">
@@ -20,7 +20,6 @@ http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/
     <flow name="jtaDemo-interface-webview-ajax-cat010-flow" doc:name="jtaDemo-interface-webview-ajax-cat010-flow">
         <jasperengine:inbound-endpoint topic="jms.jasper.1.0.cat010.topic.tr" connector-ref="JEC" doc:name="JECEndpoint"></jasperengine:inbound-endpoint>
         <jms:jmsmessage-to-object-transformer returnClass="org.jasper.jLib.cat010.codec.Cat010TargetReport" doc:name="JEC msg to Cat010TargetReport"/>
-        <custom-transformer class="org.jasper.jLib.cat010.transformer.Cat010TargetReportToWebViewTrax" doc:name="Cat010TargetReportToWebViewTrax"/>
         <flow-ref name="jtaDemo-interface-webview-ajax-publish-flow" doc:name="Flow Reference"/>
     </flow>
     <flow name="jtaDemo-interface-webview-ajax-trax-flow" doc:name="jtaDemo-interface-webview-ajax-trax-flow">
