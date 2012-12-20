@@ -17,7 +17,14 @@ public class WebViewTraxGenerator {
 		
 		Double y = (ySign[count]) * Math.sqrt(r[count]*r[count] - x[count]*x[count]);
 		
-		x[count] += increment[count];
+		if( (x[count]*x[count]) > (r[count]*r[count]*0.95)){
+			x[count] += (increment[count]*0.25);
+		}else if( (x[count]*x[count]) > (r[count]*r[count]*0.9)){
+			x[count] += (increment[count]*0.5);
+		}else{
+			x[count] += increment[count];
+		}
+		
 		if (x[count] >= r[count] || x[count] <= (-1)*r[count]){
 			increment[count] *= -1.0;
 			ySign[count] *= -1.0;

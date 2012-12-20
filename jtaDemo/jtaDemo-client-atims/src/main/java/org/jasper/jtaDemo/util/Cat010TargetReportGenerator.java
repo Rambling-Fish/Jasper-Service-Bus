@@ -20,7 +20,7 @@ public class Cat010TargetReportGenerator {
 	private static int[] x = {-1000,-2000,-3000,-4000};
 	private static int[] y = {500,1000,1500,2000};
 
-	private static int[] delta = {100,150,175,125};
+	private static int[] delta = {1,4,5,2};
 	
 	private static final int cart_coord_x_offset = 2680; //TODO make configurable
 	private static final int cart_coord_y_offset = 2001; //TODO make configurable
