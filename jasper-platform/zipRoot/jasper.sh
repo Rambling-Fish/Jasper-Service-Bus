@@ -1,11 +1,9 @@
-
 #!/bin/bash
 
 J_PID=""
 M_PID=""
 UNAME=`uname`
 OS="$UNAME"
-PWD=`pwd`
 
 function get_j_pid {
     J_PID=""
@@ -42,7 +40,7 @@ function stop_j {
       kill $J_PID 
       sleep 1
       if [ "$OS" == 'Linux' ]; then
-         rm /etc/init.d/jsbAutoStart
+         rm /opt/jasper/jasper-1.1/jsbAutoStart
       fi
       echo ".. Done."
    fi
@@ -56,7 +54,7 @@ function stop_m {
       echo -n "Stopping JTA Server.."
       kill $M_PID
       if [ "$OS" == 'Linux' ]; then
-         rm /etc/init.d/jtaAutoStart
+         rm /opt/jasper/jasper-1.1/jtaAutoStart
       fi 
       sleep 1
       echo ".. Done."
@@ -78,8 +76,8 @@ if [ -z "$J_PID" ]; then
       get_j_pid
       echo "Done. PID=$J_PID"
       if [ "$OS" == 'Linux' ]; then
-         if [ ! -L /etc/init.d/jsbAutoStart ]; then
-            ln -s "$PWD"/jsb-core/jsbAutoStart /etc/init.d/jsbAutoStart
+         if [ ! -L /opt/jasper/jasper-1.1/jsbAutoStart ]; then
+            ln -s /opt/jasper/jasper-1.1/jsb-core/jsbAutoStart /opt/jasper/jasper-1.1/jsbAutoStart
          fi
       fi
       else
@@ -96,14 +94,14 @@ function start_m {
 if [ -z "$M_PID" ]; then
       echo  "Starting JTA Server.."
       cd jsb-core/mule-standalone-3.3.0/bin
-      ./mule &
+      ./mule start
       cd ../../../
       sleep 5
       get_m_pid
       echo "Done. PID=$M_PID" 
       if [ "$OS" == 'Linux' ]; then
-         if [ ! -L /etc/init.d/jtaAutoStart ]; then
-            ln -s "$PWD"/jsb-core/jtaAutoStart /etc/init.d/jtaAutoStart
+         if [ ! -L /opt/jasper/jasper-1.1/jtaAutoStart ]; then
+            ln -s /opt/jasper/jasper-1.1/jsb-core/jtaAutoStart /opt/jasper/jasper-1.1/jtaAutoStart
          fi
       fi     
    else

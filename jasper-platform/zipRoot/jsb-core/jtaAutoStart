@@ -1,9 +1,11 @@
 #!/bin/sh
 
+USER="jasper"
+
 case "$1" in
    start)
       cd /opt/jasper/jasper-1.1/jsb-core/mule-standalone-3.3.0/bin
-      ./mule &
+      su "$USER" -c "./mule start"
       cd ../../../
       ;;
    stop)
