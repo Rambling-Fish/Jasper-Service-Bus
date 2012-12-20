@@ -4,12 +4,14 @@ function setup_jsb {
 mkdir -p logs
 cd jsb-core
 chmod 755 jsbStart.sh
+chmod 755 jsbAutoStart
 }
 
 function setup_jta {
 mkdir -p JTAs
 mkdir -p logs
 cd jsb-core
+chmod 755 jtaAutoStart
 if ! [ -d mule-standalone-3.3.0 ]; then
    tar xvfz mule-standalone-3.3.0.tar.gz
    rm mule-standalone-3.3.0.tar.gz
@@ -26,6 +28,8 @@ if ! [ -d mule-standalone-3.3.0 ]; then
    rm mule-standalone-3.3.0.tar.gz
 fi
 chmod 755 jsbStart.sh
+chmod 755 jsbAutoStart
+chmod 755 jtaAutoStart
 
 }
 

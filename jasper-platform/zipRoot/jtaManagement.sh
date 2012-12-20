@@ -219,7 +219,41 @@ menuScreen()
 }
 
 unzipFiles
-menuScreen
-clear
 
-
+if [ $# -eq 0 ]; then
+   menuScreen
+   clear
+else
+   clear
+   if [ $1 = "-l" ]; then
+     cd JTAs
+     for file in *
+        do
+           if [ -x "$file" ]; then
+              echo "$file"
+           fi
+        done 
+     cd ..
+   fi
+   if [ $1 = "-ld" ]; then
+      cd jsb-core/mule-standalone-3.3.0/apps/
+      JTAList=`find . -maxdepth 1 -name "*-anchor.txt" | rev | cut -c 12- | rev | cut -c 3-`
+      cd ../../../
+      echo "$JTAList"
+   fi
+   if [ $1 = "-d" ]; then
+      if [ -z $2 ]; then
+         echo "Usage: $0 -d[eploy] {appName}" 
+      else
+         mv JTAs/"$2" jsb-core/mule-standalone-3.3.0/apps/"$2"
+      fi
+   fi
+   if [ $1 = "-u" ];then
+      if [ -z $2 ]; then
+         echo "Usage: $0 -u[ndeploy] {appName}"
+      else
+         mv jsb-core/mule-standalone-3.3.0/apps/"$2" JTAs 
+        rm jsb-core/mule-standalone-3.3.0/apps/"$2-anchor.txt"
+      fi
+   fi
+fi
