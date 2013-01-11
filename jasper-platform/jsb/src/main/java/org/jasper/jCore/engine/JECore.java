@@ -17,12 +17,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.activemq.broker.BrokerPlugin;
+import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.Connector;
+import org.apache.activemq.broker.TransportConnector;
+import org.apache.activemq.network.NetworkConnector;
+import org.apache.activemq.usage.SystemUsage;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
-import org.jasper.jCore.auth.JasperBrokerService;
+import org.jasper.jCore.auth.JasperAuthenticationPlugin;
 import org.jasper.jLib.jAuth.JSBLicense;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
@@ -33,8 +38,11 @@ public class JECore {
 
 	private static JECore core;
 	
+	private BrokerService broker;
 	private JSBLicense license;
 	private PublicKey publicKey;
+	
+	private ScheduledExecutorService exec;
 	
 	private JECore(){
 		
@@ -55,6 +63,9 @@ public class JECore {
 	
 	private void loadKeys(String keyStore) throws IOException {
 		File licenseKeyFile = getLicenseKeyFile(keyStore);
+		if(licenseKeyFile == null){
+	    	throw (SecurityException)new SecurityException("Unable to find single JSB license key in: " + keyStore);
+		}
 		license = JAuthHelper.loadJSBLicenseFromFile(keyStore + licenseKeyFile.getName());
 		publicKey = JAuthHelper.getPublicKeyFromFile(keyStore);
 	}
@@ -81,6 +92,10 @@ public class JECore {
 		return license.toString().equals(new String(JAuthHelper.rsaDecrypt(license.getLicenseKey(), publicKey)));
 	}
 	
+	private JSBLicense getJSBLicense(){
+		return license;
+	}
+	
 	private boolean isValidLicenseKeyExpiry() {
 		if(license.getExpiry() == null){
 			return true;
@@ -93,9 +108,7 @@ public class JECore {
 				currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
 				currentTime.setTime(ntpResponse.getMessage().getTransmitTimeStamp().getDate());
 			}
-			
 //			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss zzz");
-			
 //			System.out.println("current time = " + format.format(currentTime.getTime()));
 //			System.out.println("expiry time  = " + format.format(license.getExpiry().getTime()));
 			return currentTime.before(license.getExpiry());
@@ -125,8 +138,9 @@ public class JECore {
 		return info;
 	}
 	
+	//TODO add audit of JTAs and their license key expiry dates
 	public void setupAudit(){
-		ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+		exec = Executors.newSingleThreadScheduledExecutor();
 		Runnable command = new Runnable() {
 			@Override
 			public void run() {
@@ -137,22 +151,93 @@ public class JECore {
 		exec.scheduleAtFixedRate(command , 15, 15, TimeUnit.SECONDS);
 	}
 	
+	//TODO validate it makes sense to set a fatal log for an expiry
 	private void auditSystem(){
 		try {
 			loadKeys(System.getProperty("jsb-keystore"));
+			if(willLicenseKeyExpireInDays(3)){
+				logger.fatal("jsb-license key will expire on : " + getExpiryDate());
+			}else if(willLicenseKeyExpireInDays(7)){
+				logger.error("jsb-license key will expire on : " + getExpiryDate());
+			}else if(willLicenseKeyExpireInDays(14)){
+				logger.warn("jsb-license key will expire on : " + getExpiryDate());
+			}else if(willLicenseKeyExpireInDays(21)){
+				logger.info("jsb-license key will expire on : " + getExpiryDate());
+			}
+			if(!isValidLicenseKeyExpiry())shutdown();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
+	private String getExpiryDate() {
+		if(license.getExpiry() == null){
+			return "";
+		}else{
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss zzz");
+			return format.format(license.getExpiry().getTime());
+		}
+	}
+
+	private boolean willLicenseKeyExpireInDays(int days) {
+		if(license.getExpiry() == null){
+			return false;
+		}else{
+			Calendar currentTime;
+			if(license.getNtpHost() == null){
+				currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+			}else{
+				TimeInfo ntpResponse = getNTPTime(license.getNtpHost(), license.getNtpPort());
+				currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+				currentTime.setTime(ntpResponse.getMessage().getTransmitTimeStamp().getDate());
+			}
+			currentTime.add(Calendar.DAY_OF_YEAR, days);
+			return currentTime.after(license.getExpiry());
+		}
+				
+	}
+
+	private void shutdown(){
+		logger.info("recieved shutdown request, shutting down");
+		exec.shutdown();
+		try {
+			broker.stop();
+		} catch (Exception e) {
+			logger.error("Exception caught during shutdown ", e);
+		}
+	}
+	
+	public boolean isValidLicenseKey(String userName, String password) {
+		return isJSBAuthenticationValid(userName, password) || isJTAAuthenticationValid(userName, password);
+	}
+	
+	public boolean isJSBLicenseKey(String password) {
+		return (getJSBLicense(JAuthHelper.hexToBytes(password)) !=null );
+	}
+	
+	public boolean isJSBAuthenticationValid(String userName, String password) {
+		JSBLicense lic = getJSBLicense(JAuthHelper.hexToBytes(password));
+		return (lic != null) && (userName.equals( lic.getDeploymentId() + ":" + lic.getInstanceId()));
+	}
+	
+	public String getJSBInstance(String password) {
+		JSBLicense lic = getJSBLicense(JAuthHelper.hexToBytes(password));
+		if(lic == null) return null;
+		return (lic.getDeploymentId() + ":" + lic.getInstanceId());
+	}
+	
+	public String getJSBInstance() {
+		return license.getDeploymentId() + ":" + license.getInstanceId();
+	}
+	
 	public boolean isJTAAuthenticationValid(String userName, String password) {		
 		JTALicense lic = getJTALicense(JAuthHelper.hexToBytes(password));
 		
-		return userName.equals( lic.getVendor() + ":" + lic.getAppName() + ":" +
-				                lic.getVersion() + ":" + lic.getDeploymentId());
+		return (lic !=null) && (userName.equals( lic.getVendor() + ":" + lic.getAppName() + ":" +
+				                lic.getVersion() + ":" + lic.getDeploymentId()));
 	}
-
-	private JTALicense getJTALicense(byte[] bytes) {
+	
+	private JSBLicense getJSBLicense(byte[] bytes) {
 		
 		String password;
 		try {
@@ -162,16 +247,19 @@ public class JECore {
 			return null;
 		}
 		
-		String[] jtaInfo = password.split(":");
-        if(jtaInfo.length < 4) return null;
+		/*
+		 * Sample valid jsb license string:
+		 * jsb:jasperLab:0:2012-12-25:time.nrc.ca:8080
+		 */
+		String[] jsbInfo = password.split(":");
+        if(jsbInfo.length < 3) return null;
+        if(!jsbInfo[0].equals("jsb")) return null;
         
-        String vendor = jtaInfo[0];
-        String appName = jtaInfo[1];
-        String version = jtaInfo[2];
-        String deploymentId = jtaInfo[3];
+        String deploymentId = jsbInfo[1];
+        int instanceId = Integer.parseInt(jsbInfo[2]);
         Calendar expiry = null;
-        if (jtaInfo.length > 4){
-        	String[] expiryDate = jtaInfo[4].split("-");
+        if (jsbInfo.length > 3){
+        	String[] expiryDate = jsbInfo[3].split("-");
         	if(expiryDate.length >= 3){
         		int year = Integer.parseInt(expiryDate[0]);
         		int month = Integer.parseInt(expiryDate[1])-1;
@@ -185,10 +273,57 @@ public class JECore {
         }
         
         String ntpHost = null;
-        if (jtaInfo.length > 5) ntpHost = jtaInfo[5];
+        if (jsbInfo.length > 4) ntpHost = jsbInfo[4];
         
         Integer ntpPort = null;
-        if (jtaInfo.length > 6) ntpPort = new Integer(jtaInfo[6]);
+        if (jsbInfo.length > 5) ntpPort = new Integer(jsbInfo[5]);
+        
+        return new JSBLicense(deploymentId, instanceId, expiry, ntpHost, ntpPort, null);        
+	}
+
+	private JTALicense getJTALicense(byte[] bytes) {
+		
+		String password;
+		try {
+			password = new String(JAuthHelper.rsaDecrypt(bytes, publicKey));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+		/*
+		 * Sample valid jta license string:
+		 * jta:jasper:sampleApp:1.0:jasperLab:2012-12-25-23-59-59:time.nrc.ca
+		 */
+		
+		String[] jtaInfo = password.split(":");
+        if(jtaInfo.length < 5) return null;
+        if(!jtaInfo[0].equals("jta")) return null;
+        
+        String vendor = jtaInfo[1];
+        String appName = jtaInfo[2];
+        String version = jtaInfo[3];
+        String deploymentId = jtaInfo[4];
+        Calendar expiry = null;
+        if (jtaInfo.length > 5){
+        	String[] expiryDate = jtaInfo[5].split("-");
+        	if(expiryDate.length >= 3){
+        		int year = Integer.parseInt(expiryDate[0]);
+        		int month = Integer.parseInt(expiryDate[1])-1;
+        		int day = Integer.parseInt(expiryDate[2]);
+        		int hour = (expiryDate.length>3) ? Integer.parseInt(expiryDate[3]) : 23;
+        		int minute = (expiryDate.length>4) ? Integer.parseInt(expiryDate[4]) : 59;
+        		int second = (expiryDate.length>5) ? Integer.parseInt(expiryDate[5]) : 59;
+        		expiry = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+	        	expiry.set(year,month,day,hour,minute,second);
+        	}	
+        }
+        
+        String ntpHost = null;
+        if (jtaInfo.length > 6) ntpHost = jtaInfo[6];
+        
+        Integer ntpPort = null;
+        if (jtaInfo.length > 7) ntpPort = new Integer(jtaInfo[7]);
         
         return new JTALicense(vendor, appName, version, deploymentId, expiry, ntpHost, ntpPort, null);
 	}
@@ -215,10 +350,25 @@ public class JECore {
     	
     	if(core.isValidLicenseKey()){
     		if(core.isValidLicenseKeyExpiry()){
-    			logger.warn("SYSTEM STARTING");
-    			JasperBrokerService brokerService = new JasperBrokerService();
-    			Connector connector = brokerService.addConnector("tcp://"+ prop.getProperty("jsbUrlHost") + ":" + prop.getProperty("jsbUrlPort"));	
-    			brokerService.start();
+    			
+    			core.broker = new BrokerService();
+    			
+    			if(prop.getProperty("memoryLimit") != null) core.broker.getSystemUsage().getMemoryUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("memoryLimit")));
+    			if(prop.getProperty("storeLimit") != null) core.broker.getSystemUsage().getStoreUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("storeLimit")));
+    			if(prop.getProperty("tempLimit") != null) core.broker.getSystemUsage().getTempUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("tempLimit")));
+    			
+    			core.broker.setPlugins(new BrokerPlugin[]{new JasperAuthenticationPlugin()});
+
+    			if(prop.getProperty("jsbRemoteURL") != null){
+//        			logger.info("JSB in Cluster"); 
+    				NetworkConnector networkConnector = core.broker.addNetworkConnector(prop.getProperty("jsbRemoteURL"));
+    				networkConnector.setUserName(core.getJSBLicense().getDeploymentId() + ":" + core.getJSBLicense().getInstanceId());
+    				networkConnector.setPassword(JAuthHelper.bytesToHex((core.getJSBLicense().getLicenseKey())));
+    			}
+
+    			core.broker.addConnector(prop.getProperty("jsbLocalURL"));	
+    			core.broker.start();
+    			
 			}else{
     			logger.error("license key expired, jsb not starting"); 
     		}		
@@ -227,4 +377,5 @@ public class JECore {
     	}
 		core.setupAudit();
 	}
+
 }

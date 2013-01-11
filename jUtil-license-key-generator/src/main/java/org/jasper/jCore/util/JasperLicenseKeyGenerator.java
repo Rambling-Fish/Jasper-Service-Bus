@@ -80,7 +80,7 @@ public class JasperLicenseKeyGenerator {
 	}
 	
 	public static void saveJSBLicenseToFile(String path, JSBLicense license) throws IOException {
-		FileOutputStream fio = new FileOutputStream(path + license.getDeploymentId() + JAuthHelper.JSB_LICENSE_FILE_SUFFIX);
+		FileOutputStream fio = new FileOutputStream(path + license.getDeploymentId() + "-" + license.getInstanceId() + JAuthHelper.JSB_LICENSE_FILE_SUFFIX);
 		ObjectOutputStream oout = new ObjectOutputStream(new BufferedOutputStream(fio));
 		try {
 			oout.writeObject(license);
@@ -175,9 +175,11 @@ public class JasperLicenseKeyGenerator {
 			        saveJTALicenseToFile(LICENSE_FILE_PATH, lic);
 			        System.out.println("File created : " + LICENSE_FILE_PATH + lic.getAppName() + JAuthHelper.JTA_LICENSE_FILE_SUFFIX);
 		        }else if (input.startsWith("jsbv")){
-		        	System.out.print("Enter the deploymentID for JSB lisence file validation = ");
+		        	System.out.print("Enter the deploymentID and instance for JSB lisence file validation i.e. jasperLab:0 = ");
 			        input = in.readLine();
-			        String filename = LICENSE_FILE_PATH + input + JAuthHelper.JSB_LICENSE_FILE_SUFFIX;
+			        String[] jsbInfo = input.split(":");
+			        if(jsbInfo.length < 2) continue;
+			        String filename = LICENSE_FILE_PATH + jsbInfo[0] + "-" + jsbInfo[1] + JAuthHelper.JSB_LICENSE_FILE_SUFFIX;
 			        if(doesFileExist(filename)){
 			        	JSBLicense lic = JAuthHelper.loadJSBLicenseFromFile(filename);
 			        	System.out.println("lisence info   = " + lic);
@@ -186,17 +188,18 @@ public class JasperLicenseKeyGenerator {
 		        		System.out.println("lisence file doesn't exist");
 		        	}
 		        } if (input.startsWith("jsb")){
-		        	System.out.println("jasperLab:2012-12-25:time.nrc.ca");
-		        	System.out.print("Enter JSB info <deployment_id>:<expiry yyyy-mm-dd>:<ntp_host>:<ntp_port> ; expiry and ntp info optional = \n");
+		        	System.out.println("jasperLab:0:2012-12-25:time.nrc.ca");
+		        	System.out.print("Enter JSB info <deployment_id>:<jsb_instance>:<expiry yyyy-mm-dd>:<ntp_host>:<ntp_port> ; expiry and ntp info optional = \n");
 			        input = in.readLine();
 			        if(input == null) break;
 			        String[] coreInfo = input.split(":");
 			        if(coreInfo.length < 1) continue;
 			        
 			        String deploymentId = coreInfo[0];
+			        int instanceId = Integer.parseInt(coreInfo[1]);
 			        Calendar expiry = null;
-			        if (coreInfo.length > 1){
-			        	String[] expiryDate = coreInfo[1].split("-");
+			        if (coreInfo.length > 2){
+			        	String[] expiryDate = coreInfo[2].split("-");
 			        	if(expiryDate.length >= 3){
 			        		int year = Integer.parseInt(expiryDate[0]);
 			        		int month = Integer.parseInt(expiryDate[1])-1;
@@ -210,12 +213,12 @@ public class JasperLicenseKeyGenerator {
 			        }
 			        
 			        String ntpHost = null;
-			        if (coreInfo.length > 2) ntpHost = coreInfo[2];
+			        if (coreInfo.length > 3) ntpHost = coreInfo[3];
 			        
 			        Integer ntpPort = null;
-			        if (coreInfo.length > 3) ntpPort = new Integer(coreInfo[3]);
+			        if (coreInfo.length > 4) ntpPort = new Integer(coreInfo[4]);
 			        
-			        JSBLicense lic = new JSBLicense(deploymentId, expiry, ntpHost, ntpPort, null);
+			        JSBLicense lic = new JSBLicense(deploymentId, instanceId, expiry, ntpHost, ntpPort, null);
 			        lic.setLicenseKey(rsaEncrypt(lic.toString().getBytes(), privateKey));
 			        saveJSBLicenseToFile(LICENSE_FILE_PATH, lic);
 			        System.out.println("File created : " + LICENSE_FILE_PATH + lic.getDeploymentId() + JAuthHelper.JSB_LICENSE_FILE_SUFFIX);

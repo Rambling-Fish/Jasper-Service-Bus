@@ -8,16 +8,18 @@ public class JSBLicense implements Serializable {
 	private static final long serialVersionUID = -3149487585283942590L;
 	
 	private String deploymentId;
+	private int instanceId;
 	private Calendar expiry;
 	private String ntpHost;
 	private Integer ntpPort;
 	
 	private byte[] licenseKey;
 
-	public JSBLicense(String deploymentId, Calendar expiry, String ntpHost,
-			Integer ntpPort, byte[] licenseKey) {
+	public JSBLicense(String deploymentId, int instanceId, Calendar expiry,
+			String ntpHost, Integer ntpPort, byte[] licenseKey) {
 		super();
 		this.deploymentId = deploymentId;
+		this.instanceId = instanceId;
 		this.expiry = expiry;
 		this.ntpHost = ntpHost;
 		this.ntpPort = ntpPort;
@@ -26,6 +28,10 @@ public class JSBLicense implements Serializable {
 
 	public String getDeploymentId() {
 		return deploymentId;
+	}
+
+	public int getInstanceId() {
+		return instanceId;
 	}
 
 	public Calendar getExpiry() {
@@ -50,8 +56,11 @@ public class JSBLicense implements Serializable {
 	
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
-
+		sb.append("jsb");
+		sb.append(":");
 		sb.append(deploymentId);
+		sb.append(":");
+		sb.append(instanceId);
 		
 		if(expiry != null){
 			sb.append(":");
