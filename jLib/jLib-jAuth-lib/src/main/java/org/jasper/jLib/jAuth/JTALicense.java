@@ -69,6 +69,8 @@ public class JTALicense implements Serializable {
 	
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
+		sb.append("jta");
+		sb.append(":");
 		sb.append(vendor);
 		sb.append(":");
 		sb.append(appName);
