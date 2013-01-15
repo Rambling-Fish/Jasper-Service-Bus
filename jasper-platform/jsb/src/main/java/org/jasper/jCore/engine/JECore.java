@@ -19,10 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerService;
-import org.apache.activemq.broker.Connector;
-import org.apache.activemq.broker.TransportConnector;
 import org.apache.activemq.network.NetworkConnector;
-import org.apache.activemq.usage.SystemUsage;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.apache.log4j.Logger;
@@ -96,6 +93,10 @@ public class JECore {
 		return license;
 	}
 	
+	public Calendar getExpiry(String licenseKey) {
+		return getJTALicense(JAuthHelper.hexToBytes(licenseKey)).getExpiry();
+	}
+	
 	private boolean isValidLicenseKeyExpiry() {
 		if(license.getExpiry() == null){
 			return true;
@@ -108,9 +109,6 @@ public class JECore {
 				currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
 				currentTime.setTime(ntpResponse.getMessage().getTransmitTimeStamp().getDate());
 			}
-//			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss zzz");
-//			System.out.println("current time = " + format.format(currentTime.getTime()));
-//			System.out.println("expiry time  = " + format.format(license.getExpiry().getTime()));
 			return currentTime.before(license.getExpiry());
 		}
 	}
@@ -138,7 +136,6 @@ public class JECore {
 		return info;
 	}
 	
-	//TODO add audit of JTAs and their license key expiry dates
 	public void setupAudit(){
 		exec = Executors.newSingleThreadScheduledExecutor();
 		Runnable command = new Runnable() {
@@ -148,21 +145,20 @@ public class JECore {
 			}
 		};;;
 		
-		exec.scheduleAtFixedRate(command , 15, 15, TimeUnit.SECONDS);
+		exec.scheduleAtFixedRate(command , 12, 12, TimeUnit.HOURS);
 	}
 	
-	//TODO validate it makes sense to set a fatal log for an expiry
 	private void auditSystem(){
 		try {
 			loadKeys(System.getProperty("jsb-keystore"));
 			if(willLicenseKeyExpireInDays(3)){
-				logger.fatal("jsb-license key will expire on : " + getExpiryDate());
-			}else if(willLicenseKeyExpireInDays(7)){
 				logger.error("jsb-license key will expire on : " + getExpiryDate());
-			}else if(willLicenseKeyExpireInDays(14)){
+			}else if(willLicenseKeyExpireInDays(7)){
 				logger.warn("jsb-license key will expire on : " + getExpiryDate());
-			}else if(willLicenseKeyExpireInDays(21)){
+			}else if(willLicenseKeyExpireInDays(14)){
 				logger.info("jsb-license key will expire on : " + getExpiryDate());
+			}else if(willLicenseKeyExpireInDays(21)){
+				logger.debug("jsb-license key will expire on : " + getExpiryDate());
 			}
 			if(!isValidLicenseKeyExpiry())shutdown();
 		} catch (IOException e) {
@@ -171,6 +167,15 @@ public class JECore {
 	}
 	
 	private String getExpiryDate() {
+		if(license.getExpiry() == null){
+			return "";
+		}else{
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss zzz");
+			return format.format(license.getExpiry().getTime());
+		}
+	}
+	
+	public String getExpiryDate(JTALicense license) {
 		if(license.getExpiry() == null){
 			return "";
 		}else{
@@ -196,9 +201,27 @@ public class JECore {
 		}
 				
 	}
+	
+	public boolean willLicenseKeyExpireInDays(JTALicense license, int days) {
+		if(license.getExpiry() == null){
+			return false;
+		}else{
+			Calendar currentTime;
+			if(license.getNtpHost() == null){
+				currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+			}else{
+				TimeInfo ntpResponse = getNTPTime(license.getNtpHost(), license.getNtpPort());
+				currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+				currentTime.setTime(ntpResponse.getMessage().getTransmitTimeStamp().getDate());
+			}
+			currentTime.add(Calendar.DAY_OF_YEAR, days);
+			return currentTime.after(license.getExpiry());
+		}
+				
+	}
 
 	private void shutdown(){
-		logger.info("recieved shutdown request, shutting down");
+		logger.info("received shutdown request, shutting down");
 		exec.shutdown();
 		try {
 			broker.stop();
@@ -242,46 +265,47 @@ public class JECore {
 		String password;
 		try {
 			password = new String(JAuthHelper.rsaDecrypt(bytes, publicKey));
+			
+			/*
+			 * Sample valid jsb license string:
+			 * jsb:jasperLab:0:2012-12-25:time.nrc.ca:8080
+			 */
+			String[] jsbInfo = password.split(":");
+	        if(jsbInfo.length < 3) return null;
+	        if(!jsbInfo[0].equals("jsb")) return null;
+	        
+	        String deploymentId = jsbInfo[1];
+	        int instanceId = Integer.parseInt(jsbInfo[2]);
+	        Calendar expiry = null;
+	        if (jsbInfo.length > 3){
+	        	String[] expiryDate = jsbInfo[3].split("-");
+	        	if(expiryDate.length >= 3){
+	        		int year = Integer.parseInt(expiryDate[0]);
+	        		int month = Integer.parseInt(expiryDate[1])-1;
+	        		int day = Integer.parseInt(expiryDate[2]);
+	        		int hour = (expiryDate.length>3) ? Integer.parseInt(expiryDate[3]) : 23;
+	        		int minute = (expiryDate.length>4) ? Integer.parseInt(expiryDate[4]) : 59;
+	        		int second = (expiryDate.length>5) ? Integer.parseInt(expiryDate[5]) : 59;
+	        		expiry = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+		        	expiry.set(year,month,day,hour,minute,second);
+	        	}	
+	        }
+	        
+	        String ntpHost = null;
+	        if (jsbInfo.length > 4) ntpHost = jsbInfo[4];
+	        
+	        Integer ntpPort = null;
+	        if (jsbInfo.length > 5) ntpPort = new Integer(jsbInfo[5]);
+	        
+	        return new JSBLicense(deploymentId, instanceId, expiry, ntpHost, ntpPort, null);      
+		
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Exception caught when trying to get JSBLicense Key",e);
 			return null;
 		}
-		
-		/*
-		 * Sample valid jsb license string:
-		 * jsb:jasperLab:0:2012-12-25:time.nrc.ca:8080
-		 */
-		String[] jsbInfo = password.split(":");
-        if(jsbInfo.length < 3) return null;
-        if(!jsbInfo[0].equals("jsb")) return null;
-        
-        String deploymentId = jsbInfo[1];
-        int instanceId = Integer.parseInt(jsbInfo[2]);
-        Calendar expiry = null;
-        if (jsbInfo.length > 3){
-        	String[] expiryDate = jsbInfo[3].split("-");
-        	if(expiryDate.length >= 3){
-        		int year = Integer.parseInt(expiryDate[0]);
-        		int month = Integer.parseInt(expiryDate[1])-1;
-        		int day = Integer.parseInt(expiryDate[2]);
-        		int hour = (expiryDate.length>3) ? Integer.parseInt(expiryDate[3]) : 23;
-        		int minute = (expiryDate.length>4) ? Integer.parseInt(expiryDate[4]) : 59;
-        		int second = (expiryDate.length>5) ? Integer.parseInt(expiryDate[5]) : 59;
-        		expiry = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-	        	expiry.set(year,month,day,hour,minute,second);
-        	}	
-        }
-        
-        String ntpHost = null;
-        if (jsbInfo.length > 4) ntpHost = jsbInfo[4];
-        
-        Integer ntpPort = null;
-        if (jsbInfo.length > 5) ntpPort = new Integer(jsbInfo[5]);
-        
-        return new JSBLicense(deploymentId, instanceId, expiry, ntpHost, ntpPort, null);        
 	}
 
-	private JTALicense getJTALicense(byte[] bytes) {
+	public JTALicense getJTALicense(byte[] bytes) {
 		
 		String password;
 		try {
@@ -377,5 +401,4 @@ public class JECore {
     	}
 		core.setupAudit();
 	}
-
 }

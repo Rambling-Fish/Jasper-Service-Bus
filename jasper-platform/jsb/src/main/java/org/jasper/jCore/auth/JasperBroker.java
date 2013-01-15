@@ -25,13 +25,27 @@ import org.jasper.jCore.admin.JasperAdminMessage;
 import org.jasper.jCore.admin.JasperAdminMessage.Command;
 import org.jasper.jCore.admin.JasperAdminMessage.Type;
 import org.jasper.jCore.engine.JECore;
+import org.jasper.jLib.jAuth.JTALicense;
+import org.jasper.jLib.jAuth.util.JAuthHelper;
 
 public class JasperBroker extends BrokerFilter {
     
+	private static final String JASPER_ADMIN_TOPIC = "jms.jasper.admin.messages.topic";
+	private static final String JASPER_ADMIN_QUEUE_PREFIX = "jms.jasper.admin.messages.queue.";
+	
+	private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
+	private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
+	
 	/*
 	 * Map will store known connections to prevent multiple JTAs from using same JTA license key
 	 */
 	private static Map<String, ConnectionInfo> jtaConnectionInfoMap = new ConcurrentHashMap<String, ConnectionInfo>();
+	
+	/*
+	 * Map will store know connection context information so that we can manipulate the connections, we currently use
+	 * the context to retrieve the connection and stop JTAs
+	 */
+	private static Map<String, ConnectionContext> jtaConnectionContextMap = new ConcurrentHashMap<String, ConnectionContext>();
 	
 	/*
 	 * Map will store JTAs that have been registered into the cluster remotely.
@@ -39,10 +53,9 @@ public class JasperBroker extends BrokerFilter {
 	private static Map<String,String> remoteJtaRegistrationMap = new ConcurrentHashMap<String, String>();
 
 	/*
-	 * Maps will store known connections and contexts to prevent multiple JSBs from using same JSB license key
+	 * Map will store known connections of JSBs in cluster to prevent multiple JSBs from using same JSB license key
 	 */
 	private static Map<String, ConnectionInfo> jsbConnectionInfoMap = new ConcurrentHashMap<String, ConnectionInfo>();
-	private static Map<String, ConnectionContext> jtaConnectionContextMap = new ConcurrentHashMap<String, ConnectionContext>();
 
 	/*
 	 * access to the JECore to determine deployment id and access to utilities
@@ -50,15 +63,16 @@ public class JasperBroker extends BrokerFilter {
 	private JECore core;
 
 	/*
-	 * boolean to stop processing peer notificaitons
+	 * boolean to stop processing peer notifications
 	 */
 	private boolean processPeerNotificaitons;
 	
 	/*
-	 * to executors used to create new threads to listen to different admin JMS events
+	 * ScheduledExecutorServices for spawning new threads
 	 */
-	private ScheduledExecutorService exec1;
-	private ScheduledExecutorService exec2;
+	private ScheduledExecutorService jtaAuditExec;
+	private ScheduledExecutorService listenForBroadcastEventsExec;
+	private ScheduledExecutorService listenForMyEventsExec;
 
 	
 	static Logger logger = Logger.getLogger("org.jasper");
@@ -83,9 +97,37 @@ public class JasperBroker extends BrokerFilter {
          next.stop();
      }
      
+ 	public void setupAudit(){
+		jtaAuditExec = Executors.newSingleThreadScheduledExecutor();
+		Runnable command = new Runnable() {
+			@Override
+			public void run() {
+				auditRegisteredJTAs();
+			}
+		};;;
+		
+		jtaAuditExec.scheduleAtFixedRate(command , 15, 15, TimeUnit.SECONDS);	//TODO CHANGE audit time to 12 hours
+	}
+ 	
+	private void auditRegisteredJTAs(){
+		for(String licenseKey:jtaConnectionInfoMap.keySet()){
+			JTALicense lic = core.getJTALicense(JAuthHelper.hexToBytes(licenseKey));
+			if(core.willLicenseKeyExpireInDays(lic, 3)){
+				logger.error("JTA : " + jtaConnectionInfoMap.get(licenseKey).getUserName() + " will expire on : " + core.getExpiryDate(lic));
+			}else if(core.willLicenseKeyExpireInDays(lic, 7)){
+				logger.warn("JTA : " + jtaConnectionInfoMap.get(licenseKey).getUserName() + " will expire on : " + core.getExpiryDate(lic));
+			}else if(core.willLicenseKeyExpireInDays(lic, 14)){
+				logger.info("JTA : " + jtaConnectionInfoMap.get(licenseKey).getUserName() + " will expire on : " + core.getExpiryDate(lic));
+			}else if(core.willLicenseKeyExpireInDays(lic, 21)){
+				logger.debug("JTA : " + jtaConnectionInfoMap.get(licenseKey).getUserName() + " will expire on : " + core.getExpiryDate(lic));
+			}
+			if(!core.isJTAAuthenticationValid(jtaConnectionInfoMap.get(licenseKey).getUserName(), licenseKey)) dropJTAConnection(licenseKey);
+		}
+	}
+     
     private void startListeningForPeerNotificaitons(){
-		exec1 = Executors.newSingleThreadScheduledExecutor();
-		exec2 = Executors.newSingleThreadScheduledExecutor();
+		listenForBroadcastEventsExec = Executors.newSingleThreadScheduledExecutor();
+		listenForMyEventsExec = Executors.newSingleThreadScheduledExecutor();
 		Runnable runListenForBroadcastEvents = new Runnable() {
 			@Override
 			public void run() {
@@ -98,14 +140,14 @@ public class JasperBroker extends BrokerFilter {
 				listenForMyEvents();
 			}
 		};;;
-		exec1.schedule(runListenForBroadcastEvents, 0, TimeUnit.SECONDS);
-		exec2.schedule(runListenForMyEvents, 0, TimeUnit.SECONDS);
+		listenForBroadcastEventsExec.schedule(runListenForBroadcastEvents, 0, TimeUnit.SECONDS);
+		listenForMyEventsExec.schedule(runListenForMyEvents, 0, TimeUnit.SECONDS);
     }
     
     private void stopPeerNotificaitons(){
     	processPeerNotificaitons = false;
-    	exec1.shutdown();
-    	exec2.shutdown();
+    	listenForBroadcastEventsExec.shutdown();
+    	listenForMyEventsExec.shutdown();
     }
     
     private void notifyPeers(Command command, String msgDetails) {
@@ -114,8 +156,8 @@ public class JasperBroker extends BrokerFilter {
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 
             // Create a Connection
-            connectionFactory.setUserName("jasperAdmin");         //TODO factor into constant
-            connectionFactory.setPassword("japerAdminPassword");  //TODO factor into constant
+            connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
+            connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
             Connection connection = connectionFactory.createConnection();
             connection.start();
 
@@ -123,8 +165,8 @@ public class JasperBroker extends BrokerFilter {
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             // Create the destination (Topic or Queue)
-            Destination destination = session.createTopic("jms.jasper.admin.messages.topic"); //TODO factor into constant
-
+            Destination destination = session.createTopic(JASPER_ADMIN_TOPIC);
+            
             // Create a MessageProducer from the Session to the Topic or Queue
             MessageProducer producer = session.createProducer(destination);
             producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
@@ -139,7 +181,7 @@ public class JasperBroker extends BrokerFilter {
             connection.close();
         }
         catch (Exception e) {
-            logger.error("Exception caught while notifiging peers: ", e);
+            logger.error("Exception caught while notifying peers: ", e);
         }
 	}
     
@@ -150,8 +192,8 @@ public class JasperBroker extends BrokerFilter {
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 
             // Create a Connection
-            connectionFactory.setUserName("jasperAdmin");  		 //TODO factor into constant
-            connectionFactory.setPassword("japerAdminPassword"); //TODO factor into constant
+            connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
+            connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
             Connection connection = connectionFactory.createConnection();
             connection.start();
 
@@ -159,7 +201,7 @@ public class JasperBroker extends BrokerFilter {
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             // Create the destination (Topic or Queue)
-            Destination destination = session.createQueue("jms.jasper.admin.messages.queue." + dst); //TODO factor into constant
+            Destination destination = session.createQueue(JASPER_ADMIN_QUEUE_PREFIX + dst);
 
             // Create a MessageProducer from the Session to the Topic or Queue
             MessageProducer producer = session.createProducer(destination);
@@ -176,7 +218,7 @@ public class JasperBroker extends BrokerFilter {
             connection.close();
         }
         catch (Exception e) {
-            logger.error("Exception caught while notifiging peers: ", e);
+            logger.error("Exception caught while notifying peers: ", e);
         }
 	}
     
@@ -187,8 +229,8 @@ public class JasperBroker extends BrokerFilter {
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 
             // Create a Connection
-            connectionFactory.setUserName("jasperAdmin");			//TODO factor into constant
-            connectionFactory.setPassword("japerAdminPassword");	//TODO factor into constant
+            connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
+            connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
             Connection connection = connectionFactory.createConnection();
             connection.start();
 
@@ -196,7 +238,7 @@ public class JasperBroker extends BrokerFilter {
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             // Create the destination (Topic or Queue)
-            Destination destination = session.createTopic("jms.jasper.admin.messages.topic"); //TODO factor into constant
+            Destination destination = session.createTopic(JASPER_ADMIN_TOPIC);
 
             // Create a MessageConsumer from the Session to the Topic or Queue
             MessageConsumer consumer = session.createConsumer(destination);
@@ -234,8 +276,8 @@ public class JasperBroker extends BrokerFilter {
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 
             // Create a Connection
-            connectionFactory.setUserName("jasperAdmin");			//TODO factor into constant
-            connectionFactory.setPassword("japerAdminPassword");	//TODO factor into constant
+            connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
+            connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
             Connection connection = connectionFactory.createConnection();
             connection.start();
 
@@ -243,7 +285,7 @@ public class JasperBroker extends BrokerFilter {
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             // Create the destination (Topic or Queue)
-            Destination destination = session.createQueue("jms.jasper.admin.messages.queue." + core.getJSBInstance());	//TODO factor into constant
+            Destination destination = session.createQueue(JASPER_ADMIN_QUEUE_PREFIX + core.getJSBInstance());
                         
             // Create a MessageConsumer from the Session to the Topic or Queue
             MessageConsumer consumer = session.createConsumer(destination);
@@ -275,7 +317,8 @@ public class JasperBroker extends BrokerFilter {
     
 	private void processJasperAdminMessages(JasperAdminMessage jam) {
 		if(jam.getType() == Type.jsbClusterManagement){
-			if(jam.getSrc().equals(core.getJSBInstance())) return;
+			if(jam.getSrc().equals(core.getJSBInstance())) return;  // ignore messages to oneself due to broadcasting
+    		logger.info("recieved " + jam.getCommand() + " from " + jam.getSrc() + " for key " + jam.getDetails());
         	if(jam.getCommand() == Command.add){
         		remoteJtaRegistrationMap.put(jam.getDetails(), jam.getSrc());
     		}else if(jam.getCommand() == Command.update){
@@ -290,6 +333,7 @@ public class JasperBroker extends BrokerFilter {
 	private void dropJTAConnection(String licenseKey) {
 		ConnectionContext context = jtaConnectionContextMap .remove(licenseKey);
 		jtaConnectionInfoMap.remove(licenseKey);
+		logger.info("attempting to drop connection for JTA with license key : " + licenseKey);
 		try {
 				context.getConnection().stop();
 		} catch (Exception e) {
@@ -298,6 +342,7 @@ public class JasperBroker extends BrokerFilter {
 	}
 
 	private void cleanRemoteJtaMap(String jsbInstance) {
+		logger.info("removing all JTA license keys from remote map for jsb : " + jsbInstance);
 		for(String password:remoteJtaRegistrationMap.keySet()){
 			if(remoteJtaRegistrationMap.get(password).equals(jsbInstance)) remoteJtaRegistrationMap.remove(password);
 		}
@@ -312,7 +357,7 @@ public class JasperBroker extends BrokerFilter {
    
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
     	 
-    	if(info.getUserName().equals("jasperAdmin") && info.getPassword().equals("japerAdminPassword") && info.getClientIp().startsWith("vm://localhost")){
+    	if(info.getUserName().equals(JASPER_ADMIN_USERNAME) && info.getPassword().equals(JASPER_ADMIN_PASSWORD) && info.getClientIp().startsWith("vm://localhost")){
     		super.addConnection(context, info);	
     		return;
     	}
