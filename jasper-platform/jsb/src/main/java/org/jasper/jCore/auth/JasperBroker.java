@@ -85,6 +85,7 @@ public class JasperBroker extends BrokerFilter {
      
      public void start() throws Exception{
          next.start();
+         setupJTALicenseKeyAudit();
      }
 
      public void brokerServiceStarted() {
@@ -95,9 +96,10 @@ public class JasperBroker extends BrokerFilter {
      public void stop() throws Exception {
     	 stopPeerNotificaitons();
          next.stop();
+         jtaAuditExec.shutdown();
      }
      
- 	public void setupAudit(){
+ 	private void setupJTALicenseKeyAudit(){
 		jtaAuditExec = Executors.newSingleThreadScheduledExecutor();
 		Runnable command = new Runnable() {
 			@Override
