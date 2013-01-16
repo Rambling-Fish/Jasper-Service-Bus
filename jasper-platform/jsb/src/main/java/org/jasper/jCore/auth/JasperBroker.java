@@ -320,7 +320,7 @@ public class JasperBroker extends BrokerFilter {
 	private void processJasperAdminMessages(JasperAdminMessage jam) {
 		if(jam.getType() == Type.jsbClusterManagement){
 			if(jam.getSrc().equals(core.getJSBInstance())) return;  // ignore messages to oneself due to broadcasting
-    		logger.info("recieved " + jam.getCommand() + " from " + jam.getSrc() + " for key " + jam.getDetails());
+    		logger.info("received " + jam.getCommand() + " from " + jam.getSrc() + " for key " + jam.getDetails());
         	if(jam.getCommand() == Command.add){
         		remoteJtaRegistrationMap.put(jam.getDetails(), jam.getSrc());
     		}else if(jam.getCommand() == Command.update){
