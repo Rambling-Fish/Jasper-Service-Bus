@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+source config/jmx_properties.sh
 
 JSB_CLASSPATH=jars/*:3rdParty/*
 JSB_PROPERTY_FILE=config/jsb.properties
