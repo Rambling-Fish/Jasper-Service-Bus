@@ -9,7 +9,7 @@ USER="jasper"
 case "$1" in
     start)
       cd /opt/jasper/jasper-1.1/jsb-core
-      su "$USER" -c "java -ea -Djsb-property-file=$JSB_PROPERTY_FILE -Djsb-keystore=$JSB_KEYSTORE -Djsb-log4j-xml=$JSB_LOG4J_XML -classpath $JSB_CLASSPATH $JSB_MAIN_CLASS &"
+      su "$USER" -c "java -ea -Djsb-property-file=$JSB_PROPERTY_FILE -Djsb-keystore=$JSB_KEYSTORE -Djsb-log4j-xml=$JSB_LOG4J_XML -Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote.port=1098 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -classpath $JSB_CLASSPATH $JSB_MAIN_CLASS &"
       cd ..
       ;;
    stop)
