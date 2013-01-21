@@ -45,7 +45,7 @@ undeploy()
     echo "-----------------"
     echo
     cd jsb-core/mule-standalone-3.3.0/apps/
-    JTAList=`find . -maxdepth 1 -name "*-anchor.txt" | rev | cut -c 12- | rev | cut -c 3-`
+    JTAList=`find . -maxdepth 1 -name "*-anchor.txt" | grep -v default-anchor.txt | rev | cut -c 12- | rev | cut -c 3-`
     cd ../../../
     
     select CHOICE in ${JTAList[*]} Back

@@ -5,6 +5,7 @@ mkdir -p logs
 cd jsb-core
 chmod 755 jsbStart.sh
 chmod 755 jsbAutoStart
+chmod 600 config/jsb.jmxremote.password
 }
 
 function setup_jta {
@@ -15,6 +16,9 @@ chmod 755 jtaAutoStart
 if ! [ -d mule-standalone-3.3.0 ]; then
    tar xvfz mule-standalone-3.3.0.tar.gz
    rm mule-standalone-3.3.0.tar.gz
+   tar xvfz default.tar.gz
+   mv default mule-standalone-3.3.0/apps/
+   rm default.tar.gz
 fi
 
 }
@@ -26,6 +30,10 @@ cd jsb-core
 if ! [ -d mule-standalone-3.3.0 ]; then
    tar xvfz mule-standalone-3.3.0.tar.gz
    rm mule-standalone-3.3.0.tar.gz
+   tar xvfz default.tar.gz
+   mv default mule-standalone-3.3.0/apps/
+   rm default.tar.gz
+   chmod 600 config/jsb.jmxremote.password
 fi
 chmod 755 jsbStart.sh
 chmod 755 jsbAutoStart

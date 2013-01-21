@@ -1,4 +1,4 @@
-# MetPX Mule App
-# Uses the AMQP v0.9 protocol as a feed for the bulletins
+# MetPX application
+# Implements AMQP v0.9 protocol, connects to a RabbitMQ server to receive bulletins
 # Transforms the bulletins into a Java Objects
-# Displays the bulletins in a REST interface
+# Sends processed bulletins to a REST/AJAX interface
