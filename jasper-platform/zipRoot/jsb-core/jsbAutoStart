@@ -1,4 +1,7 @@
-#!/bin/sh
+#!/bin/bash
+
+source config/jmx_properties.sh
+
 JSB_CLASSPATH=/opt/jasper/jasper-1.1/jsb-core/jars/*:/opt/jasper/jasper-1.1/jsb-core/3rdParty/*
 JSB_PROPERTY_FILE=/opt/jasper/jasper-1.1/jsb-core/config/jsb.properties
 JSB_KEYSTORE=/opt/jasper/jasper-1.1/jsb-core/keystore/
