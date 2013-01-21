@@ -162,7 +162,11 @@ public class JECore {
 			}
 			if(!isValidLicenseKeyExpiry())shutdown();
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("IOException caught when trying to load license key, shutting down",e);
+			shutdown();
+		} catch (SecurityException e){
+			logger.error("SecurityException caught when trying to load license key, shutting down",e);
+			shutdown();
 		}
 	}
 	
@@ -384,7 +388,6 @@ public class JECore {
     			core.broker.setPlugins(new BrokerPlugin[]{new JasperAuthenticationPlugin()});
 
     			if(prop.getProperty("jsbRemoteURL") != null){
-//        			logger.info("JSB in Cluster"); 
     				NetworkConnector networkConnector = core.broker.addNetworkConnector(prop.getProperty("jsbRemoteURL"));
     				networkConnector.setUserName(core.getJSBLicense().getDeploymentId() + ":" + core.getJSBLicense().getInstanceId());
     				networkConnector.setPassword(JAuthHelper.bytesToHex((core.getJSBLicense().getLicenseKey())));

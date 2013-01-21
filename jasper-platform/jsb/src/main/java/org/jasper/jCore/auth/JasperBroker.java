@@ -108,7 +108,7 @@ public class JasperBroker extends BrokerFilter {
 			}
 		};;;
 		
-		jtaAuditExec.scheduleAtFixedRate(command , 15, 15, TimeUnit.SECONDS);	//TODO CHANGE audit time to 12 hours
+		jtaAuditExec.scheduleAtFixedRate(command , 12, 12, TimeUnit.HOURS);
 	}
  	
 	private void auditRegisteredJTAs(){
@@ -208,7 +208,7 @@ public class JasperBroker extends BrokerFilter {
             // Create a MessageProducer from the Session to the Topic or Queue
             MessageProducer producer = session.createProducer(destination);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-            producer.setTimeToLive(5000);
+            producer.setTimeToLive(30000);
 
             JasperAdminMessage jam = new JasperAdminMessage(Type.jsbClusterManagement, command, core.getJSBInstance(), dst,  msgDetails);
 
@@ -327,7 +327,7 @@ public class JasperBroker extends BrokerFilter {
     			remoteJtaRegistrationMap.put(jam.getDetails(), jam.getSrc());
     			if(jtaConnectionInfoMap.containsKey(jam.getDetails())) dropJTAConnection(jam.getDetails());
     		}else if(jam.getCommand() == Command.delete){
-    			remoteJtaRegistrationMap.remove(jam.getDetails());
+    			 remoteJtaRegistrationMap.remove(jam.getDetails());
     		}
     	}		
 	}
