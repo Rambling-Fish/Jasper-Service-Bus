@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source config/jmx_properties.sh
+source /opt/jasper/jasper-1.1/jsb-core/config/jmx_properties.sh
 
 JSB_CLASSPATH=/opt/jasper/jasper-1.1/jsb-core/jars/*:/opt/jasper/jasper-1.1/jsb-core/3rdParty/*
 JSB_PROPERTY_FILE=/opt/jasper/jasper-1.1/jsb-core/config/jsb.properties
@@ -8,13 +8,12 @@ JSB_KEYSTORE=/opt/jasper/jasper-1.1/jsb-core/keystore/
 JSB_LOG4J_XML=/opt/jasper/jasper-1.1/jsb-core/config/jsb-log4j.xml
 JSB_MAIN_CLASS=org.jasper.jCore.engine.JECore
 USER="jasper"
-JSB_JMXREMOTE_PASSWORD_FILE=config/jsb.jmxremote.password
+JSB_JMXREMOTE_PASSWORD_FILE=/opt/jasper/jasper-1.1/jsb-core/config/jsb.jmxremote.password
 
 case "$1" in
     start)
       cd /opt/jasper/jasper-1.1/jsb-core
-      su "$USER" -c "java -ea -Djsb-property-file=$JSB_PROPERTY_FILE -Djsb-keystore=$JSB_KEYSTORE -Djsb-log4j-xml=$JSB_LOG4J_XML -Djava.rmi.server.hostname=$JSB_JMXREMOTE_HOST -Dcom.sun.management.jmxremote.port=$JSB_JMXREMOTE_PORT -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.password.file=$JSB_JMXREMOTE_PASSWORD_FILE -classpath $JSB_CLASSPATH $JSB_MAIN_CLASS
- &"
+      su "$USER" -c "java -ea -Djsb-property-file=$JSB_PROPERTY_FILE -Djsb-keystore=$JSB_KEYSTORE -Djsb-log4j-xml=$JSB_LOG4J_XML -Djava.rmi.server.hostname=$JSB_JMXREMOTE_HOST -Dcom.sun.management.jmxremote.port=$JSB_JMXREMOTE_PORT -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.password.file=$JSB_JMXREMOTE_PASSWORD_FILE -classpath $JSB_CLASSPATH $JSB_MAIN_CLASS &"
       cd ..
       ;;
    stop)
