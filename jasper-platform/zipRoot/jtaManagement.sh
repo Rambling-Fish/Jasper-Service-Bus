@@ -171,7 +171,9 @@ configure_global_JasperEngineURL() {
                propvalue=`sed '/^\#/d' $FILENAME | grep $pattern | tail -n 1 | sed 's/^.*=//;s/^[[:space:]]*//;s/[[:space:]]*$//'`
                A="`echo | tr '\012' '\001' `"
                sed -i -e "s$A$pattern=$propvalue$A$pattern=$replacement$A" $FILENAME
-               rm "$FILENAME-e" 
+               if [ -e "$FILENAME-e" ]; then
+                  rm "$FILENAME-e" 
+               fi
             done
          echo "Hit any key to return to menu"
          read newChoice
