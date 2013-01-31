@@ -112,10 +112,10 @@
     </build>
     
     <modules>
-        <module>jtaDemo-client-cat010</module>
-        <module>jtaDemo-client-webview</module>
-        <module>jtaDemo-client-atims</module>
-        <module>jtaDemo-interface-webview-ajax</module>
+        <module>jtaDemo-client-aircrafts</module>
+	<module>jtaDemo-client-ground-vehicles</module>
+	<module>jtaDemo-client-helicopters</module>
+        <module>jtaDemo-interface-airport-map</module>
     </modules>
     
 </project>

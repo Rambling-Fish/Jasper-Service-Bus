@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry exported="true" kind="con" path="MULE_RUNTIME"/>
+	<classpathentry kind="var" path="M2_REPO/org/jasper/jTransport/jTransport-jasperEngine/1.0/jTransport-jasperEngine-1.0.jar" sourcepath="/M2_REPO/org/jasper/jTransport/jTransport-jasperEngine/1.0/jTransport-jasperEngine-1.0-sources.jar"/>
+    <classpathentry kind="var" path="M2_REPO/org/jasper/jLib/jLib-jAuth-lib/1.1/jLib-jAuth-lib-1.1.jar" sourcepath="/M2_REPO/org/jasper/jLib/jLib-jAuth-lib/1.1/jLib-jAuth-lib-1.1-sources.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/activemq/activemq-all/5.7.0/activemq-all-5.7.0.jar" sourcepath="/M2_REPO/org/apache/activemq/activemq-all/5.7.0/activemq-all-5.7.0-sources.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/jasper/jLib/jLib-webview-codec/1.1/jLib-webview-codec-1.1.jar" sourcepath="M2_REPO/org/jasper/jLib/jLib-webview-codec/1.1/jLib-webview-codec-1.1-sources.jar"/>
+    <classpathentry kind="var" path="M2_REPO/org/jasper/jLib/jLib-cat010-codec/1.1/jLib-cat010-codec-1.1.jar" sourcepath="/M2_REPO/org/jasper/jLib/jLib-cat010-codec/1.1/jLib-cat010-codec-1.1-sources.jar"/>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" path="src/test/java"/>
+	<classpathentry kind="src" path="src/main/resources"/>
+	<classpathentry kind="src" path="src/test/resources"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

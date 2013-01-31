@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:quartz="http://www.mulesoft.org/schema/mule/quartz" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:jasperengine="http://www.mulesoft.org/schema/mule/jasperengine" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="CE-3.3.0" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/quartz/current/mule-quartz.xsd 
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
+http://www.mulesoft.org/schema/mule/jasperengine http://www.mulesoft.org/schema/mule/jasperengine/current/mule-jasperengine.xsd ">
+    <jasperengine:connector name="JEC" vendor="jasper" appName="jtaDemo-client-ground-vehicles" version="1.1" deploymentId="jasperLab" jasperEngineURL="${jasperEngineURL}" doc:name="Jasper Connector"/>
+    <flow name="jtaDemo-client-ground-vehicles-flow" doc:name="jtaDemo-client-ground-vehicles-flow">
+        <quartz:inbound-endpoint jobName="eventTimer2" repeatInterval="50" startDelay="1" responseTimeout="10000" doc:name="Quartz">
+            <quartz:event-generator-job>
+                <quartz:payload>tick-tock</quartz:payload>
+            </quartz:event-generator-job>
+        </quartz:inbound-endpoint>
+        <component class="org.jasper.jtaDemo.util.Cat010TargetReportGenerator" doc:name="TargetReportGenerator"/>
+        <jasperengine:outbound-endpoint topic="jms.jasper.1.0.cat010.topic.tr" connector-ref="JEC" doc:name="JECCat010TREndpoint"/>
+    </flow>
+</mule>
