@@ -458,9 +458,8 @@ public class JasperBroker extends BrokerFilter {
         		jtaConnectionContextMap.put(info.getPassword(),context);
         		notifyPeers(Command.add, info.getPassword());
         		
-        		if(logger.isInfoEnabled()){
-        			logger.info("JTA registered in system : " + info.getUserName());
-        		}
+        		//WARN level so that we log when a JTA has registered
+        		logger.warn("JTA registered on JSB : " + info.getUserName());
         	}else{
         		if(jtaConnectionInfoMap.containsKey(info.getPassword())){
 	        		ConnectionInfo oldAppInfo = jtaConnectionInfoMap.get(info.getPassword());
@@ -480,9 +479,8 @@ public class JasperBroker extends BrokerFilter {
     
 	public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error)throws Exception{
     	if(jtaConnectionInfoMap.get(info.getPassword()) != null ){
-	    	if(logger.isInfoEnabled()){
-	    		logger.info("JTA deregistered from system : " + info.getUserName());
-	    	}
+    		//WARN level so that we log when a JTA has de-registered
+    		logger.warn("JTA de-registered from JSB : " + info.getUserName());
 	    	jtaConnectionInfoMap.remove(info.getPassword());
     		notifyPeers(Command.delete,info.getPassword());
     	}else if(jsbConnectionInfoMap.get(info.getPassword()) != null){
