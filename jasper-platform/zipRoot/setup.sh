@@ -3,9 +3,10 @@
 function setup_jsb {
 mkdir -p logs
 cd jsb-core
-chmod 755 jsbStart.sh
+chmod 755 bin/jsb
 chmod 755 jsbAutoStart
 chmod 600 config/jsb.jmxremote.password
+mv wrapper.jar libs/
 }
 
 function setup_jta {
@@ -34,8 +35,9 @@ if ! [ -d mule-standalone-3.3.0 ]; then
    mv default mule-standalone-3.3.0/apps/
    rm default.tar.gz
    chmod 600 config/jsb.jmxremote.password
+   mv wrapper.jar libs/
 fi
-chmod 755 jsbStart.sh
+chmod 755 bin/jsb
 chmod 755 jsbAutoStart
 chmod 755 jtaAutoStart
 

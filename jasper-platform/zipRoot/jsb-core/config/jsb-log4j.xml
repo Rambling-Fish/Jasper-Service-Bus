@@ -7,7 +7,7 @@
       </layout>
    </appender>
    <appender name="JTALogger" class="org.apache.log4j.RollingFileAppender">
-      <param name="File" value="../logs/jsb-core.log"/>
+      <param name="File" value="../../logs/jsb-core.log"/>
       <param name="MaxFileSize" value="5MB"/>
       <!--  Keep 10 backup files then reuse -->
       <param name="MaxBackupIndex" value="10"/>
