@@ -37,6 +37,38 @@ function stop_j {
       echo "JSB is not running." 
    else
       echo -n "Stopping JSB.."
+      cd jsb-core/bin/ 
+      ./jsb stop
+      if [ "$OS" == 'Linux' ]; then
+         rm /opt/jasper/jasper-1.1/jsbAutoStart
+      fi
+      echo ".. Done."
+   fi
+}
+
+function stop_m {
+   get_m_pid
+   if [ -z "$M_PID" ]; then
+      echo "JTA Server is not running." 
+   else
+      echo -n "Stopping JTA Server.."
+      cd jsb-core/mule-standalone-3.3.0/bin
+      ./mule stop
+      cd ../../../
+      if [ "$OS" == 'Linux' ]; then
+         rm /opt/jasper/jasper-1.1/jtaAutoStart
+      fi 
+      sleep 1
+      echo ".. Done."
+   fi
+}
+
+function force_stop_j {
+   get_j_pid
+   if [ -z "$J_PID" ]; then
+      echo "JSB is not running." 
+   else
+      echo -n "Stopping JSB.."
       kill $J_PID 
       sleep 1
       if [ "$OS" == 'Linux' ]; then
@@ -46,7 +78,7 @@ function stop_j {
    fi
 }
 
-function stop_m {
+function force_stop_m {
    get_m_pid
    if [ -z "$M_PID" ]; then
       echo "JTA Server is not running." 
@@ -62,19 +94,15 @@ function stop_m {
 }
 
 function start_j {
-   if ! [ -x jsb-core/jsbStart.sh ]; then
+   if ! [ -x jsb-core/bin/jsb ]; then
       echo "*** Warning: JSB has not been setup. Run ./setup jsb first"
       exit 0
    fi
    get_j_pid
-if [ -z "$J_PID" ]; then
-      echo  "Starting JSB.."
-      cd jsb-core
-      ./jsbStart.sh &
-      cd ..
-      sleep 5
-      get_j_pid
-      echo "Done. PID=$J_PID"
+  if [ -z "$J_PID" ]; then
+      cd jsb-core/bin
+      ./jsb start
+      cd ../../
       if [ "$OS" == 'Linux' ]; then
          if [ ! -L /opt/jasper/jasper-1.1/jsbAutoStart ]; then
             ln -s /opt/jasper/jasper-1.1/jsb-core/jsbAutoStart /opt/jasper/jasper-1.1/jsbAutoStart
@@ -141,6 +169,13 @@ function stop {
     exit 1
 }
 
+function force_stop {
+    force_stop_m
+    sleep 5
+    force_stop_j
+    exit 1
+}
+
 function status {
     status_j
     status_m
@@ -174,6 +209,19 @@ case "$1" in
         ;;
         esac
     ;;
+    kill)
+        case "$2" in
+        jsb)
+            force_stop_j
+        ;;
+        jta)
+            force_stop_m
+        ;;
+        *)
+            force_stop
+        ;;
+        esac
+    ;;
     status)
         case "$2" in
         jsb)
@@ -187,6 +235,6 @@ case "$1" in
         ;;
         esac
     ;;
-    *) echo "Usage: $0 {start|stop|status} [jsb|jta]"
+    *) echo "Usage: $0 {start|stop|kill|status} [jsb|jta]"
 ;;    
 esac

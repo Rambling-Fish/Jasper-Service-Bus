@@ -4,9 +4,14 @@ function setup_jsb {
 mkdir -p logs
 cd jsb-core
 chmod 755 bin/jsb
+chmod 755 exec/wrapper*
 chmod 755 jsbAutoStart
 chmod 600 config/jsb.jmxremote.password
 mv wrapper.jar libs/
+mkdir activemq-data
+cd exec
+ln -s ../activemq-data .
+cd ..
 }
 
 function setup_jta {
@@ -38,9 +43,13 @@ if ! [ -d mule-standalone-3.3.0 ]; then
    mv wrapper.jar libs/
 fi
 chmod 755 bin/jsb
+chmod 755 exec/wrapper*
 chmod 755 jsbAutoStart
 chmod 755 jtaAutoStart
-
+mkdir activemq-data
+cd exec
+ln -s ../activemq-data .
+cd ..
 }
 
 case "$1" in
