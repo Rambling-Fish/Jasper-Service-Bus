@@ -1,6 +1,7 @@
 #!/bin/bash
 
 J_PID=""
+JW_PID=""
 M_PID=""
 UNAME=`uname`
 OS="$UNAME"
@@ -16,6 +17,10 @@ function get_j_pid {
       J_PID=`ps ax | grep java | grep JECore | cut -d' ' -f3`
       fi    
     fi
+    if [ -e "jsb-core/bin/jsb.pid" ]
+    then
+      JW_PID=`cat jsb-core/bin/jsb.pid` 
+    fi   
 }
 
 function get_m_pid {
@@ -36,7 +41,7 @@ function stop_j {
    if [ -z "$J_PID" ]; then
       echo "JSB is not running." 
    else
-      echo -n "Stopping JSB.."
+      echo "Stopping JSB.."
       cd jsb-core/bin/ 
       ./jsb stop
       if [ "$OS" == 'Linux' ]; then
@@ -68,7 +73,7 @@ function force_stop_j {
    if [ -z "$J_PID" ]; then
       echo "JSB is not running." 
    else
-      echo -n "Stopping JSB.."
+      echo "Stopping JSB.."
       kill $J_PID 
       sleep 1
       if [ "$OS" == 'Linux' ]; then
@@ -142,7 +147,7 @@ function status_j {
    if [ -z  "$J_PID" ]; then
       echo "JSB is not running." 
    else
-      echo "JSB is running, PID=$J_PID"
+      echo "JSB is running, wrapper PID=$JW_PID proccess PID=$J_PID"
    fi
 }
 
