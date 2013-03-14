@@ -16,7 +16,5 @@
     
     <modules>
         <module>jTransport-jasperEngine</module>
-        <module>jTransport-webview</module>
-    </modules>
-    
+    </modules>    
 </project>

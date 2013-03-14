@@ -7,9 +7,6 @@
     <modules>
         <module>jLib</module>
         <module>jTransport</module>
-        <module>jta</module>
-        <module>jtaTest</module>
-        <module>jtaDemo</module>
         <module>jasper-platform</module>
     </modules>
 </project>
