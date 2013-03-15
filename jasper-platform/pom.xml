@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.jasper</groupId>
-        <artifactId>jasper</artifactId>
+        <artifactId>jasper-service-bus</artifactId>
         <version>1.1</version>
     </parent>
     <groupId>org.jasper.platform</groupId>
@@ -108,11 +108,6 @@
         <dependency>
             <groupId>org.jasper.jTransport</groupId>
             <artifactId>jTransport-jasperEngine</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jasper.jTransport</groupId>
-            <artifactId>jTransport-webview</artifactId>
             <version>1.0</version>
         </dependency>
    		<dependency>
