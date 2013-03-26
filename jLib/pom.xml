@@ -14,11 +14,7 @@
     <description></description>
     
     <modules>
-        <module>jLib-cat010-codec</module>
-        <module>jLib-idarvideo-codec</module>
         <module>jLib-jAuth-lib</module>
-        <module>jLib-metpx-codec</module>
-        <module>jLib-webview-codec</module>
     </modules>
     
     <build>
