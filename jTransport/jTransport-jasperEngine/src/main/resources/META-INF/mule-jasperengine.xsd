@@ -44,28 +44,28 @@
                  <xsd:attribute name="vendor" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation>
-                        The vendor of the jApp.
+                        The vendor of the JTA.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
                  <xsd:attribute name="appName" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation>
-                        The name of the jApp.
+                        The name of the JTA.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
                  <xsd:attribute name="version" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation>
-                        The version of the jApp.
+                        The version of the JTA.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
                  <xsd:attribute name="deploymentId" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation>
-                        The deployment ID of the jApp.
+                        The deployment ID of the JTA.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
@@ -73,6 +73,20 @@
                     <xsd:annotation>
                         <xsd:documentation>
                         The JasperEngine URL.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="uri" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                        The URI of the data being provided.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="globalQueue" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                        The global queue of the jasper delegates.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>

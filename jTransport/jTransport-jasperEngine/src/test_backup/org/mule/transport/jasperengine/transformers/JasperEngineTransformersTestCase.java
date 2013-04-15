@@ -35,21 +35,15 @@ public class JasperEngineTransformersTestCase extends AbstractTransformerTestCas
         throw new UnsupportedOperationException("getResultData");
     }
 
-    @Override
-    public Transformer getTransformer()
-    {
-        Transformer transformer = new JasperJmsMessageToObject();
-        // Set the correct return class for this roundtrip test
-        transformer.setReturnDataType(DataTypeFactory.create(this.getResultData().getClass()));
-        return transformer;
-    }
+	@Override
+	public Transformer getTransformer() throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    @Override
-    public Transformer getRoundTripTransformer()
-    {
-        Transformer transformer = new ObjectToJasperJmsMessage();
-        // Set the correct return class for this roundtrip test
-        transformer.setReturnDataType(DataTypeFactory.create(this.getTestData().getClass()));
-        return transformer;
-    }
+	@Override
+	public Transformer getRoundTripTransformer() throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

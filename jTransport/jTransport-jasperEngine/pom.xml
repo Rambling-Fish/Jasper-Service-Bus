@@ -157,6 +157,11 @@
 			<artifactId>jLib-jAuth-lib</artifactId>
 			<version>1.1</version>
 		</dependency>
+                <dependency>
+                       <groupId>org.jasper.jLib</groupId>
+                       <artifactId>jLib-jCommons-lib</artifactId>
+                       <version>1.1</version>
+                </dependency>
         <!-- Mule Modules: You will need to add and remove as necessary -->
         <dependency>
             <groupId>org.mule</groupId>
@@ -192,6 +197,12 @@
             <artifactId>mule-module-client</artifactId>
             <version>${mule.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-all</artifactId>
+            <version>5.7.0</version>
+        </dependency>
+
 
         <!-- for testing -->
         <dependency>

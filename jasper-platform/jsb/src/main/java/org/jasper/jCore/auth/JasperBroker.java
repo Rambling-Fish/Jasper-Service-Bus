@@ -21,12 +21,13 @@ import org.apache.activemq.broker.BrokerFilter;
 import org.apache.activemq.broker.ConnectionContext;
 import org.apache.activemq.command.ConnectionInfo;
 import org.apache.log4j.Logger;
-import org.jasper.jCore.admin.JasperAdminMessage;
-import org.jasper.jCore.admin.JasperAdminMessage.Command;
-import org.jasper.jCore.admin.JasperAdminMessage.Type;
+
 import org.jasper.jCore.engine.JECore;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
+import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
+import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
+import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
 
 public class JasperBroker extends BrokerFilter {
     
@@ -35,6 +36,8 @@ public class JasperBroker extends BrokerFilter {
 	
 	private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
 	private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
+	
+	public static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
 	
 	/*
 	 * Map will store known connections to prevent multiple JTAs from using same JTA license key
@@ -65,7 +68,7 @@ public class JasperBroker extends BrokerFilter {
 	/*
 	 * boolean to stop processing peer notifications
 	 */
-	private boolean processPeerNotificaitons;
+	private boolean processPeerNotifications;
 	
 	/*
 	 * ScheduledExecutorServices for spawning new threads
@@ -80,7 +83,7 @@ public class JasperBroker extends BrokerFilter {
      public JasperBroker(Broker next) {
         super(next);
         core = JECore.getInstance();
-        processPeerNotificaitons = true;
+        processPeerNotifications = true;
     }
      
      public void start() throws Exception{
@@ -89,12 +92,12 @@ public class JasperBroker extends BrokerFilter {
      }
 
      public void brokerServiceStarted() {
-         startListeningForPeerNotificaitons();
+         startListeningForPeerNotifications();
          next.brokerServiceStarted();
      }
      
      public void stop() throws Exception {
-    	 stopPeerNotificaitons();
+    	 stopPeerNotifications();
          next.stop();
          jtaAuditExec.shutdown();
      }
@@ -127,7 +130,7 @@ public class JasperBroker extends BrokerFilter {
 		}
 	}
      
-    private void startListeningForPeerNotificaitons(){
+    private void startListeningForPeerNotifications(){
 		listenForBroadcastEventsExec = Executors.newSingleThreadScheduledExecutor();
 		listenForMyEventsExec = Executors.newSingleThreadScheduledExecutor();
 		Runnable runListenForBroadcastEvents = new Runnable() {
@@ -146,8 +149,8 @@ public class JasperBroker extends BrokerFilter {
 		listenForMyEventsExec.schedule(runListenForMyEvents, 0, TimeUnit.SECONDS);
     }
     
-    private void stopPeerNotificaitons(){
-    	processPeerNotificaitons = false;
+    private void stopPeerNotifications(){
+    	processPeerNotifications = false;
     	listenForBroadcastEventsExec.shutdown();
     	listenForMyEventsExec.shutdown();
     }
@@ -251,7 +254,7 @@ public class JasperBroker extends BrokerFilter {
             do{
 	            do{
 	            	message = consumer.receive(1000);
-	            }while(message ==null && processPeerNotificaitons);
+	            }while(message ==null && processPeerNotifications);
 	
 	            
 	            if (message instanceof ObjectMessage) {
@@ -261,7 +264,7 @@ public class JasperBroker extends BrokerFilter {
 	                	processJasperAdminMessages((JasperAdminMessage) obj);
 	                }
 	            }
-            }while(processPeerNotificaitons);
+            }while(processPeerNotifications);
             
             consumer.close();
             session.close();
@@ -298,7 +301,7 @@ public class JasperBroker extends BrokerFilter {
             do{
 	            do{
 	            	message = consumer.receive(1000);
-	            }while(message == null && processPeerNotificaitons);
+	            }while(message == null && processPeerNotifications);
 
 	            if (message instanceof ObjectMessage) {
 	            	ObjectMessage objMessage = (ObjectMessage) message;
@@ -307,7 +310,7 @@ public class JasperBroker extends BrokerFilter {
 	                	processJasperAdminMessages((JasperAdminMessage) obj);
 	                }
 	            }
-            }while(processPeerNotificaitons);
+            }while(processPeerNotifications);
             
             consumer.close();
             session.close();
@@ -322,14 +325,15 @@ public class JasperBroker extends BrokerFilter {
 			if(jam.getSrc().equals(core.getJSBInstance())) return;  // ignore messages to oneself due to broadcasting
     		logger.info("received " + jam.getCommand() + " from " + jam.getSrc() + " for key " + jam.getDetails());
         	if(jam.getCommand() == Command.add){
-        		remoteJtaRegistrationMap.put(jam.getDetails(), jam.getSrc());
+        		remoteJtaRegistrationMap.put(jam.getDetails()[0], jam.getSrc());
     		}else if(jam.getCommand() == Command.update){
-    			remoteJtaRegistrationMap.put(jam.getDetails(), jam.getSrc());
-    			if(jtaConnectionInfoMap.containsKey(jam.getDetails())) dropJTAConnection(jam.getDetails());
+    			remoteJtaRegistrationMap.put(jam.getDetails()[0], jam.getSrc());
+    			if(jtaConnectionInfoMap.containsKey(jam.getDetails())) dropJTAConnection(jam.getDetails()[0]);
     		}else if(jam.getCommand() == Command.delete){
-    			 remoteJtaRegistrationMap.remove(jam.getDetails());
+    			 remoteJtaRegistrationMap.remove(jam.getDetails()[0]);
     		}
-    	}		
+    	}
+
 	}
 
 	private void dropJTAConnection(String licenseKey) {
@@ -483,6 +487,10 @@ public class JasperBroker extends BrokerFilter {
     		logger.warn("JTA de-registered from JSB : " + info.getUserName());
 	    	jtaConnectionInfoMap.remove(info.getPassword());
     		notifyPeers(Command.delete,info.getPassword());
+    		
+    		// TODO right now we are just sending message to delegates so the jta
+    		// map can be cleaned up. This needs to change to listener pattern
+    		notifyDelegate(Command.delete, info.getUserName());
     	}else if(jsbConnectionInfoMap.get(info.getPassword()) != null){
     		if(logger.isInfoEnabled()){
 	    		logger.info("Peer JSB deregistered from system : " + info.getUserName());
@@ -490,7 +498,45 @@ public class JasperBroker extends BrokerFilter {
 	    	jsbConnectionInfoMap.remove(info.getPassword());
 	    	cleanRemoteJtaMap(core.getJSBInstance(info.getPassword()));
     	}
+
     	super.removeConnection(context, info, null);
     }
+	
+	private void notifyDelegate(Command command, String msgDetails) {
+		try {
+			// Create a ConnectionFactory
+			ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
+
+			// Create a Connection
+			connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
+			connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+			Connection connection = connectionFactory.createConnection();
+			connection.start();
+
+			// Create a Session
+			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+			// Create the destination (Topic or Queue)
+			Destination destination = session.createQueue(DELEGATE_GLOBAL_QUEUE);
+
+			// Create a MessageProducer from the Session to the Topic or Queue
+			MessageProducer producer = session.createProducer(destination);
+			producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+			producer.setTimeToLive(30000);
+
+			JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, command, msgDetails, "*",  msgDetails);
+
+			Message message = session.createObjectMessage(jam);
+			producer.send(message);
+
+			// Clean up
+			session.close();
+			connection.close();
+		}
+		catch (Exception e) {
+			logger.error("Exception caught while notifying peers: ", e);
+		}
+	}
+	
 	
 }

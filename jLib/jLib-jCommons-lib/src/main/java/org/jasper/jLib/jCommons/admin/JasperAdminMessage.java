@@ -1,4 +1,4 @@
-package org.jasper.jCore.admin;
+package org.jasper.jLib.jCommons.admin;
 
 import java.io.Serializable;
 
@@ -8,11 +8,13 @@ public class JasperAdminMessage implements Serializable{
 
 	public enum Type{
 		jsbClusterManagement,
+		jtaDataManagement
 	}
 	
 	public enum Command{
 		add,
 		delete,
+		notify,
 		update
 	}
 	
@@ -20,9 +22,9 @@ public class JasperAdminMessage implements Serializable{
 	private Command command;
 	private String src;
 	private String dst;
-	private String details;
+	private String[] details;
 	
-	public JasperAdminMessage(Type type, Command command, String src, String dst, String details) {
+	public JasperAdminMessage(Type type, Command command, String src, String dst, String... details) {
 		this.type = type;
 		this.command = command;
 		this.src = src;
@@ -46,7 +48,7 @@ public class JasperAdminMessage implements Serializable{
 		return dst;
 	}
 	
-	public String getDetails() {
+	public String[] getDetails() {
 		return details;
 	}
 	

@@ -15,21 +15,24 @@ import org.mule.transport.AbstractConnectorTestCase;
 
 import org.junit.Test;
 
-public class JasperEngineConnectorTestCase extends AbstractConnectorTestCase
-{
+public class JasperEngineConnectorTestCase extends AbstractConnectorTestCase {
+
     /* For general guidelines on writing transports see
        http://www.mulesoft.org/documentation/display/MULE3USER/Creating+Transports */
+	
+	private JasperEngineConnector connector;
 
-    @Override
-    public Connector createConnector() throws Exception
-    {
+    @Test
+    public Connector createConnector() throws Exception {
+    
         /* IMPLEMENTATION NOTE: Create and initialise an instance of your
            connector here. Do not actually call the connect method. */
 
-        JasperEngineConnector connector = new JasperEngineConnector(muleContext);
-        connector.setName("Test");
+        connector = new JasperEngineConnector(muleContext);
+        connector.setName("JEC");
         // TODO Set any additional properties on the connector here
         return connector;
+        
     }
 
     @Override

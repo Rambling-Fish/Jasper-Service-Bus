@@ -15,6 +15,7 @@
     
     <modules>
         <module>jLib-jAuth-lib</module>
+        <module>jLib-jCommons-lib</module>
     </modules>
     
     <build>

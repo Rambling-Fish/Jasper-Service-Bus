@@ -13,6 +13,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +25,8 @@ import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
+import org.jasper.core.delegate.Delegate;
+import org.jasper.core.delegate.DelegateFactory;
 import org.jasper.jCore.auth.JasperAuthenticationPlugin;
 import org.jasper.jLib.jAuth.JSBLicense;
 import org.jasper.jLib.jAuth.JTALicense;
@@ -395,6 +398,18 @@ public class JECore {
 
     			core.broker.addConnector(prop.getProperty("jsbLocalURL"));	
     			core.broker.start();
+    			
+    			// Instantiate the delegate pool
+    			ExecutorService executorService = Executors.newCachedThreadPool();
+    			DelegateFactory factory = DelegateFactory.getInstance();
+    			
+    			Delegate[] delegates = new Delegate[5];
+    			
+    			for(int i=0;i<delegates.length;i++){
+    				delegates[i]=factory.createDelegate();
+    				executorService.execute(delegates[i]);
+
+    			} 
     			
 			}else{
     			logger.error("license key expired, jsb not starting"); 
