@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<person user="abe">
+  <firstName>Abe</firstName>
+  <lastName>Wehbi</lastName>
+  <heartrate>120/80/60</heartrate>
+</person>
