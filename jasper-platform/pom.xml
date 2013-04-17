@@ -110,6 +110,11 @@
             <artifactId>jTransport-jasperEngine</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.jasper.jLib</groupId>
+            <artifactId>jLib-jCommons-lib</artifactId>
+            <version>1.1</version>
+        </dependency>
    		<dependency>
 			<groupId>commons-net</groupId>
 			<artifactId>commons-net</artifactId>
