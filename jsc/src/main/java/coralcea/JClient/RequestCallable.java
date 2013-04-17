@@ -1,6 +1,7 @@
 package coralcea.JClient;
 
 import java.util.concurrent.Callable;
+
 import javax.jms.JMSException;
 import javax.jms.ObjectMessage;
 import javax.jms.Queue;
@@ -10,8 +11,9 @@ import javax.jms.QueueRequestor;
 import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+
 import org.apache.log4j.Logger;
-import org.jasper.core.message.JasperSyncRequest;
+import org.jasper.jLib.jCommons.message.JasperSyncRequest;
 
 /*
  * Create a QueueRequestor. Create a text message and set its text to the
