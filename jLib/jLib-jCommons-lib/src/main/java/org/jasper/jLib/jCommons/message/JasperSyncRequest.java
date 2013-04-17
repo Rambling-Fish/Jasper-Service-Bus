@@ -1,4 +1,4 @@
-package org.jasper.core.message;
+package org.jasper.jLib.jCommons.message;
 
 import java.io.Serializable;
 
