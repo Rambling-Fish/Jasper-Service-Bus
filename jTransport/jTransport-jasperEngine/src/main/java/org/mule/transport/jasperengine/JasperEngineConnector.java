@@ -101,7 +101,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     		MessageProducer producer = session.createProducer(destination);
     		producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 		
-    		String src = username.concat(".").concat(uri).concat(".").concat(JTA_QUEUE_SUFFIX);
+    		String src = "jms." + vendor + "." + appName + "." + version + "." + deploymentId + "." + uri + "." + JTA_QUEUE_SUFFIX;
 		
     		// JasperAdmin message is created with the JTA's replyToQueue as the src, the delegate's
     		// globalQueue as the dest and the uri as the message details

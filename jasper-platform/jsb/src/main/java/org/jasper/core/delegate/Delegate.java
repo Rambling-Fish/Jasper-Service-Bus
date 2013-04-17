@@ -106,6 +106,7 @@ public class Delegate implements Runnable {
 		          if(isShutdown) break;
 		          if (jtaResponse instanceof TextMessage) {
 		        	  TextMessage responseMessage = (TextMessage) jtaResponse;	
+		        	  logger.info("TextMessage response recieved = " + responseMessage);
 
 		              
 	            	  String coorelationID = responseMessage.getJMSCorrelationID();
@@ -120,7 +121,7 @@ public class Delegate implements Runnable {
 	                  producer.setDeliveryMode(DeliveryMode.PERSISTENT);
 	                  producer.setTimeToLive(30000);
 
-	                  Message message = jClientSession.createObjectMessage(responseMessage.getText());
+	                  Message message = jClientSession.createTextMessage(responseMessage.getText());
 	                  message.setJMSCorrelationID(coorelationID);
 	      			  producer.send(message);
 
@@ -158,21 +159,33 @@ public class Delegate implements Runnable {
 		          	jClientRequest = globalDelegateConsumer.receive(1000);
 		          }while(jClientRequest == null && !isShutdown);
 		          if(isShutdown) break;
+	        	  logger.info("request recieved");
 		          if (jClientRequest instanceof ObjectMessage) {
 		        	  ObjectMessage objMessage = (ObjectMessage) jClientRequest;
 		              Object obj = objMessage.getObject();
 		              if(obj instanceof JasperSyncRequest){
 		            	  String coorelationID = objMessage.getJMSCorrelationID();
 		            	  Destination jClientQ = objMessage.getJMSReplyTo();
+			        	  logger.info("request getJMSCorrelationID = " + objMessage.getJMSCorrelationID());
+			        	  logger.info("request getJMSReplyTo       = " + objMessage.getJMSReplyTo());
+			        	  
+			        	  if(coorelationID == null){
+			        		  logger.info("jmsCorrelationID is null, assuming jmsReplyTo queue is unique and therefore using jmsReplyTo queue as coorelation id : " + jClientQ.toString());
+			        		  coorelationID = jClientQ.toString();
+			        	  }
+			        	  
 		            	  if(reqRespMap.containsKey(coorelationID)) throw new Exception("Reusing coorealtionID in req, should be unique");
 		            	  reqRespMap.put(coorelationID, jClientQ);
 		            	  
 		            	  JasperSyncRequest req = (JasperSyncRequest)obj;
+			        	  logger.info("JasperSyncRequest uri = " + req.getUri());
+
 		            	  
 		            	  // Create a Session
 		                  Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
 		                  // Create the destination for JTA queue
+		                  logger.info("jtaUriMap.get(req.getUri()) = " + jtaUriMap.get(req.getUri()));
 		                  Destination jtaQueueDestination = jtaSession.createQueue(jtaUriMap.get(req.getUri()));
 		                  
 		                  // Create a MessageProducer from the Session to the Queue
