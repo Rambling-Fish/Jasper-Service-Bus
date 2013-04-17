@@ -3,7 +3,6 @@ package coralcea.JClient;
 import java.util.concurrent.Callable;
 
 import javax.jms.JMSException;
-import javax.jms.ObjectMessage;
 import javax.jms.Queue;
 import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
@@ -13,7 +12,6 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.log4j.Logger;
-import org.jasper.jLib.jCommons.message.JasperSyncRequest;
 
 /*
  * Create a QueueRequestor. Create a text message and set its text to the
@@ -33,7 +31,7 @@ public class RequestCallable implements Callable<TextMessage> {
 	QueueSession queueSession = null;
 	Queue queue = null;
 	QueueRequestor queueRequestor = null;
-	ObjectMessage message = null;
+	TextMessage message = null;
 	TextMessage reply = null;
 	String replyID = null;
 	String requestUrl;
@@ -112,19 +110,17 @@ public class RequestCallable implements Callable<TextMessage> {
 
 		try {
 			
-	    JasperSyncRequest JSR = new JasperSyncRequest(requestUrl);
-
 		// create a queue requester
 			queueRequestor = new QueueRequestor(queueSession, queue);
 			
 			// create a text msg on the session
 			// the msg represents the query.
-			message = queueSession.createObjectMessage();
+			message = queueSession.createTextMessage();
 			
 			// set the text message inside the JMS message.
-			message.setObject(JSR);
+			message.setText(requestUrl);
 			log.info("RequestCallable: Sending message: "
-					+ message.getObject());
+					+ message.getText());
 			
 			// block until the broker service the request and sends back a reply
 			reply = (TextMessage) queueRequestor.request(message);
