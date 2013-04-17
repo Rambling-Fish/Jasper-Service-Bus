@@ -8,5 +8,6 @@
         <module>jLib</module>
         <module>jTransport</module>
         <module>jasper-platform</module>
+        <module>jsc</module>
     </modules>
 </project>
