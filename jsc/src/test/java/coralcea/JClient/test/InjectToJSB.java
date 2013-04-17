@@ -76,7 +76,7 @@ public class InjectToJSB {
 		String whatdoIget;
 		
 		try {
-			whatdoIget = JCP.FetchDataFromJasper("coralcea.ca/jasper/MedicalSensorData/HeartRate");
+			whatdoIget = JCP.FetchDataFromJasper("coralcea.ca.jasper.MedicalSensorData.HeartRate");
 			log.info(whatdoIget);
 		}
 		catch (UnsupportedEncodingException e) {
