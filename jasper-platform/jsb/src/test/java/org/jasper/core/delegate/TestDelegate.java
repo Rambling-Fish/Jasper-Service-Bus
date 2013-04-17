@@ -19,7 +19,6 @@ import javax.jms.Session;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
 
-import org.jasper.jLib.jCommons.message.JasperSyncRequest;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -130,7 +129,7 @@ public class TestDelegate  extends TestCase {
 	    MessageConsumer jtaConsumer = jtaSession.createConsumer(jtaQueue);
 	    Message jClientRequest;
 		
-		JasperSyncRequest syncReq = new JasperSyncRequest(TEST_URI, clientMsg);
+		String[] syncReq = new String[]{TEST_URI, clientMsg};
 		message = session.createObjectMessage(syncReq);
 		String corrId = UUID.randomUUID().toString();
 		message.setJMSCorrelationID(corrId);
@@ -147,7 +146,7 @@ public class TestDelegate  extends TestCase {
 		 if (jClientRequest instanceof ObjectMessage) {
 			 ObjectMessage objMessage = (ObjectMessage) jClientRequest;
 			 Object obj = objMessage.getObject();
-             if(obj instanceof JasperSyncRequest) {
+             if(obj instanceof String[]) {
             	 Assert.assertNotNull(obj);
              }
 		 }

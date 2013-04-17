@@ -17,7 +17,6 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.log4j.Logger;
-import org.jasper.jLib.jCommons.message.JasperSyncRequest;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -166,7 +165,7 @@ public class Delegate implements Runnable {
 		          if (jClientRequest instanceof ObjectMessage) {
 		        	  ObjectMessage objMessage = (ObjectMessage) jClientRequest;
 		              Object obj = objMessage.getObject();
-		              if(obj instanceof JasperSyncRequest){
+		              if(obj instanceof String[]){
 		            	  String coorelationID = objMessage.getJMSCorrelationID();
 		            	  Destination jClientQ = objMessage.getJMSReplyTo();
 			        	  logger.info("request getJMSCorrelationID = " + objMessage.getJMSCorrelationID());
@@ -181,16 +180,16 @@ public class Delegate implements Runnable {
 		            	  if(reqRespMap.containsKey(coorelationID)) throw new Exception("Reusing coorealtionID in req, should be unique");
 		            	  reqRespMap.put(coorelationID, jClientQ);
 		            	  
-		            	  JasperSyncRequest req = (JasperSyncRequest)obj;
-			        	  logger.info("JasperSyncRequest uri = " + req.getUri());
+		            	  String[] req = (String[])obj;
+			        	  logger.info("JasperSyncRequest uri = " + req[0]);
 
 		            	  
 		            	  // Create a Session
 		                  Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
 		                  // Create the destination for JTA queue
-		                  logger.info("jtaUriMap.get(req.getUri()) = " + jtaUriMap.get(req.getUri()));
-		                  Destination jtaQueueDestination = jtaSession.createQueue(jtaUriMap.get(req.getUri()));
+		                  logger.info("jtaUriMap.get(req.getUri()) = " + jtaUriMap.get(req[0]));
+		                  Destination jtaQueueDestination = jtaSession.createQueue(jtaUriMap.get(req[0]));
 		                  
 		                  // Create a MessageProducer from the Session to the Queue
 		                  MessageProducer producer = jtaSession.createProducer(jtaQueueDestination);
