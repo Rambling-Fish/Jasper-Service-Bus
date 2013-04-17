@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="jsb/src/main/java"/>
-	<classpathentry kind="src" path="jsb/src/test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/activemq/activemq-all/5.7.0/activemq-all-5.7.0.jar" sourcepath="/M2_REPO/org/apache/activemq/activemq-all/5.7.0/activemq-all-5.7.0-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/commons-codec/commons-codec/1.4/commons-codec-1.4.jar" sourcepath="/M2_REPO/commons-codec/commons-codec/1.4/commons-codec-1.4-sources.jar"/>
