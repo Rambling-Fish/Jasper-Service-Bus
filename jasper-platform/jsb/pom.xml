@@ -21,7 +21,7 @@
                 <inherited>false</inherited>
                 <executions>
                     <execution>
-                        <phase>compile</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
@@ -87,6 +87,11 @@
         <dependency>
             <groupId>org.jasper.jLib</groupId>
             <artifactId>jLib-jCommons-lib</artifactId>
+            <version>1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jasper.jLib</groupId>
+            <artifactId>jLib-jAuth-lib</artifactId>
             <version>1.1</version>
         </dependency>
         <dependency>

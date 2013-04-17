@@ -17,7 +17,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.log4j.Logger;
-import org.jasper.core.message.JasperSyncRequest;
+import org.jasper.jLib.jCommons.message.JasperSyncRequest;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -28,6 +28,7 @@ public class Delegate implements Runnable {
 	private static final String DELEGATE_QUEUE_SUFFIX = ".queue";
 	private Map<String,String> jtaUriMap;
 	private Map<String, Destination> reqRespMap;
+	private Map<String, String> msgIdMap;
 	private String name;
 	private Connection connection;
 	private boolean isShutdown;
@@ -41,6 +42,7 @@ public class Delegate implements Runnable {
 		this.connection = connection;
 		this.jtaUriMap = map;
 		this.reqRespMap = new ConcurrentHashMap<String, Destination>();
+		this.msgIdMap = new ConcurrentHashMap<String, String>();
 		this.isShutdown = false;
 		
 		singleThreadExecutor = Executors.newSingleThreadExecutor();
@@ -111,7 +113,7 @@ public class Delegate implements Runnable {
 		              
 	            	  String coorelationID = responseMessage.getJMSCorrelationID();
 	            	  if(!reqRespMap.containsKey(coorelationID)) throw new Exception("coorealtionID for response not found");
-	            	 
+	            	  
 	            	  // Create a Session
 	                  Session jClientSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	            	  Destination jClientQueueDestination = reqRespMap.remove(coorelationID);
@@ -122,6 +124,7 @@ public class Delegate implements Runnable {
 	                  producer.setTimeToLive(30000);
 
 	                  Message message = jClientSession.createTextMessage(responseMessage.getText());
+	                  if(msgIdMap.containsKey(coorelationID)) coorelationID = msgIdMap.remove(coorelationID);
 	                  message.setJMSCorrelationID(coorelationID);
 	      			  producer.send(message);
 
@@ -172,6 +175,7 @@ public class Delegate implements Runnable {
 			        	  if(coorelationID == null){
 			        		  logger.info("jmsCorrelationID is null, assuming jmsReplyTo queue is unique and therefore using jmsReplyTo queue as coorelation id : " + jClientQ.toString());
 			        		  coorelationID = jClientQ.toString();
+				        	  msgIdMap.put(coorelationID, objMessage.getJMSMessageID());
 			        	  }
 			        	  
 		            	  if(reqRespMap.containsKey(coorelationID)) throw new Exception("Reusing coorealtionID in req, should be unique");
