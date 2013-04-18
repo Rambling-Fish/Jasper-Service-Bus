@@ -121,7 +121,6 @@ public class TestDelegate  extends TestCase {
 		
 		// Setup so delegate will forward request back here (JTA)
 		Destination jtaQueue = session.createQueue(TEST_QUEUE);
-		String clientMsg = "This is a test client message";
 		delegateFactory.jtaUriMap.put(TEST_URI, TEST_QUEUE);
 		
 		// Setup consumer to receive message from delegate (i.e. pretend to be a JTA)
@@ -129,8 +128,7 @@ public class TestDelegate  extends TestCase {
 	    MessageConsumer jtaConsumer = jtaSession.createConsumer(jtaQueue);
 	    Message jClientRequest;
 		
-		String[] syncReq = new String[]{TEST_URI, clientMsg};
-		message = session.createObjectMessage(syncReq);
+		message = session.createTextMessage(TEST_URI);
 		String corrId = UUID.randomUUID().toString();
 		message.setJMSCorrelationID(corrId);
 		message.setJMSReplyTo(jtaQueue);
