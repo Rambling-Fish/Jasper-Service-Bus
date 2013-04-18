@@ -122,47 +122,58 @@ public class TestDelegate  extends TestCase {
 		tearDownConnection();
 	}
 	
+	
+	/*
+	 * TODO The jClient (JSC) doesn't use correlationID in the request message,
+	 * it uses dynamic queues and a messageID, need to change this test to simulate
+	 * that behaviour
+	 */
+	
 	/*
 	 * This test simulates a message sent from jClient to a delegate which is
 	 * then sent to the JTA.  The delegate forwards the request to the JTA 
 	 * using the JMS replyToQueue in the incoming request.
 	 */
-	@Test
-	public void testClientToJTAMessaging() throws Exception {
-		setUpConnection();
-		
-		// Setup so delegate will forward request back here (JTA)
-		Destination jtaQueue = session.createQueue(TEST_QUEUE);
-		delegateFactory.jtaUriMap.put(TEST_URI, TEST_QUEUE);
-		
-		// Setup consumer to receive message from delegate (i.e. pretend to be a JTA)
-		Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-	    MessageConsumer jtaConsumer = jtaSession.createConsumer(jtaQueue);
-	    Message jClientRequest;
-		
-		message = session.createTextMessage(TEST_URI);
-		String corrId = UUID.randomUUID().toString();
-		message.setJMSCorrelationID(corrId);
-		message.setJMSReplyTo(jtaQueue);
-		
-		// Send message to delegate
-		producer.send(message);
-		
-		Thread.sleep(2000);
-		
-		do{
-          	jClientRequest = jtaConsumer.receive(1000);
-          }while(jClientRequest == null);
-		 if (jClientRequest instanceof ObjectMessage) {
-			 ObjectMessage objMessage = (ObjectMessage) jClientRequest;
-			 Object obj = objMessage.getObject();
-             if(obj instanceof String[]) {
-            	 Assert.assertNotNull(obj);
-             }
-		 }
-			
-		tearDownConnection();
-	}
+//	@Test
+//	public void testClientToJTAMessaging() throws Exception {
+//		setUpConnection();
+//		
+//		// Setup so delegate will forward request back here (JTA)
+//		Destination jtaQueue = session.createQueue(TEST_QUEUE);
+//		delegateFactory.jtaUriMap.put(TEST_URI, TEST_QUEUE);
+//		
+//		// Setup consumer to receive message from delegate (i.e. pretend to be a JTA)
+//		Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+//	    MessageConsumer jtaConsumer = jtaSession.createConsumer(jtaQueue);
+//	    Message jClientRequest;
+//		
+//		message = session.createTextMessage(TEST_URI);
+//		String corrId = UUID.randomUUID().toString();
+//		message.setJMSCorrelationID(corrId);
+//		message.setJMSReplyTo(jtaQueue);
+//		
+//		// Send message to delegate
+//		producer.send(message);
+//		
+//		Thread.sleep(2000);
+//		
+//		int maxCount = 10;
+//	
+//		do{
+//          	jClientRequest = jtaConsumer.receive(1000);
+//          	maxCount--;
+//          }while(jClientRequest == null && maxCount > 0);
+//		 Assert.assertNotNull(jClientRequest);
+//		 if (jClientRequest!=null && jClientRequest instanceof ObjectMessage) {
+//			 ObjectMessage objMessage = (ObjectMessage) jClientRequest;
+//			 Object obj = objMessage.getObject();
+//             if(obj instanceof String[]) {
+//            	 Assert.assertNotNull(obj);
+//             }
+//		 }
+//			
+//		tearDownConnection();
+//	}
 	
 	/*
 	 * This test sends two request to the delegate with the same correlation Id
