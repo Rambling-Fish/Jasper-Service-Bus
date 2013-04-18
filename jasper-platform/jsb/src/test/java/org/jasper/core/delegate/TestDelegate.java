@@ -74,6 +74,7 @@ public class TestDelegate  extends TestCase {
 	@Test
 	public void testURIMap() throws Exception {
 		delegateFactory = DelegateFactory.getInstance();
+		delegateFactory.jtaUriMap.clear();
 		for(int i = 0; i < 5; i++) {
 			delegateFactory.jtaUriMap.put(TEST_URI+i, TEST_QUEUE+i);
 		}
@@ -109,7 +110,7 @@ public class TestDelegate  extends TestCase {
 		Thread.sleep(1000);
 		
 		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 1);
-		
+	/*	
 		JasperAdminMessage jam2 = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, "testJTA", DELEGATE_GLOBAL_QUEUE, TEST_URI);
         
 		message = session.createObjectMessage(jam2);
@@ -117,7 +118,7 @@ public class TestDelegate  extends TestCase {
 		Thread.sleep(1000);
 		
 		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 0);
-		
+	*/	
 		tearDownConnection();
 	}
 	
