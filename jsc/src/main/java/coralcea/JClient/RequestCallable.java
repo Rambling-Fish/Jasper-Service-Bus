@@ -110,6 +110,11 @@ public class RequestCallable implements Callable<TextMessage> {
 
 		try {
 			
+<<<<<<< Updated upstream
+=======
+	    String[] JSR = new String[]{requestUrl};
+
+>>>>>>> Stashed changes
 		// create a queue requester
 			queueRequestor = new QueueRequestor(queueSession, queue);
 			
