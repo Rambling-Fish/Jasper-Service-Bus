@@ -181,46 +181,51 @@ public class Delegate implements Runnable {
 		          		}
 		              }
 		          }else if(jmsRequest instanceof TextMessage){
-		        	  
 		        	  TextMessage txtMsg = (TextMessage) jmsRequest;
-		        	  String coorelationID = txtMsg.getJMSCorrelationID();
-	            	  Destination jClientQ = txtMsg.getJMSReplyTo();
-		        	  logger.info("request getJMSCorrelationID = " + txtMsg.getJMSCorrelationID());
-		        	  logger.info("request getJMSReplyTo       = " + txtMsg.getJMSReplyTo());
-		        	  
-		        	  if(coorelationID == null){
-		        		  logger.info("jmsCorrelationID is null, assuming jmsReplyTo queue is unique and therefore using jmsReplyTo queue as coorelation id : " + jClientQ.toString());
-		        		  coorelationID = jClientQ.toString();
-			        	  msgIdMap.put(coorelationID, txtMsg.getJMSMessageID());
+
+		        	  if(!jtaUriMap.containsKey(txtMsg.getText())){
+			        	  logger.info("uri not found ignoring request. uri = " + txtMsg.getText());
+			        	  //TODO We should return an error code, need to agree with JSC what that error code should look like
+		        	  }else{
+			        	  String coorelationID = txtMsg.getJMSCorrelationID();
+		            	  Destination jClientQ = txtMsg.getJMSReplyTo();
+			        	  logger.info("request getJMSCorrelationID = " + txtMsg.getJMSCorrelationID());
+			        	  logger.info("request getJMSReplyTo       = " + txtMsg.getJMSReplyTo());
+			        	  
+			        	  if(coorelationID == null){
+			        		  logger.info("jmsCorrelationID is null, assuming jmsReplyTo queue is unique and therefore using jmsReplyTo queue as coorelation id : " + jClientQ.toString());
+			        		  coorelationID = jClientQ.toString();
+				        	  msgIdMap.put(coorelationID, txtMsg.getJMSMessageID());
+			        	  }
+			        	  
+		            	  if(reqRespMap.containsKey(coorelationID)) throw new Exception("Reusing coorealtionID in req, should be unique");
+		            	  
+		            	  reqRespMap.put(coorelationID, jClientQ);
+		            	  
+		            	  String[] req = new String[]{txtMsg.getText()};
+			        	  logger.info("JasperSyncRequest uri = " + req[0]);
+		  
+		            	  // Create a Session
+		                  Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		
+		                  // Create the destination for JTA queue
+		                  logger.info("jtaUriMap.get(req.getUri()) = " + jtaUriMap.get(req[0]));
+		                  Destination jtaQueueDestination = jtaSession.createQueue(jtaUriMap.get(req[0]));
+		                  
+		                  // Create a MessageProducer from the Session to the Queue
+		                  MessageProducer producer = jtaSession.createProducer(jtaQueueDestination);
+		                  producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+		                  producer.setTimeToLive(30000);
+		
+		                  Message message = jtaSession.createObjectMessage(req);
+		                  message.setJMSCorrelationID(coorelationID);
+		                  message.setJMSReplyTo(getDelegateQueue());
+		
+		      			  producer.send(message);
+		
+		                  // Clean up
+		                  jtaSession.close();
 		        	  }
-		        	  
-	            	  if(reqRespMap.containsKey(coorelationID)) throw new Exception("Reusing coorealtionID in req, should be unique");
-	            	  
-	            	  reqRespMap.put(coorelationID, jClientQ);
-	            	  
-	            	  String[] req = new String[]{txtMsg.getText()};
-		        	  logger.info("JasperSyncRequest uri = " + req[0]);
-	  
-	            	  // Create a Session
-	                  Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-	
-	                  // Create the destination for JTA queue
-	                  logger.info("jtaUriMap.get(req.getUri()) = " + jtaUriMap.get(req[0]));
-	                  Destination jtaQueueDestination = jtaSession.createQueue(jtaUriMap.get(req[0]));
-	                  
-	                  // Create a MessageProducer from the Session to the Queue
-	                  MessageProducer producer = jtaSession.createProducer(jtaQueueDestination);
-	                  producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-	                  producer.setTimeToLive(30000);
-	
-	                  Message message = jtaSession.createObjectMessage(req);
-	                  message.setJMSCorrelationID(coorelationID);
-	                  message.setJMSReplyTo(getDelegateQueue());
-	
-	      			  producer.send(message);
-	
-	                  // Clean up
-	                  jtaSession.close();
 		          }
 		      }while(!isShutdown);
 		      
