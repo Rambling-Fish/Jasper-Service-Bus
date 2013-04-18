@@ -92,20 +92,31 @@ public class TestDelegate  extends TestCase {
 	
 	/*
 	 * This test simulates the JasperEngineConnector sending a JTA's URI to the
-	 * delegate via an admin message. The delegate's internal JTA map should
-	 * have a size of 1 if successful.
+	 * delegate via a notify admin message. The delegate's internal JTA map should
+	 * have a size of 1 if successful. It also simulates the JTA connection
+	 * being lost and sends a delete admin message to the delegate so the
+	 * URI can be removed from the internal hashmap. Second test is
+	 * successful if jtaUriMap.size() == 0
 	 */
 	@Test
 	public void testPublishURI() throws Exception {
 		setUpConnection();
 
-		JasperAdminMessage goodJam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, "testJTA", DELEGATE_GLOBAL_QUEUE, TEST_URI);
+		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, "testJTA", DELEGATE_GLOBAL_QUEUE, TEST_URI);
         
-		message = session.createObjectMessage(goodJam);
+		message = session.createObjectMessage(jam);
 		producer.send(message);
 		Thread.sleep(1000);
 		
 		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 1);
+		
+		JasperAdminMessage jam2 = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, "testJTA", DELEGATE_GLOBAL_QUEUE, TEST_URI);
+        
+		message = session.createObjectMessage(jam2);
+		producer.send(message);
+		Thread.sleep(1000);
+		
+		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 0);
 		
 		tearDownConnection();
 	}
@@ -150,6 +161,34 @@ public class TestDelegate  extends TestCase {
 		 }
 			
 		tearDownConnection();
+	}
+	
+	/*
+	 * This test sends two request to the delegate with the same correlation Id
+	 * Exception should be thrown indicating non-unique correlation Id
+	 */
+	@Test
+	public void testDuplicateCorrelationId() throws Exception {
+		setUpConnection();
+		
+		// Setup so delegate will forward request back here (JTA)
+		Destination jtaQueue = session.createQueue(TEST_QUEUE);
+		delegateFactory.jtaUriMap.put(TEST_URI, TEST_QUEUE);
+		
+		message = session.createTextMessage(TEST_URI);
+		String corrId = "1234";
+		message.setJMSCorrelationID(corrId);
+		message.setJMSReplyTo(jtaQueue);
+		
+		// Send duplicate messages to delegate
+		try {
+			producer.send(message);
+			Thread.sleep(1000);
+			producer.send(message);
+		} catch(Exception ex) {
+			Assert.assertNotNull(ex);
+		}		
+		
 	}
 	
 	@Test
