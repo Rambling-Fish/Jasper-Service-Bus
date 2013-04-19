@@ -202,8 +202,8 @@ public class Delegate implements Runnable {
 			        		  correlationID = jClientQ.toString();
 				        	  msgIdMap.put(correlationID, txtMsg.getJMSMessageID());
 			        	  }
-			        	  
-		            	  if(reqRespMap.containsKey(correlationID)) throw new Exception("Reusing coorealtionID in req, should be unique");
+		        	  
+		            	  if(reqRespMap.containsKey(correlationID)) throw new Exception("Reusing correlationID in req, should be unique");
 		            	  
 		            	  reqRespMap.put(correlationID, jClientQ);
 		            	  
