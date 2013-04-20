@@ -100,11 +100,11 @@ public class TestDelegate  extends TestCase {
 	public void testPublishURI() throws Exception {
 		setUpConnection();
 
-		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, "testJTA", DELEGATE_GLOBAL_QUEUE, TEST_URI);
+		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE, DELEGATE_GLOBAL_QUEUE, TEST_URI);
         
 		message = session.createObjectMessage(jam);
 		producer.send(message);
-		Thread.sleep(1000);
+		Thread.sleep(1500);
 		
 		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 1);
 		Thread.sleep(1000);
@@ -119,6 +119,7 @@ public class TestDelegate  extends TestCase {
 	@Test
 	public void testRemoveURI() throws Exception {
 		setUpConnection();
+		
 		// manually add uri to internal hashmap
 		delegateFactory = DelegateFactory.getInstance();
 		delegateFactory.jtaUriMap.put("coralcea.com.1.0.testURI", TEST_QUEUE);
