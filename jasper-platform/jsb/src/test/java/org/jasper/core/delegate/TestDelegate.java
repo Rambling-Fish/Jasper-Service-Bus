@@ -110,7 +110,7 @@ public class TestDelegate  extends TestCase {
 		Thread.sleep(1000);
 		
 		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 1);
-		Thread.sleep(1000);
+		Thread.sleep(2000);
 	
 		JasperAdminMessage jam2 = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, "testJTA", DELEGATE_GLOBAL_QUEUE, TEST_URI);
         
