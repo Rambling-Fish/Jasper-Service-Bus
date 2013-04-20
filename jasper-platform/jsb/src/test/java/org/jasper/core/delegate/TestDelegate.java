@@ -94,10 +94,7 @@ public class TestDelegate  extends TestCase {
 	/*
 	 * This test simulates the JasperEngineConnector sending a JTA's URI to the
 	 * delegate via a notify admin message. The delegate's internal JTA map should
-	 * have a size of 1 if successful. It also simulates the JTA connection
-	 * being lost and sends a delete admin message to the delegate so the
-	 * URI can be removed from the internal hashmap. Second test is
-	 * successful if jtaUriMap.size() == 0
+	 * have a size of 1 if successful.
 	 */
 	@Test
 	public void testPublishURI() throws Exception {
@@ -111,12 +108,26 @@ public class TestDelegate  extends TestCase {
 		
 		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 1);
 		Thread.sleep(1000);
+
+		tearDownConnection();
+	}
 	
-		JasperAdminMessage jam2 = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, "testJTA", DELEGATE_GLOBAL_QUEUE, TEST_URI);
+	/*
+	 * This test simulates the JTA sending an admin message to the delegate to
+	 * remove it's URI.  Test is successful if jtaUriMap.size() == 0
+	 */
+	@Test
+	public void testRemoveURI() throws Exception {
+		setUpConnection();
+		// manually add uri to internal hashmap
+		delegateFactory = DelegateFactory.getInstance();
+		delegateFactory.jtaUriMap.put("coralcea.com.1.0.testURI", TEST_QUEUE);
+
+		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, "jms.jta.testJTA", DELEGATE_GLOBAL_QUEUE, TEST_URI);
         
-		message = session.createObjectMessage(jam2);
+		message = session.createObjectMessage(jam);
 		producer.send(message);
-		Thread.sleep(2000);
+		Thread.sleep(1000);
 		
 		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 0);
 		
