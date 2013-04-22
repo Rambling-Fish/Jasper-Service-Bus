@@ -112,7 +112,7 @@ public class Delegate implements Runnable {
 		        	  }
 		              
 	            	  String correlationID = responseMessage.getJMSCorrelationID();
-	            	  if(!reqRespMap.containsKey(correlationID)) throw new Exception("coorealtionID for response not found");
+	            	  if(!reqRespMap.containsKey(correlationID)) throw new Exception("correlationID for response not found");
 	            	  
 	            	  // Create a Session
 	                  Session jClientSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -197,7 +197,7 @@ public class Delegate implements Runnable {
 
 			        	  if(correlationID == null){
 			        		  if(logger.isInfoEnabled()){
-			        			  logger.info("jmsCorrelationID is null, assuming jmsReplyTo queue is unique and therefore using jmsReplyTo queue as coorelation id : " + jClientQ.toString());
+			        			  logger.info("jmsCorrelationID is null, assuming jmsReplyTo queue is unique and therefore using jmsReplyTo queue as correlation id : " + jClientQ.toString());
 			        		  }
 			        		  correlationID = jClientQ.toString();
 				        	  msgIdMap.put(correlationID, txtMsg.getJMSMessageID());
