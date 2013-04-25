@@ -16,8 +16,10 @@ import javax.jms.ObjectMessage;
 import javax.jms.Session;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerService;
 
+import org.jasper.jCore.auth.JasperAuthenticationPlugin;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -97,7 +99,7 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testPublishURI() throws Exception {
-		setUpConnection();
+		setUpConnection(2);
 		
 		DelegateFactory factory = DelegateFactory.getInstance();
 		factory.jtaUriMap.clear();
@@ -117,7 +119,7 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testRemoveURI() throws Exception {
-		setUpConnection();
+		setUpConnection(2);
 		
 		// manually add uri to internal hashmap
 		delegateFactory = DelegateFactory.getInstance();
@@ -147,8 +149,8 @@ public class TestDelegate  extends TestCase {
 	 * responds back to the delegate.
 	 */
 	@Test
-	public void testEndToEndAMessaging() throws Exception {
-		setUpConnection();
+	public void testEndToEndMessaging() throws Exception {
+		setUpConnection(2);
 		
 		// Setup so delegate will forward request back here (JTA)
 		Destination jtaQueue = session.createQueue(TEST_QUEUE);
@@ -213,7 +215,7 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testDuplicateCorrelationId() throws Exception {
-		setUpConnection();
+		setUpConnection(1);
 		
 		// Setup so delegate will forward request back here (JTA)
 		Destination jtaQueue = session.createQueue(TEST_QUEUE);
@@ -224,7 +226,7 @@ public class TestDelegate  extends TestCase {
 		message.setJMSCorrelationID(corrId);
 		message.setJMSReplyTo(jtaQueue);
 		
-		// Send duplicate messages to delegate
+		// Send duplicate messages to delegate with same correlationIDs
 		try {
 			producer.send(message);
 			Thread.sleep(1000);
@@ -242,12 +244,11 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testMissingURI() throws Exception {
-		setUpConnection();
+		setUpConnection(1);
 		
 		// Setup so delegate will forward request back here (JTA)
 		Destination jtaQueue = session.createQueue(TEST_QUEUE);
-		delegateFactory.jtaUriMap.clear();
-		
+
 		message = session.createTextMessage(TEST_URI);
 		String corrId = "1234";
 		message.setJMSCorrelationID(corrId);
@@ -261,15 +262,16 @@ public class TestDelegate  extends TestCase {
 	}
 	
 	@Test
-	public void testJasperBroker()
-    {
+	public void testJasperBrokerPlugin() throws Exception {
         BrokerService service = new BrokerService();
+        service.setPlugins(new BrokerPlugin[]{new JasperAuthenticationPlugin()});
         assertEquals( 1024 * 1024 * 64, service.getSystemUsage().getMemoryUsage().getLimit() );
         assertEquals( 1024L * 1024 * 1024 * 50, service.getSystemUsage().getTempUsage().getLimit() );
         assertEquals( 1024L * 1024 * 1024 * 100, service.getSystemUsage().getStoreUsage().getLimit() );
+
     }
 	
-	private void setUpConnection() throws Exception {
+	private void setUpConnection(int numDelegates) throws Exception {
 		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 		 delegateFactory = DelegateFactory.getInstance();
 		 delegateFactory.jtaUriMap.clear();
@@ -282,7 +284,7 @@ public class TestDelegate  extends TestCase {
 		
 		
 		executorService = Executors.newCachedThreadPool();
-		delegates = new Delegate[2];
+		delegates = new Delegate[numDelegates];
 		
 		for(int i=0;i<delegates.length;i++){
 			delegates[i] = delegateFactory.createDelegate();
