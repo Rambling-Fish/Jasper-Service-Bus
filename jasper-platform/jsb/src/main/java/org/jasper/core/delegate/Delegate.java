@@ -77,9 +77,9 @@ public class Delegate implements Runnable {
 		if(delegateQueue == null)
 			try {
 				this.wait(1000);
-				if(delegateQueue != null) System.out.println("Successfully waited for delegateQueue to be created");
+				if(delegateQueue != null) logger.info("Successfully waited for delegateQueue to be created");
 			} catch (InterruptedException e) {
-				System.out.println("Exception caught while waiting for delegate queue to be initialized.");
+				logger.error("Exception caught while waiting for delegate queue to be initialized");
 				e.printStackTrace();
 			}
 		return delegateQueue;
@@ -107,15 +107,19 @@ public class Delegate implements Runnable {
 		          if(isShutdown) break;
 		          if (jtaResponse instanceof TextMessage) {
 		        	  TextMessage responseMessage = (TextMessage) jtaResponse;	
-		        	  logger.info("TextMessage response recieved = " + responseMessage);
-
+		        	  if(logger.isInfoEnabled()){
+		        		  logger.info("TextMessage response received = " + responseMessage);
+		        	  }
 		              
-	            	  String coorelationID = responseMessage.getJMSCorrelationID();
-	            	  if(!reqRespMap.containsKey(coorelationID)) throw new Exception("coorealtionID for response not found");
+	            	  String correlationID = responseMessage.getJMSCorrelationID();
+	            	  if(!reqRespMap.containsKey(correlationID)) {
+	            		  logger.error("correlationID " + correlationID + " for response not found");
+	            		  continue;
+	            	  }
 	            	  
 	            	  // Create a Session
 	                  Session jClientSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-	            	  Destination jClientQueueDestination = reqRespMap.remove(coorelationID);
+	            	  Destination jClientQueueDestination = reqRespMap.remove(correlationID);
 	  		       
 	                  // Create a MessageProducer from the Session to the Queue
 	                  MessageProducer producer = jClientSession.createProducer(jClientQueueDestination);
@@ -123,8 +127,8 @@ public class Delegate implements Runnable {
 	                  producer.setTimeToLive(30000);
 
 	                  Message message = jClientSession.createTextMessage(responseMessage.getText());
-	                  if(msgIdMap.containsKey(coorelationID)) coorelationID = msgIdMap.remove(coorelationID);
-	                  message.setJMSCorrelationID(coorelationID);
+	                  if(msgIdMap.containsKey(correlationID)) correlationID = msgIdMap.remove(correlationID);
+	                  message.setJMSCorrelationID(correlationID);
 	      			  producer.send(message);
 
 	                  // Clean up
@@ -136,11 +140,34 @@ public class Delegate implements Runnable {
 		      delegateSession.close();
 		     
 		  } catch (Exception e) {
-		      System.out.println("Exception caught while listening for my events: " + e);
-		      e.printStackTrace();
+		      logger.error("Exception caught while listening for response on queue : " + delegateQueue,e);
 		  }
 	}
 	
+	/*
+	 * Whenever an error is detected in incoming request rather than letting
+	 * the client timeout, the core responds with an empty JSON message.
+	 * Currently this occurs if incoming URI cannot be mapped to a JTA or the
+	 * incoming correlationID is not unique
+	 */
+	public void processInvalidRequest(TextMessage msg) throws Exception {
+		// Create a Session
+        Session jClientSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+  	  	Destination jClientQueueDestination = msg.getJMSReplyTo();
+       
+        // Create a MessageProducer from the Session to the Queue
+        MessageProducer producer = jClientSession.createProducer(jClientQueueDestination);
+        producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+        producer.setTimeToLive(30000);
+
+        // For now we always send back empty JSON for all error scenarios
+        Message message = jClientSession.createTextMessage("{}");
+        message.setJMSCorrelationID(msg.getJMSMessageID());
+        producer.send(message);
+
+        // Clean up
+        jClientSession.close();
+	}
 	
 	public void processRequests() {
 		  try {
@@ -161,7 +188,6 @@ public class Delegate implements Runnable {
 		          	jmsRequest = globalDelegateConsumer.receive(1000);
 		          }while(jmsRequest == null && !isShutdown);
 		          if(isShutdown) break;
-	        	  logger.info("request recieved");
 		          if (jmsRequest instanceof ObjectMessage) {
 		        	  ObjectMessage objMessage = (ObjectMessage) jmsRequest;
 		              Object obj = objMessage.getObject();
@@ -181,46 +207,58 @@ public class Delegate implements Runnable {
 		          		}
 		              }
 		          }else if(jmsRequest instanceof TextMessage){
-		        	  
 		        	  TextMessage txtMsg = (TextMessage) jmsRequest;
-		        	  String coorelationID = txtMsg.getJMSCorrelationID();
-	            	  Destination jClientQ = txtMsg.getJMSReplyTo();
-		        	  logger.info("request getJMSCorrelationID = " + txtMsg.getJMSCorrelationID());
-		        	  logger.info("request getJMSReplyTo       = " + txtMsg.getJMSReplyTo());
+
+		        	  String uri = normalizeUri(txtMsg.getText());
+        	  
+		        	  if(!jtaUriMap.containsKey(uri)){
+			        	  logger.error("URI " + uri + " in incoming request not found");
+			        	  processInvalidRequest(txtMsg);
+		        	  }else{
+			        	  String correlationID = txtMsg.getJMSCorrelationID();
+		            	  Destination jClientQ = txtMsg.getJMSReplyTo();
+			        	  if(logger.isInfoEnabled()){
+			        		  logger.info("request getJMSCorrelationID = " + txtMsg.getJMSCorrelationID());
+			        		  logger.info("request getJMSReplyTo       = " + txtMsg.getJMSReplyTo());
+			        	  }
+
+			        	  if(correlationID == null){
+			        		  if(logger.isInfoEnabled()){
+			        			  logger.info("jmsCorrelationID is null, assuming jmsReplyTo queue is unique and therefore using jmsReplyTo queue as correlation id : " + jClientQ.toString());
+			        		  }
+			        		  correlationID = jClientQ.toString();
+				        	  msgIdMap.put(correlationID, txtMsg.getJMSMessageID());
+			        	  }
 		        	  
-		        	  if(coorelationID == null){
-		        		  logger.info("jmsCorrelationID is null, assuming jmsReplyTo queue is unique and therefore using jmsReplyTo queue as coorelation id : " + jClientQ.toString());
-		        		  coorelationID = jClientQ.toString();
-			        	  msgIdMap.put(coorelationID, txtMsg.getJMSMessageID());
+		            	  if(reqRespMap.containsKey(correlationID)) {
+		            		  logger.error("CorrelationID " + correlationID + " in incoming message not unique");
+		            		  processInvalidRequest(txtMsg);
+		            	  }
+		            	  
+		            	  reqRespMap.put(correlationID, jClientQ);
+		            	  
+		            	  String[] req = new String[]{uri};
+		  
+		            	  // Create a Session
+		                  Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		
+		                  // Create the destination for JTA queue
+		                  Destination jtaQueueDestination = jtaSession.createQueue(jtaUriMap.get(req[0]));
+		                  
+		                  // Create a MessageProducer from the Session to the Queue
+		                  MessageProducer producer = jtaSession.createProducer(jtaQueueDestination);
+		                  producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+		                  producer.setTimeToLive(30000);
+		
+		                  Message message = jtaSession.createObjectMessage(req);
+		                  message.setJMSCorrelationID(correlationID);
+		                  message.setJMSReplyTo(getDelegateQueue());
+		
+		      			  producer.send(message);
+		
+		                  // Clean up
+		                  jtaSession.close();
 		        	  }
-		        	  
-	            	  if(reqRespMap.containsKey(coorelationID)) throw new Exception("Reusing coorealtionID in req, should be unique");
-	            	  
-	            	  reqRespMap.put(coorelationID, jClientQ);
-	            	  
-	            	  String[] req = new String[]{txtMsg.getText()};
-		        	  logger.info("JasperSyncRequest uri = " + req[0]);
-	  
-	            	  // Create a Session
-	                  Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-	
-	                  // Create the destination for JTA queue
-	                  logger.info("jtaUriMap.get(req.getUri()) = " + jtaUriMap.get(req[0]));
-	                  Destination jtaQueueDestination = jtaSession.createQueue(jtaUriMap.get(req[0]));
-	                  
-	                  // Create a MessageProducer from the Session to the Queue
-	                  MessageProducer producer = jtaSession.createProducer(jtaQueueDestination);
-	                  producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-	                  producer.setTimeToLive(30000);
-	
-	                  Message message = jtaSession.createObjectMessage(req);
-	                  message.setJMSCorrelationID(coorelationID);
-	                  message.setJMSReplyTo(getDelegateQueue());
-	
-	      			  producer.send(message);
-	
-	                  // Clean up
-	                  jtaSession.close();
 		          }
 		      }while(!isShutdown);
 		      
@@ -228,11 +266,23 @@ public class Delegate implements Runnable {
 		      globalSession.close();
 		     
 		  } catch (Exception e) {
-		      System.out.println("Exception caught while listening for my events: " + e);
-		      e.printStackTrace();
+		      logger.error("Exception caught while listening for request in delegate : " + name,e);
 		  }
 	}
 	
+	/*
+	 * Removes "http://" from beginning of uri,
+	 * replaces all "/" with "." and
+	 * ignores everything after a "?"
+	 */
+	private String normalizeUri(String text) {
+		String tmp = text.toLowerCase();
+		tmp = tmp.startsWith("http://") ? text.substring("http://".length()):text;
+		tmp = tmp.contains("?" ) ? tmp.substring(0, tmp.indexOf("?")):tmp;
+		tmp = tmp.replace("/", ".");
+		return tmp;
+	}
+
 	private synchronized void removeURI(String username) {
 		Iterator<String> it = jtaUriMap.keySet().iterator();
 		while(it.hasNext()) {

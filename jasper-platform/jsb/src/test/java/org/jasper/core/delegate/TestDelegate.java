@@ -3,7 +3,6 @@ package org.jasper.core.delegate;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -17,8 +16,10 @@ import javax.jms.ObjectMessage;
 import javax.jms.Session;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerService;
 
+import org.jasper.jCore.auth.JasperAuthenticationPlugin;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -32,6 +33,7 @@ public class TestDelegate  extends TestCase {
 	private static final String TEST_QUEUE = "jms.jta.testJTA.replyToQueue";
 	private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
 	private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
+	private static final String EMPTY_JTA_RESPONSE = "{}";
 	private Connection connection;
 	private DelegateFactory delegateFactory;
 	private ActiveMQConnectionFactory connectionFactory;
@@ -74,6 +76,7 @@ public class TestDelegate  extends TestCase {
 	@Test
 	public void testURIMap() throws Exception {
 		delegateFactory = DelegateFactory.getInstance();
+		delegateFactory.jtaUriMap.clear();
 		for(int i = 0; i < 5; i++) {
 			delegateFactory.jtaUriMap.put(TEST_URI+i, TEST_QUEUE+i);
 		}
@@ -92,47 +95,75 @@ public class TestDelegate  extends TestCase {
 	
 	/*
 	 * This test simulates the JasperEngineConnector sending a JTA's URI to the
-	 * delegate via an admin message. The delegate's internal JTA map should
-	 * have a size of 1 if successful.
+	 * delegate via a notify admin message.
 	 */
 	@Test
 	public void testPublishURI() throws Exception {
-		setUpConnection();
+		setUpConnection(2);
+		
+		DelegateFactory factory = DelegateFactory.getInstance();
+		factory.jtaUriMap.clear();
 
-		JasperAdminMessage goodJam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, "testJTA", DELEGATE_GLOBAL_QUEUE, TEST_URI);
+		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE, DELEGATE_GLOBAL_QUEUE, TEST_URI);
         
-		message = session.createObjectMessage(goodJam);
+		message = session.createObjectMessage(jam);
+		producer.send(message);
+		Thread.sleep(1000);
+		tearDownConnection();
+
+	}
+	
+	/*
+	 * This test simulates the JTA sending an admin message to the delegate to
+	 * remove it's URI.  
+	 */
+	@Test
+	public void testRemoveURI() throws Exception {
+		setUpConnection(2);
+		
+		// manually add uri to internal hashmap
+		delegateFactory = DelegateFactory.getInstance();
+		delegateFactory.jtaUriMap.put("coralcea.com.1.0.testURI", TEST_QUEUE);
+
+		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, "jms.jta.testJTA", DELEGATE_GLOBAL_QUEUE, TEST_URI);
+        
+		message = session.createObjectMessage(jam);
 		producer.send(message);
 		Thread.sleep(1000);
 		
-		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 1);
-		
 		tearDownConnection();
+		
 	}
+	
+	
+	/*
+	 * TODO The jClient (JSC) doesn't use correlationID in the request message,
+	 * it uses dynamic queues and a messageID, need to change this test to simulate
+	 * that behaviour
+	 */
 	
 	/*
 	 * This test simulates a message sent from jClient to a delegate which is
 	 * then sent to the JTA.  The delegate forwards the request to the JTA 
-	 * using the JMS replyToQueue in the incoming request.
+	 * using the JMS replyToQueue in the incoming request. The JTA then
+	 * responds back to the delegate.
 	 */
 	@Test
-	public void testClientToJTAMessaging() throws Exception {
-		setUpConnection();
+	public void testEndToEndMessaging() throws Exception {
+		setUpConnection(2);
 		
 		// Setup so delegate will forward request back here (JTA)
 		Destination jtaQueue = session.createQueue(TEST_QUEUE);
-		String clientMsg = "This is a test client message";
-		delegateFactory.jtaUriMap.put(TEST_URI, TEST_QUEUE);
+		delegateFactory.jtaUriMap.put("coralcea.com.1.0.testURI", TEST_QUEUE);
 		
 		// Setup consumer to receive message from delegate (i.e. pretend to be a JTA)
 		Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	    MessageConsumer jtaConsumer = jtaSession.createConsumer(jtaQueue);
 	    Message jClientRequest;
+	    Message jtaResponse;
 		
-		String[] syncReq = new String[]{TEST_URI, clientMsg};
-		message = session.createObjectMessage(syncReq);
-		String corrId = UUID.randomUUID().toString();
-		message.setJMSCorrelationID(corrId);
+		message = session.createTextMessage(TEST_URI);
+		message.setJMSCorrelationID(null);
 		message.setJMSReplyTo(jtaQueue);
 		
 		// Send message to delegate
@@ -140,30 +171,107 @@ public class TestDelegate  extends TestCase {
 		
 		Thread.sleep(2000);
 		
+		// simulate jClient timeout
+		int maxCount = 10;
+	
 		do{
           	jClientRequest = jtaConsumer.receive(1000);
-          }while(jClientRequest == null);
-		 if (jClientRequest instanceof ObjectMessage) {
+          	maxCount--;
+          }while(jClientRequest == null && maxCount > 0);
+		 Assert.assertNotNull(jClientRequest);
+		 if (jClientRequest!= null && jClientRequest instanceof ObjectMessage) {
 			 ObjectMessage objMessage = (ObjectMessage) jClientRequest;
 			 Object obj = objMessage.getObject();
              if(obj instanceof String[]) {
             	 Assert.assertNotNull(obj);
              }
 		 }
+		 
+		 // reply back to delegate with empty response from JTA
+		 session  = null;
+		 producer = null;
+		 
+		 Destination delegateUniqueQueue = jClientRequest.getJMSReplyTo();
+		 session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		 producer = session.createProducer(delegateUniqueQueue);
+		 
+		 jtaResponse = session.createTextMessage(EMPTY_JTA_RESPONSE);
+		 jtaResponse.setJMSDestination(jClientRequest.getJMSReplyTo());
+		 jtaResponse.setJMSCorrelationID(jClientRequest.getJMSCorrelationID());
+
+		 producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+		 producer.setTimeToLive(30000);
+		 session.createQueue(delegateUniqueQueue.toString());
+		 producer.send(jtaResponse);
+		 Thread.sleep(1000);
+		 
 			
 		tearDownConnection();
 	}
 	
+	/*
+	 * This test sends two request to the delegate with the same correlation Id
+	 * Exception should be thrown indicating non-unique correlation Id
+	 */
 	@Test
-	public void testJasperBroker()
-    {
+	public void testDuplicateCorrelationId() throws Exception {
+		setUpConnection(1);
+		
+		// Setup so delegate will forward request back here (JTA)
+		Destination jtaQueue = session.createQueue(TEST_QUEUE);
+		delegateFactory.jtaUriMap.put("coralcea.com.1.0.testURI", TEST_QUEUE);
+		
+		message = session.createTextMessage(TEST_URI);
+		String corrId = "1234";
+		message.setJMSCorrelationID(corrId);
+		message.setJMSReplyTo(jtaQueue);
+		
+		// Send duplicate messages to delegate with same correlationIDs
+		try {
+			producer.send(message);
+			Thread.sleep(1000);
+			producer.send(message);
+		} catch(Exception ex) {
+			Assert.assertNotNull(ex);
+		}		
+		
+	}
+	
+	/*
+	 * This test sends a message with an invalid URI from the client to a 
+	 * delegate. The delegate should reject the message since it will not find
+	 * the URI in the internal hash map
+	 */
+	@Test
+	public void testMissingURI() throws Exception {
+		setUpConnection(1);
+		
+		// Setup so delegate will forward request back here (JTA)
+		Destination jtaQueue = session.createQueue(TEST_QUEUE);
+
+		message = session.createTextMessage(TEST_URI);
+		String corrId = "1234";
+		message.setJMSCorrelationID(corrId);
+		message.setJMSReplyTo(jtaQueue);
+		
+		producer.send(message);
+		Thread.sleep(1000);
+		
+		tearDownConnection();
+	
+	}
+	
+	@Test
+	public void testJasperBrokerPlugin() throws Exception {
         BrokerService service = new BrokerService();
+        service.setPlugins(new BrokerPlugin[]{new JasperAuthenticationPlugin()});
         assertEquals( 1024 * 1024 * 64, service.getSystemUsage().getMemoryUsage().getLimit() );
         assertEquals( 1024L * 1024 * 1024 * 50, service.getSystemUsage().getTempUsage().getLimit() );
         assertEquals( 1024L * 1024 * 1024 * 100, service.getSystemUsage().getStoreUsage().getLimit() );
+
     }
 	
-	private void setUpConnection() throws Exception {
+	private void setUpConnection(int numDelegates) throws Exception {
 		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 		 delegateFactory = DelegateFactory.getInstance();
 		 delegateFactory.jtaUriMap.clear();
@@ -176,7 +284,7 @@ public class TestDelegate  extends TestCase {
 		
 		
 		executorService = Executors.newCachedThreadPool();
-		delegates = new Delegate[2];
+		delegates = new Delegate[numDelegates];
 		
 		for(int i=0;i<delegates.length;i++){
 			delegates[i] = delegateFactory.createDelegate();
