@@ -77,9 +77,9 @@ public class Delegate implements Runnable {
 		if(delegateQueue == null)
 			try {
 				this.wait(1000);
-				if(delegateQueue != null) System.out.println("Successfully waited for delegateQueue to be created");
+				if(delegateQueue != null) logger.info("Successfully waited for delegateQueue to be created");
 			} catch (InterruptedException e) {
-				System.out.println("Exception caught while waiting for delegate queue to be initialized.");
+				logger.error("Exception caught while waiting for delegate queue to be initialized");
 				e.printStackTrace();
 			}
 		return delegateQueue;
@@ -112,7 +112,10 @@ public class Delegate implements Runnable {
 		        	  }
 		              
 	            	  String correlationID = responseMessage.getJMSCorrelationID();
-	            	  if(!reqRespMap.containsKey(correlationID)) throw new Exception("correlationID for response not found");
+	            	  if(!reqRespMap.containsKey(correlationID)) {
+	            		  logger.error("correlationID " + correlationID + " for response not found");
+	            		  continue;
+	            	  }
 	            	  
 	            	  // Create a Session
 	                  Session jClientSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -141,6 +144,30 @@ public class Delegate implements Runnable {
 		  }
 	}
 	
+	/*
+	 * Whenever an error is detected in incoming request rather than letting
+	 * the client timeout, the core responds with an empty JSON message.
+	 * Currently this occurs if incoming URI cannot be mapped to a JTA or the
+	 * incoming correlationID is not unique
+	 */
+	public void processInvalidRequest(TextMessage msg) throws Exception {
+		// Create a Session
+        Session jClientSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+  	  	Destination jClientQueueDestination = msg.getJMSReplyTo();
+       
+        // Create a MessageProducer from the Session to the Queue
+        MessageProducer producer = jClientSession.createProducer(jClientQueueDestination);
+        producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+        producer.setTimeToLive(30000);
+
+        // For now we always send back empty JSON for all error scenarios
+        Message message = jClientSession.createTextMessage("{}");
+        message.setJMSCorrelationID(msg.getJMSMessageID());
+        producer.send(message);
+
+        // Clean up
+        jClientSession.close();
+	}
 	
 	public void processRequests() {
 		  try {
@@ -183,10 +210,10 @@ public class Delegate implements Runnable {
 		        	  TextMessage txtMsg = (TextMessage) jmsRequest;
 
 		        	  String uri = normalizeUri(txtMsg.getText());
-		        	  
+        	  
 		        	  if(!jtaUriMap.containsKey(uri)){
-			        	  logger.warn("uri not found ignoring request. uri = " + uri);
-			        	  //TODO We should return an error code, need to agree with JSC what that error code should look like
+			        	  logger.error("URI " + uri + " in incoming request not found");
+			        	  processInvalidRequest(txtMsg);
 		        	  }else{
 			        	  String correlationID = txtMsg.getJMSCorrelationID();
 		            	  Destination jClientQ = txtMsg.getJMSReplyTo();
@@ -203,7 +230,10 @@ public class Delegate implements Runnable {
 				        	  msgIdMap.put(correlationID, txtMsg.getJMSMessageID());
 			        	  }
 		        	  
-		            	  if(reqRespMap.containsKey(correlationID)) throw new Exception("Reusing correlationID in req, should be unique");
+		            	  if(reqRespMap.containsKey(correlationID)) {
+		            		  logger.error("CorrelationID " + correlationID + " in incoming message not unique");
+		            		  processInvalidRequest(txtMsg);
+		            	  }
 		            	  
 		            	  reqRespMap.put(correlationID, jClientQ);
 		            	  
