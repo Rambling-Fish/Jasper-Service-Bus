@@ -3,40 +3,43 @@
  */
 package coralcea.JClient.test;
 
-import coralcea.JClient.*;
-import static org.junit.Assert.*;
-import java.awt.Desktop;
-import java.io.IOException;
+import static org.junit.Assert.assertEquals;
+
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.concurrent.ThreadPoolExecutor;
+
+import org.apache.activemq.broker.BrokerService;
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.JsonNode;
+import org.codehaus.jettison.json.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import coralcea.JClient.JClientProvider;
+import coralcea.JClient.ReplyThread;
+
+import org.codehaus.jettison.json.JSONObject;
+
+
+
 /**
  * @author pierrerahme
  * 
  */
 public class InjectSyncRequest {
-	static  Logger log              = Logger.getLogger(InjectSyncRequest.class.getName());
-	static  final  int threadCount  = 10;
-	private final  static  String QueueName = "JClientQueue";
-	private final  static  String brokerURL = "tcp://localhost:61616";
+	static Logger log = Logger.getLogger(InjectSyncRequest.class.getName());
+	static final int threadCount = 2;
+	private final String QueueName = "JClientQueue";
+	private static BrokerService broker;
+	public static JClientProvider JCP;
 
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		JClientProvider.startBroker(brokerURL);
-		JClientProvider.getInstance();
+		  startBroker();
 	}
 
 	/**
@@ -44,6 +47,7 @@ public class InjectSyncRequest {
 	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
+		broker.stop();
 		JClientProvider.shutdown();
 	}
 
@@ -52,15 +56,33 @@ public class InjectSyncRequest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		for (int i = 0; i <= threadCount; i++) {
+
+		JCP = JClientProvider.getTestInstance();
+
+		/*
+		 * for (int i = 0; i <= threadCount+1; i++) {
 			ReplyThread reply = new ReplyThread(QueueName);
 			reply.start();
 		}
+
 		Thread monitor = new Thread(new MonitorExecutor(
 				(ThreadPoolExecutor) JClientProvider.execute));
 		monitor.setDaemon(true);
 		monitor.start();
-
+*/
+	}
+	private static void startBroker() {
+		broker = new BrokerService();
+		broker.setUseJmx(true);
+		broker.setBrokerName("Broker_for_stubbing_activemq");
+		try {
+			broker.addConnector("tcp://0.0.0.0:61616");
+			broker.start();
+		}
+		catch (Exception e) {
+			System.out.println("in startBroker - exception is: " + e);
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -80,27 +102,21 @@ public class InjectSyncRequest {
 	
 	@Test
 	public final void testRequestCallable() {
-		JClientProvider JCP = JClientProvider.getInstance();
 
-		String whatdoIget;
+			ReplyThread reply;
+			try {
+				reply = new ReplyThread(QueueName);
+				reply.start();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+					
+		String whatdoIget = null;
 		try {
-			whatdoIget = JCP.FetchDataFromJasper("/CoralCEA/HeartRate?patient=Pierre&patient=PierreAgain");
+			whatdoIget = JCP.FetchDataFromJasper("/CoralCEA/HeartRate?patient=Pierre&patient=PierreAgain", QueueName);
 			log.info(whatdoIget);
-		}
-		catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-	//	assertEquals("sent and receive the correct object from the server",
-	//			"HR data", whatdoIget);
-
-		String url = "http://localhost:8161/admin/queues.jsp";
-		URI myUri = URI.create(url);
-		try {
-			Desktop.getDesktop().browse(myUri);
-		}
-		catch (IOException e) {
+		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -114,12 +130,22 @@ public class InjectSyncRequest {
 	
 	@Test
 	public final void testRequestCallables() {
-		JClientProvider JCP = JClientProvider.getInstance();
 
-		for (int i = 1; i <= threadCount; i++) {
+		for (int i = 0; i <= threadCount; i++) {
+			ReplyThread reply;
+			try {
+				reply = new ReplyThread(QueueName);
+				reply.start();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		for (int i = 0; i <= threadCount; i++) {
 			String whatdoIget;
 			try {
-				whatdoIget = JCP.FetchDataFromJasper("/CoralCEA/HeartRate?patient=zimmerman&bed=fancybed");
+				whatdoIget = JCP.FetchDataFromJasper("/CoralCEA/HeartRate?patient=zimmerman&bed=fancybed",QueueName);
 				log.info(whatdoIget);
 			}
 			catch (UnsupportedEncodingException e) {
@@ -131,5 +157,35 @@ public class InjectSyncRequest {
 		}
 
 	}
+	
+	@Test
+	public final void testTimeOutCallables() {
+
+		ReplyThread reply;
+		try {
+			reply = new ReplyThread(QueueName);
+			reply.start();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+			String whatdoIget = null;
+			String expected = "{ }";
+			expected = JSONObject.quote(expected);
+			System.out.println("expected is " + expected);
+
+			try {
+				whatdoIget = JCP.FetchDataFromJasper("/CoralCEA/HeartRate?patient=zimmerman&bed=fancybed","badQueueName");
+				log.info(whatdoIget);
+			}
+			catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+			assertEquals("sent and receive the correct object from the server",
+					whatdoIget, expected);
+		}
+
+	
 
 }
