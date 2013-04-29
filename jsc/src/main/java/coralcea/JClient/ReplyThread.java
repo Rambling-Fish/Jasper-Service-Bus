@@ -1,6 +1,5 @@
 package coralcea.JClient;
 
-import java.io.IOException;
 import javax.jms.JMSException;
 import javax.jms.Queue;
 import javax.jms.QueueConnection;
@@ -54,7 +53,6 @@ public class ReplyThread extends Thread {
 				catch (JMSException ee) {
 				}
 			}
-		//	System.exit(1);
 		}
 
 	}

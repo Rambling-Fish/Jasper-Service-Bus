@@ -28,20 +28,6 @@ import org.apache.activemq.ActiveMQConnectionFactory;
  * <li>getQueueConnectionFactory
  * <li>getQueue
  * <li>jndiLookup
- * <li>exit
- * <li>receiveSynchronizeMessages
- * <li>sendSynchronizeMessages
- * </ul>
- * 
- * Also contains the class DoneLatch, which contains the following methods:
- * <ul>
- * <li>waitTillDone
- * <li>allDone
- * </ul>
- * 
- * @author Kim Haase
- * @author Joseph Fialli
- * @version 1.7, 08/18/00
  */
 public class SampleUtilities {
 	public  static final   boolean     USE_JNDI    = false;
@@ -66,30 +52,10 @@ public class SampleUtilities {
 		if (USE_JNDI) {
 			return (QueueConnectionFactory) jndiLookup("ConnectionFactory");
 		}
-		/*
-		 * else { 
-		 FileInputStream fis = new FileInputStream( "/Users/pierrerahme/Documents/workspace/JClient/src/main/resources/META-INF/JClient.properties");
-		 * 
-		 * // loading properites from properties file props.load(fis);
-		 * 
-		 * // reading property
-		 * System.out.println("getting the transport from the properties file");
-		 * 
-		 String transport = props.getProperty("jclient.transport");
-		 System.out.println("getting the transport from the properties file" + transport); 
-		 String deployToWebContainer = props.getProperty("jclient.tw"); 
-		 if (deployToWebContainer.equalsIgnoreCase("yes")) {
-		   System.out.println("deploying into tomcat for TW"); 
-		   String catalinaHome = System.getProperty("CATALINA_HOME"); //this is for later. //
-		   props.load(new FileInputStream(new File(catalinaHome + "/path/to/appconfig.properties"))); 
-		   return new ActiveMQConnectionFactory(transport); 
-		 }
-		 */
 		String transportURL = PropertiesUtil.getProperty("jclient.transport");
-    System.out.println(transportURL);
-
-		return new ActiveMQConnectionFactory(transportURL);
-		// return new ActiveMQConnectionFactory("tcp://192.168.1.119:61616");
+//		ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("failover://(" + transportURL + ")?maxReconnectDelay=1000");
+		ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory(transportURL);
+		return cf;
 	}
 
 	/**

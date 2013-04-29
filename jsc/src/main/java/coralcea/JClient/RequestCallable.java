@@ -35,7 +35,7 @@ public class RequestCallable implements Callable<TextMessage> {
 	TextMessage reply = null;
 	String replyID = null;
 	String requestUrl;
-
+	Boolean ExceptionHappened = false;
 
 	/**
 	 * Sets up the remoteQueue and creates a queue session to the Jasper engine.
@@ -47,24 +47,20 @@ public class RequestCallable implements Callable<TextMessage> {
 	 * If controlQueue doesn't exist, the method throws an exception.
 	 * 
 	 * @param query
-	 *          the body the JMS message to be sent and consumed by JSB.
+	 *            the body the JMS message to be sent and consumed by JSB.
 	 * @param remoteQueueName
-	 *          name of the remote queue
+	 *            name of the remote queue
 	 */
 
 	public RequestCallable(String remoteQueueName, String query) {
-		
+
 		requestUrl = query;
 		try {
-			// queueConnection =
-			// queueConnectionFactory.createQueueConnection("user","password");
-			// queueConnection =
-			// queueConnectionFactory.createQueueConnection("jasper:jsc:1.0:jasperLab","7D39BD7B74C4C74C7A01D746C3AA88BB62CD69F313AAACFFC8EEF421BAB301F36E01F584E19EF1005073372953F571C7A6C950A039F57BD5FAC40BDE1A1AAE0E87779489BB02978438C467C29524C38A79E2F5324E958FF41B3A4E46548E247EBBF03709298D7876FB33B5776B17415B69F93E076FFFD694E16CB40BAA1AED71FC8FF4ABEEC5940BC1570D64E7D9AA20E1574947266A1A77CBAD7D846DB771C4607012893651BCAE43CB4199F5B3452F97740B29762FAE531EEEF3B28B07238D00C4F3613B01155F977EED9CB1A840987CFB1EC4ED8FE041D92BF7BF74FBFDFD4448AADC74684A59722C1D4C8DA6C7CC1D441803811C31EF17F5B3B4A5658EA9");
 
 			log.info("RequestCallable: Started Initialization");
 			queueConnection = JClientProvider.getQueueConnection();
-			
-		  // create a queue session
+
+			// create a queue session
 			queueSession = queueConnection.createQueueSession(false,
 					Session.AUTO_ACKNOWLEDGE);
 
@@ -72,20 +68,17 @@ public class RequestCallable implements Callable<TextMessage> {
 			// least validated. Should have that either hard coded in advance or
 			// discovered early on. The later need capabilities on the server.
 			queue = SampleUtilities.getQueue(remoteQueueName, queueSession);
-			
+
 			log.info("RequestCallable: Finished Initialization");
 
-		}
-		catch (Exception e) {
-			log.error("Connection problem: " 
-						+ e.toString());
-			
+		} catch (Exception e) {
+			log.error("Connection problem: " + e.toString());
+
 			if (queueConnection != null) {
 				try {
 					queueConnection.close();
-				}
-				catch (JMSException ee) {
-					log.error("JMSException: Connection problem: " 
+				} catch (JMSException ee) {
+					log.error("JMSException: Connection problem: "
 							+ ee.toString());
 				}
 			}
@@ -99,82 +92,74 @@ public class RequestCallable implements Callable<TextMessage> {
 	 * <p>
 	 * If controlQueue doesn't exist, the method throws an exception.
 	 * 
-	 * @param prefix
-	 *          prefix (publisher or subscriber) to be displayed
-	 * @param controlQueueName
-	 *          name of control queue
 	 */
 
 	@Override
 	public TextMessage call() throws Exception {
 
 		try {
-			
-		    // create a queue requester
+
+			// create a queue requester
 			queueRequestor = new QueueRequestor(queueSession, queue);
-			
+
 			// create a text msg on the session
 			// the msg represents the query.
 			message = queueSession.createTextMessage();
-			
+
 			// set the text message inside the JMS message.
 			message.setText(requestUrl);
-			log.info("RequestCallable: Sending message: "
-					+ message.getText());
-			
+			log.info("RequestCallable: Sending message: " + message.getText());
+
 			// block until the broker service the request and sends back a reply
 			reply = (TextMessage) queueRequestor.request(message);
-			
-			// Extract and display the reply message
-			log.info("RequestCallable: Reply received: " 
-					+ reply.getText());
-		
-			replyID = new String(reply.getJMSCorrelationID());
-			
-			// Read the JMSCorrelationID of the reply message 
-			// and confirm that it matches the JMSMessageID of 
-			// the message that was sent. 
-			if (replyID.equals(message.getJMSMessageID())) {
-				log.info("RequestCallable: OK: Reply matches sent message "
-						+ replyID);
-				
-				// reply passes our checks, let us consume it.
-				return reply;
+
+			// queueRequestor.request returns null if it times out, so I have to
+			// check for it.
+			if (reply != null) {
+
+				// Extract and display the reply message
+				log.info("RequestCallable: Reply received: " + reply.getText());
+
+				replyID = new String(reply.getJMSCorrelationID());
+
+				// Read the JMSCorrelationID of the reply message
+				// and confirm that it matches the JMSMessageID of
+				// the message that was sent.
+				if (replyID.equals(message.getJMSMessageID())) {
+					log.info("RequestCallable: OK: Reply matches sent message "
+							+ replyID);
+
+					// reply passes our checks, let us consume it.
+					return reply;
+				} else {
+					log.error("RequestCallable: ERROR: Reply does not match sent message "
+							+ replyID);
+				}
+			} else {
+				log.error("RequestCallable: reply received from Jasper is null");	
 			}
-			else {
-				log.error("RequestCallable: ERROR: Reply does not match sent message "
-						+ replyID);
-			}
-		}
-		catch (JMSException e) {
-			log.error("RequestCallable: Exception occurred: " 
-						+ e.toString());
+		} catch (JMSException e) {
+			log.error("RequestCallable: Exception occurred: " + e.toString());
 			e.printStackTrace();
-		}
-		catch (Exception ee) {
-			log.error("RequestCallable: Unexpected exception: "
-					+ ee.toString());
-			ee.printStackTrace();
-		}
-		finally {
+		} catch (Exception e) {
+			log.error("RequestCallable: Unexpected exception: " + e.toString());
+			e.printStackTrace();
+		} finally {
 			// clean up nicely
+			log.info("RequestCallable: shutting down");
 			shutdown();
 		}
 		return reply;
 	}
 
-
 	public void shutdown() {
-		if (queueConnection != null) {
-			if (queueSession != null) {
 
-				try {
-					queueSession.close();
-					// the queueConnection.close() will be called from the JClientProvider once the later is shutdown()
-				}
-				catch (JMSException e) {
-				}
-			}
+		try {
+			log.info("RequestCallable: shutdown the queueRequestor: ");
+			queueRequestor.close();
+		} catch (JMSException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 	}
 

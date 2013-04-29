@@ -1,5 +1,7 @@
 package coralcea.JClient;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +14,8 @@ public class PropertiesUtil
 {
  
   private static Properties props;
+  private final static String CATALINA_HOME =  System.getProperty("catalina.base");
+  private final static String JCLIENT_PROPERTIES = "JClient.properties";
  
   static
   {
@@ -20,6 +24,16 @@ public class PropertiesUtil
     {
       PropertiesUtil util = new PropertiesUtil();
       props = util.getPropertiesFromClasspath("coralcea/JClient/resources/JClient.properties");
+      String deployToWebContainer = "no";
+      if (props.getProperty("jclient.tw") != null) {
+    	  deployToWebContainer = props.getProperty("jclient.tw");
+      }
+		 if (deployToWebContainer.equalsIgnoreCase("yes")) {
+			 String catalinaPropFileName = (CATALINA_HOME + (String) File.separator + JCLIENT_PROPERTIES );
+			 System.out.println("deploying into tomcat for TW" + catalinaPropFileName); 
+			 props = util.getPropertiesFromCatalina(catalinaPropFileName );
+		     System.out.println("deploying into tomcat for TW" + catalinaPropFileName); 
+		 }
     }
     catch (FileNotFoundException e)
     {
@@ -72,7 +86,7 @@ public class PropertiesUtil
   
   /**
    * loads properties file from catalina.
-   * a place holder in case other properties are located elsewhere when deployed in tomcat.
+   * Properties are located elsewhere when deployed in tomcat.
    *
    * @param propFileName
    * @return
@@ -82,12 +96,11 @@ public class PropertiesUtil
 	private Properties getPropertiesFromCatalina(String propFileName)
                                                                     throws IOException
   {
-    Properties props = new Properties();
+	Properties props = new Properties();
     // Need to fill this with the proper location of the properties file in Tomcat.
     // Ok for now.
-    InputStream inputStream = null;
+    InputStream inputStream = new FileInputStream(propFileName);
         
- 
     if (inputStream == null)
     {
       throw new FileNotFoundException("property file '" + propFileName
