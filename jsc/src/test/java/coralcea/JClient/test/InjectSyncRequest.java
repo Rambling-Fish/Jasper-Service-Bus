@@ -31,7 +31,9 @@ import com.jayway.jsonpath.JsonPath;
 public class InjectSyncRequest {
 	static Logger log = Logger.getLogger(InjectSyncRequest.class.getName());
 	static final int threadCount = 2;
-	private final String QueueName = "JClientQueue";
+	private final String QUEUE_NAME = "JClientQueue";
+	private final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
+
 	private static BrokerService broker;
 	public static JClientProvider JCP;
 
@@ -101,7 +103,7 @@ public class InjectSyncRequest {
 
 		ReplyThread reply;
 		try {
-			reply = new ReplyThread(QueueName);
+			reply = new ReplyThread(QUEUE_NAME);
 			reply.start();
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
@@ -112,7 +114,32 @@ public class InjectSyncRequest {
 		try {
 			whatdoIget = JCP.FetchDataFromJasper(
 					"coralcea.ca.jasper.MedicalSensorData.HeartRate",
-					QueueName);
+					QUEUE_NAME);
+			log.info(whatdoIget);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		assertNotNull(whatdoIget);
+	}
+
+	@Test
+	public final void testRequestCallableDefaultQueue() {
+
+		ReplyThread reply;
+		try {
+			reply = new ReplyThread(DELEGATE_GLOBAL_QUEUE);
+			reply.start();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		String whatdoIget = null;
+		try {
+			whatdoIget = JCP.FetchDataFromJasper(
+					"coralcea.ca.jasper.MedicalSensorData.HeartRate",DELEGATE_GLOBAL_QUEUE);
 			log.info(whatdoIget);
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
@@ -134,7 +161,7 @@ public class InjectSyncRequest {
 		for (int i = 0; i <= threadCount; i++) {
 			ReplyThread reply;
 			try {
-				reply = new ReplyThread(QueueName);
+				reply = new ReplyThread(QUEUE_NAME);
 				reply.start();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -147,7 +174,7 @@ public class InjectSyncRequest {
 			try {
 				whatdoIget = JCP.FetchDataFromJasper(
 						"coralcea.ca.jasper.MedicalSensorData.HeartRate",
-						QueueName);
+						QUEUE_NAME);
 				log.info(whatdoIget);
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block
@@ -165,7 +192,7 @@ public class InjectSyncRequest {
 
 		ReplyThread reply;
 		try {
-			reply = new ReplyThread(QueueName);
+			reply = new ReplyThread(QUEUE_NAME);
 			reply.start();
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
@@ -226,7 +253,7 @@ public class InjectSyncRequest {
 
 		ReplyThread reply;
 		try {
-			reply = new ReplyThread(QueueName);
+			reply = new ReplyThread(QUEUE_NAME);
 			reply.start();
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
@@ -237,7 +264,7 @@ public class InjectSyncRequest {
 		try {
 			whatdoIget = JCP.FetchDataFromJasper(
 					"/CoralCEA/HeartRate?patient=Pierre&patient=PierreAgain",
-					QueueName);
+					QUEUE_NAME);
 			log.info(whatdoIget);
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
