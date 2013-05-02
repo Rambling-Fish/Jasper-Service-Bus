@@ -19,6 +19,7 @@ import org.mule.config.spring.parsers.specific.TransactionDefinitionParser;
 import org.mule.config.spring.parsers.specific.endpoint.TransportEndpointDefinitionParser;
 import org.mule.config.spring.parsers.specific.endpoint.TransportGlobalEndpointDefinitionParser;
 import org.mule.transport.jasperengine.JasperEngineConnector;
+import org.mule.transport.jasperengine.JasperInboundEndpointFactoryBean;
 import org.mule.transport.jasperengine.transformers.JasperEngineMessageToObject;
 import org.mule.transport.jasperengine.transformers.ObjectToJasperEngineMessage;
 import org.mule.transport.jms.JmsClientAcknowledgeTransactionFactory;
@@ -61,7 +62,7 @@ public class JasperEngineNamespaceHandler extends JmsNamespaceHandler
 
     protected void registerJmsTransportEndpoints(){
         registerJmsEndpointDefinitionParser("endpoint", new TransportGlobalEndpointDefinitionParser(JasperEngineConnector.JASPERENGINE, TransportGlobalEndpointDefinitionParser.PROTOCOL, TransportGlobalEndpointDefinitionParser.RESTRICTED_ENDPOINT_ATTRIBUTES, JMS_ATTRIBUTES, new String[][]{}));
-        registerJmsEndpointDefinitionParser("inbound-endpoint", new TransportEndpointDefinitionParser(JasperEngineConnector.JASPERENGINE, TransportEndpointDefinitionParser.PROTOCOL, InboundEndpointFactoryBean.class, TransportEndpointDefinitionParser.RESTRICTED_ENDPOINT_ATTRIBUTES, JMS_ATTRIBUTES, new String[][]{}));
+        registerJmsEndpointDefinitionParser("inbound-endpoint", new TransportEndpointDefinitionParser(JasperEngineConnector.JASPERENGINE, TransportEndpointDefinitionParser.PROTOCOL, JasperInboundEndpointFactoryBean.class, TransportEndpointDefinitionParser.RESTRICTED_ENDPOINT_ATTRIBUTES, JMS_ATTRIBUTES, new String[][]{}));
         registerJmsEndpointDefinitionParser("outbound-endpoint", new TransportEndpointDefinitionParser(JasperEngineConnector.JASPERENGINE, TransportEndpointDefinitionParser.PROTOCOL, OutboundEndpointFactoryBean.class, TransportEndpointDefinitionParser.RESTRICTED_ENDPOINT_ATTRIBUTES, JMS_ATTRIBUTES, new String[][]{}));
     }
 }

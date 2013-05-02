@@ -1,5 +1,6 @@
 package org.jasper.core.delegate;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,12 +19,14 @@ public class DelegateFactory{
 	private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
 	private static DelegateFactory factory;
 	private AtomicInteger count;
-	protected Map<String, String> jtaUriMap;
+	protected Map<String, List<String>> jtaUriMap;
+	protected Map<String, List<String>> jtaQueueMap;
 	private Connection connection;
 	
 	private DelegateFactory() throws JMSException{
 		count = new AtomicInteger();
-		jtaUriMap = new ConcurrentHashMap<String, String>();
+		jtaUriMap   = new ConcurrentHashMap<String, List<String>>();
+		jtaQueueMap = new ConcurrentHashMap<String, List<String>>();
 		
 		
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
@@ -44,6 +47,6 @@ public class DelegateFactory{
 	}
 	
 	public Delegate createDelegate(String name){
-		return new Delegate(name + "." + count.getAndIncrement(),connection, jtaUriMap);
+		return new Delegate(name + "." + count.getAndIncrement(),connection, jtaUriMap, jtaQueueMap);
 	}	
 }

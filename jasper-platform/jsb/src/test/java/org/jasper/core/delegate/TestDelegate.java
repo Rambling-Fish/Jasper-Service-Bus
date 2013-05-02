@@ -3,6 +3,8 @@ package org.jasper.core.delegate;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -14,6 +16,7 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerPlugin;
@@ -78,7 +81,9 @@ public class TestDelegate  extends TestCase {
 		delegateFactory = DelegateFactory.getInstance();
 		delegateFactory.jtaUriMap.clear();
 		for(int i = 0; i < 5; i++) {
-			delegateFactory.jtaUriMap.put(TEST_URI+i, TEST_QUEUE+i);
+			List<String> l = new ArrayList<String>();
+			l.add(TEST_QUEUE+i);
+			delegateFactory.jtaUriMap.put(TEST_URI+i, l);
 		}
 		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 5);
 		
@@ -87,7 +92,7 @@ public class TestDelegate  extends TestCase {
 		
 		// test NPE exception with null map key
 		try {
-			delegateFactory.jtaUriMap.put(null, TEST_QUEUE);
+			delegateFactory.jtaUriMap.put(null, null);
 		} catch(Exception ex) {
 			Assert.assertNotNull(ex);
 		}
@@ -123,7 +128,9 @@ public class TestDelegate  extends TestCase {
 		
 		// manually add uri to internal hashmap
 		delegateFactory = DelegateFactory.getInstance();
-		delegateFactory.jtaUriMap.put("coralcea.com.1.0.testURI", TEST_QUEUE);
+		List<String> l = new ArrayList<String>();
+		l.add(TEST_QUEUE);
+		delegateFactory.jtaUriMap.put(TEST_URI, l);
 
 		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, "jms.jta.testJTA", DELEGATE_GLOBAL_QUEUE, TEST_URI);
         
@@ -154,7 +161,9 @@ public class TestDelegate  extends TestCase {
 		
 		// Setup so delegate will forward request back here (JTA)
 		Destination jtaQueue = session.createQueue(TEST_QUEUE);
-		delegateFactory.jtaUriMap.put("coralcea.com.1.0.testURI", TEST_QUEUE);
+		List<String> l = new ArrayList<String>();
+		l.add(TEST_QUEUE);
+		delegateFactory.jtaUriMap.put(TEST_URI, l);
 		
 		// Setup consumer to receive message from delegate (i.e. pretend to be a JTA)
 		Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -178,33 +187,31 @@ public class TestDelegate  extends TestCase {
           	jClientRequest = jtaConsumer.receive(1000);
           	maxCount--;
           }while(jClientRequest == null && maxCount > 0);
-		 Assert.assertNotNull(jClientRequest);
-		 if (jClientRequest!= null && jClientRequest instanceof ObjectMessage) {
-			 ObjectMessage objMessage = (ObjectMessage) jClientRequest;
-			 Object obj = objMessage.getObject();
-             if(obj instanceof String[]) {
-            	 Assert.assertNotNull(obj);
-             }
-		 }
-		 
-		 // reply back to delegate with empty response from JTA
-		 session  = null;
-		 producer = null;
-		 
-		 Destination delegateUniqueQueue = jClientRequest.getJMSReplyTo();
-		 session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		 producer = session.createProducer(delegateUniqueQueue);
-		 
-		 jtaResponse = session.createTextMessage(EMPTY_JTA_RESPONSE);
-		 jtaResponse.setJMSDestination(jClientRequest.getJMSReplyTo());
-		 jtaResponse.setJMSCorrelationID(jClientRequest.getJMSCorrelationID());
 
-		 producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-		 producer.setTimeToLive(30000);
-		 session.createQueue(delegateUniqueQueue.toString());
-		 producer.send(jtaResponse);
-		 Thread.sleep(1000);
+		 if (jClientRequest!= null && jClientRequest instanceof TextMessage) {
+			 TextMessage txtMsg = (TextMessage) jClientRequest;
+			 Assert.assertNotNull(txtMsg.getText());
+		 }
+
+		 // reply back to delegate with empty response from JTA if valid reply
+		 if(jClientRequest != null && jClientRequest instanceof ObjectMessage) {
+			 session  = null;
+			 producer = null;
 		 
+			 Destination delegateUniqueQueue = jClientRequest.getJMSReplyTo();
+			 session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+			 producer = session.createProducer(delegateUniqueQueue);
+		 
+			 jtaResponse = session.createTextMessage(EMPTY_JTA_RESPONSE);
+			 jtaResponse.setJMSDestination(jClientRequest.getJMSReplyTo());
+			 jtaResponse.setJMSCorrelationID(jClientRequest.getJMSCorrelationID());
+
+			 producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+			 producer.setTimeToLive(30000);
+			 session.createQueue(delegateUniqueQueue.toString());
+			 producer.send(jtaResponse);
+			 Thread.sleep(1000);
+		 } 
 			
 		tearDownConnection();
 	}
@@ -219,7 +226,9 @@ public class TestDelegate  extends TestCase {
 		
 		// Setup so delegate will forward request back here (JTA)
 		Destination jtaQueue = session.createQueue(TEST_QUEUE);
-		delegateFactory.jtaUriMap.put("coralcea.com.1.0.testURI", TEST_QUEUE);
+		List<String> l = new ArrayList<String>();
+		l.add(TEST_QUEUE);
+		delegateFactory.jtaUriMap.put("coralcea.com.1.0.testURI", l);
 		
 		message = session.createTextMessage(TEST_URI);
 		String corrId = "1234";

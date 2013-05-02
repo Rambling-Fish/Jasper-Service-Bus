@@ -62,13 +62,6 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
-                 <xsd:attribute name="deploymentId" type="xsd:string">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                        The deployment ID of the JTA.
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:attribute>
                  <xsd:attribute name="jasperEngineURL" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation>
@@ -76,14 +69,7 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
-                <xsd:attribute name="uri" type="xsd:string">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                        The URI of the data being provided.
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:attribute>
-                <xsd:attribute name="globalQueue" type="xsd:string">
+                <xsd:attribute name="globalQueue" type="xsd:string" default="jms.jasper.delegate.global.queue">
                     <xsd:annotation>
                         <xsd:documentation>
                         The global queue of the jasper delegates.
@@ -97,7 +83,15 @@
     <xsd:element name="inbound-endpoint" type="inboundEndpointType" substitutionGroup="mule:abstract-inbound-endpoint"/>
     <xsd:complexType name="inboundEndpointType">
         <xsd:complexContent>
-            <xsd:extension base="jms:inboundEndpointType"/>
+            <xsd:extension base="jms:inboundEndpointType">
+                 <xsd:attribute name="uri" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                        The URI of the data being provided.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 

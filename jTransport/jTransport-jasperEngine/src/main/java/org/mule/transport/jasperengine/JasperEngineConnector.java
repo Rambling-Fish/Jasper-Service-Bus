@@ -1,6 +1,9 @@
 package org.mule.transport.jasperengine;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -28,15 +31,16 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 	private String deploymentId;
 	private String uri;
 	private String globalQueue;
-	private static final String JTA_QUEUE_SUFFIX = "queue";
 	private JTALicense license;
 	private String jasperEngineURL;
+	private Map<String,String> endpointUriMap;
 	
     /* This constant defines the main transport protocol identifier */
     public static final String JASPERENGINE = "jasperengine";
   
     public JasperEngineConnector(MuleContext context){
         super(context);
+        endpointUriMap = new ConcurrentHashMap<String, String>();
     }
 
     //TODO possibly remove
@@ -47,6 +51,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     public void doInitialise(){
     	try {
 			license = JAuthHelper.loadJTALicenseFromFile(muleContext.getRegistry().get(MuleProperties.APP_HOME_DIRECTORY_PROPERTY) + "/" + appName + JAuthHelper.JTA_LICENSE_FILE_SUFFIX);
+			deploymentId = license.getDeploymentId();
 			if(!validJTALicense()){
 				throw new DefaultMuleException("Invalid JTA license key");
 			}else{				
@@ -66,10 +71,8 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     	try {
     		super.connect();
     		
-    		String uri = getUri();
-    		
-    		if((uri != null) && (! uri.startsWith("$"))) {
-    			publishURI(uri);
+    		if(endpointUriMap.size() > 0) {
+    			publishURI();
     		}
     	}
     	catch (Exception e) {
@@ -84,7 +87,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
      * global queue that contains URI value and the JTAs replyToQueue that
      * the core will use to send requests for data to the JTA based on URI
      */
-    private void publishURI(String uri) {
+    private void publishURI() {
     	try {
     		String dest = getGlobalQueue();
     		
@@ -100,15 +103,19 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     		// Create a MessageProducer from the Session to the Topic or Queue
     		MessageProducer producer = session.createProducer(destination);
     		producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-		
-    		String src = "jms." + vendor + "." + appName + "." + version + "." + deploymentId + "." + uri + "." + JTA_QUEUE_SUFFIX;
-		
-    		// JasperAdmin message is created with the JTA's replyToQueue as the src, the delegate's
-    		// globalQueue as the dest and the uri as the message details
-    		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, src, dest,  uri);
-		
-    		Message message = session.createObjectMessage(jam);
-    		producer.send(message);
+	
+    		// JasperAdmin message is created for every inbound endpoint with a
+    		// URI defined. The JTA's URI and replyToQueue are registered with
+    		// the core
+    		Iterator<String> it = endpointUriMap.keySet().iterator();
+    		while(it.hasNext()) {
+    			String uri = (String)it.next();
+    			String queue = endpointUriMap.get(uri);
+    			String jtaName = (vendor + ":" + appName + ":" + version + ":" + deploymentId);
+    			JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, queue, jtaName,  uri);
+    			Message message = session.createObjectMessage(jam);
+    			producer.send(message);
+    		}
 
     		// Clean up - no need to close connection as that will be done in JasperBroker
     		session.close();
@@ -117,6 +124,10 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     		e.printStackTrace();
     	}
     	
+    }
+    
+    public void registerInboundEndpointUri(String endpoint, String uri){
+    	endpointUriMap.put(uri, endpoint);
     }
     
     private boolean validJTALicense() {
@@ -165,15 +176,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 	public void setJasperEngineURL(String jasperEngineURL) {
 		this.jasperEngineURL = jasperEngineURL;
 	}
-	
-	public String getUri() {
-		return uri;
-	}
-	
-	public void setUri(String uri) {
-		this.uri = uri;
-	}
-	
+
 	public String getGlobalQueue() {
 		return globalQueue;
 	}
