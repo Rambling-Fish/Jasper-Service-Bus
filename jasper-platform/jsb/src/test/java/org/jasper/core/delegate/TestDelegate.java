@@ -34,6 +34,7 @@ public class TestDelegate  extends TestCase {
 	private static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
 	private static final String TEST_URI = "http://coralcea.com/1.0/testURI";
 	private static final String TEST_QUEUE = "jms.jta.testJTA.replyToQueue";
+	private static final String TEST_JTA_NAME = "TestJTA";
 	private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
 	private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
 	private static final String EMPTY_JTA_RESPONSE = "{}";
@@ -74,21 +75,26 @@ public class TestDelegate  extends TestCase {
 		
 	/*
 	 * This test simulates adding/removing URIs to the delegate's internal JTA
-	 * hash map. It also tries to put a null key which should result in NPE
+	 * hash maps (URI and JTA Name). It also tries to put a null key which
+	 * should result in NPE
 	 */
 	@Test
-	public void testURIMap() throws Exception {
+	public void testDelegateMaps() throws Exception {
 		delegateFactory = DelegateFactory.getInstance();
 		delegateFactory.jtaUriMap.clear();
 		for(int i = 0; i < 5; i++) {
 			List<String> l = new ArrayList<String>();
 			l.add(TEST_QUEUE+i);
 			delegateFactory.jtaUriMap.put(TEST_URI+i, l);
+			delegateFactory.jtaQueueMap.put(TEST_JTA_NAME+i, l);
 		}
 		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 5);
+		Assert.assertEquals(delegateFactory.jtaQueueMap.size(), 5);
 		
 		delegateFactory.jtaUriMap.remove(TEST_URI+3);
+		delegateFactory.jtaQueueMap.remove(TEST_JTA_NAME+0);
 		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 4);
+		Assert.assertEquals(delegateFactory.jtaQueueMap.size(), 4);
 		
 		// test NPE exception with null map key
 		try {
@@ -96,6 +102,31 @@ public class TestDelegate  extends TestCase {
 		} catch(Exception ex) {
 			Assert.assertNotNull(ex);
 		}
+	}
+	
+	/*
+	 * This test simulates adding multiple queues for the same JTA and URI
+	 */
+	@Test
+	public void testJTAMap() throws Exception {
+		setUpConnection(2);
+		DelegateFactory factory = DelegateFactory.getInstance();
+		factory.jtaQueueMap.clear();
+		factory.jtaUriMap.clear();
+
+		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE+"1", TEST_JTA_NAME, TEST_URI);
+		JasperAdminMessage jam2 = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE+"2", TEST_JTA_NAME, TEST_URI);
+        
+		message = session.createObjectMessage(jam);
+		producer.send(message);
+		Thread.sleep(1000);
+		
+		message = session.createObjectMessage(jam2);
+		producer.send(message);
+		Thread.sleep(1000);
+		
+		Assert.assertEquals(delegateFactory.jtaQueueMap.size(), 1);
+		
 	}
 	
 	/*
@@ -117,31 +148,6 @@ public class TestDelegate  extends TestCase {
 		tearDownConnection();
 
 	}
-	
-	/*
-	 * This test simulates the JTA sending an admin message to the delegate to
-	 * remove it's URI.  
-	 */
-	@Test
-	public void testRemoveURI() throws Exception {
-		setUpConnection(2);
-		
-		// manually add uri to internal hashmap
-		delegateFactory = DelegateFactory.getInstance();
-		List<String> l = new ArrayList<String>();
-		l.add(TEST_QUEUE);
-		delegateFactory.jtaUriMap.put(TEST_URI, l);
-
-		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, "jms.jta.testJTA", DELEGATE_GLOBAL_QUEUE, TEST_URI);
-        
-		message = session.createObjectMessage(jam);
-		producer.send(message);
-		Thread.sleep(1000);
-		
-		tearDownConnection();
-		
-	}
-	
 	
 	/*
 	 * TODO The jClient (JSC) doesn't use correlationID in the request message,
@@ -228,7 +234,7 @@ public class TestDelegate  extends TestCase {
 		Destination jtaQueue = session.createQueue(TEST_QUEUE);
 		List<String> l = new ArrayList<String>();
 		l.add(TEST_QUEUE);
-		delegateFactory.jtaUriMap.put("coralcea.com.1.0.testURI", l);
+		delegateFactory.jtaUriMap.put(TEST_URI, l);
 		
 		message = session.createTextMessage(TEST_URI);
 		String corrId = "1234";
@@ -279,6 +285,31 @@ public class TestDelegate  extends TestCase {
         assertEquals( 1024L * 1024 * 1024 * 100, service.getSystemUsage().getStoreUsage().getLimit() );
 
     }
+	
+	/*
+	 * This test simulates the Broker sending an admin message to the delegate
+	 * once a connection to JTA islost. This should remove the JTA's URI.  
+	 */
+	@Test
+	public void testRemoveURI() throws Exception {
+		setUpConnection(2);
+		
+		// manually add uri to internal hashmap
+		delegateFactory = DelegateFactory.getInstance();
+		List<String> l = new ArrayList<String>();
+		l.add(TEST_QUEUE);
+		delegateFactory.jtaUriMap.put(TEST_URI, l);
+		delegateFactory.jtaQueueMap.put(TEST_JTA_NAME, l);
+
+		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, TEST_JTA_NAME, DELEGATE_GLOBAL_QUEUE, TEST_URI);
+        
+		message = session.createObjectMessage(jam);
+		producer.send(message);
+		Thread.sleep(1000);
+		
+		tearDownConnection();
+		
+	}	
 	
 	private void setUpConnection(int numDelegates) throws Exception {
 		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
