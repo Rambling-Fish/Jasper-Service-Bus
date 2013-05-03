@@ -165,10 +165,6 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 		return deploymentId;
 	}
 
-	public void setDeploymentId(String deploymentId) {
-		this.deploymentId = deploymentId;
-	}
-
 	public String getJasperEngineURL() {
 		return jasperEngineURL;
 	}

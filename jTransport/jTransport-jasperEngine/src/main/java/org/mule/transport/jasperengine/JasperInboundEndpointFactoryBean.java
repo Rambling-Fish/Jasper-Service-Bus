@@ -22,11 +22,9 @@ public class JasperInboundEndpointFactoryBean extends InboundEndpointFactoryBean
                 AbstractEndpoint.class.cast(inboundEndpoint).setAnnotations(getAnnotations());
             }
             
-            String prop = (String) inboundEndpoint.getProperty("uri");
-            if(prop !=null){
-            	if(connector instanceof JasperEngineConnector){
-            		((JasperEngineConnector)connector).registerInboundEndpointUri(inboundEndpoint.getEndpointURI().getAddress(), (String) inboundEndpoint.getProperty("uri"));
-            	}
+            Object prop = inboundEndpoint.getProperty("uri");
+            if(prop !=null && prop instanceof String && connector instanceof JasperEngineConnector) {
+            	((JasperEngineConnector)connector).registerInboundEndpointUri(inboundEndpoint.getEndpointURI().getAddress(), (String) inboundEndpoint.getProperty("uri"));
             }
             
             return inboundEndpoint;

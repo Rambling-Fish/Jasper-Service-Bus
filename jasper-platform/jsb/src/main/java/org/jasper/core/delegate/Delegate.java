@@ -166,7 +166,6 @@ public class Delegate implements Runnable {
         // For now we always send back empty JSON for all error scenarios
         Message message = jClientSession.createTextMessage("{}");
         message.setJMSCorrelationID(msg.getJMSMessageID());
-        message.setJMSReplyTo(getDelegateQueue());
         producer.send(message);
 
         // Clean up
