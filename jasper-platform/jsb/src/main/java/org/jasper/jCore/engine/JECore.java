@@ -41,6 +41,8 @@ public class JECore {
 	private BrokerService broker;
 	private JSBLicense license;
 	private PublicKey publicKey;
+	private static int numDelegates;
+	private static int defaultNumDelegates = 5;
 	
 	private ScheduledExecutorService exec;
 	
@@ -387,6 +389,12 @@ public class JECore {
     			if(prop.getProperty("memoryLimit") != null) core.broker.getSystemUsage().getMemoryUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("memoryLimit")));
     			if(prop.getProperty("storeLimit") != null) core.broker.getSystemUsage().getStoreUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("storeLimit")));
     			if(prop.getProperty("tempLimit") != null) core.broker.getSystemUsage().getTempUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("tempLimit")));
+    			try {
+    				numDelegates = Integer.parseInt(prop.getProperty("numDelegates"));
+    			} catch (NumberFormatException ex) {
+    				numDelegates = defaultNumDelegates;
+    				logger.warn("Error in properties file. numDelegates = " + prop.getProperty("numDelegates") + ". Using default value of " + defaultNumDelegates);
+    			}
     			
     			core.broker.setPlugins(new BrokerPlugin[]{new JasperAuthenticationPlugin()});
 
@@ -403,7 +411,7 @@ public class JECore {
     			ExecutorService executorService = Executors.newCachedThreadPool();
     			DelegateFactory factory = DelegateFactory.getInstance();
     			
-    			Delegate[] delegates = new Delegate[5];
+    			Delegate[] delegates = new Delegate[numDelegates];
     			
     			for(int i=0;i<delegates.length;i++){
     				delegates[i]=factory.createDelegate();
