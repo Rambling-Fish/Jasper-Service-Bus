@@ -69,13 +69,6 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
-                <xsd:attribute name="globalQueue" type="xsd:string" default="jms.jasper.delegate.global.queue">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                        The global queue of the jasper delegates.
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:attribute>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>

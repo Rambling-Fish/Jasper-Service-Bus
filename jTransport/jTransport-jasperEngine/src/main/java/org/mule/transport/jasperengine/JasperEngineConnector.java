@@ -29,14 +29,13 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 	private String appName;
 	private String version;
 	private String deploymentId;
-	private String uri;
-	private String globalQueue;
 	private JTALicense license;
 	private String jasperEngineURL;
 	private Map<String,String> endpointUriMap;
 	
     /* This constant defines the main transport protocol identifier */
     public static final String JASPERENGINE = "jasperengine";
+    private static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
   
     public JasperEngineConnector(MuleContext context){
         super(context);
@@ -89,7 +88,6 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
      */
     private void publishURI() {
     	try {
-    		String dest = getGlobalQueue();
     		
     		// Get the already established connection
     		Connection connection = getConnection();
@@ -98,7 +96,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
     		// Create the destination (delegate global queue)
-    		Destination destination = session.createQueue(dest);
+    		Destination destination = session.createQueue(DELEGATE_GLOBAL_QUEUE);
         
     		// Create a MessageProducer from the Session to the Topic or Queue
     		MessageProducer producer = session.createProducer(destination);
@@ -171,14 +169,6 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 
 	public void setJasperEngineURL(String jasperEngineURL) {
 		this.jasperEngineURL = jasperEngineURL;
-	}
-
-	public String getGlobalQueue() {
-		return globalQueue;
-	}
-	
-	public void setGlobalQueue(String queue) {
-		this.globalQueue = queue;
 	}
 	
 }
