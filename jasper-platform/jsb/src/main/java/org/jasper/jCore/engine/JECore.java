@@ -408,15 +408,13 @@ public class JECore {
     			for(int i=0;i<delegates.length;i++){
     				delegates[i]=factory.createDelegate();
     				executorService.execute(delegates[i]);
-
     			} 
-    			
+    			core.setupAudit();
 			}else{
     			logger.error("license key expired, jsb not starting"); 
     		}		
     	}else{
 			logger.error("invalid license key, jsb not starting"); 
     	}
-		core.setupAudit();
 	}
 }
