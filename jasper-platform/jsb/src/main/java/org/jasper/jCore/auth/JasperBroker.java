@@ -436,6 +436,9 @@ public class JasperBroker extends BrokerFilter {
         		if(logger.isInfoEnabled()){
         			logger.info("JTA authenticated : " + info.getUserName());
         		}
+        	}else if(core.willLicenseKeyExpireInDays(core.getJTALicense(JAuthHelper.hexToBytes(info.getPassword())), 0)){
+        		logger.error("Valid JTA license key, however it has expired : " + info.getUserName());
+    	    	throw (SecurityException)new SecurityException("Invalid JTA license key : " + info.getUserName());
         	}else{
         		logger.error("Invalid JTA license key : " + info.getUserName());
     	    	throw (SecurityException)new SecurityException("Invalid JTA license key : " + info.getUserName());

@@ -225,8 +225,7 @@ public class JECore {
 			}
 			currentTime.add(Calendar.DAY_OF_YEAR, days);
 			return currentTime.after(license.getExpiry());
-		}
-				
+		}		
 	}
 
 	private void shutdown(){
@@ -266,7 +265,8 @@ public class JECore {
 		JTALicense lic = getJTALicense(JAuthHelper.hexToBytes(password));
 		
 		return (lic !=null) && (userName.equals( lic.getVendor() + ":" + lic.getAppName() + ":" +
-				                lic.getVersion() + ":" + lic.getDeploymentId()));
+				                lic.getVersion() + ":" + lic.getDeploymentId())) 
+				            && !willLicenseKeyExpireInDays(lic, 0);
 	}
 	
 	private JSBLicense getJSBLicense(byte[] bytes) {
