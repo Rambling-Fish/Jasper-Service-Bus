@@ -100,7 +100,7 @@ function force_stop_m {
 
 function start_j {
    if ! [ -x jsb-core/bin/jsb ]; then
-      echo "*** Warning: JSB has not been setup. Run ./setup jsb first"
+      display_warning
       exit 0
    fi
    get_j_pid
@@ -120,7 +120,7 @@ function start_j {
 
 function start_m {
    if ! [ -d jsb-core/mule-standalone-3.3.0 ]; then
-      echo "*** Warning: JTA has not been setup. Run ./setup jta first"
+      display_warning
       exit 0
   fi
    get_m_pid
@@ -185,6 +185,26 @@ function status {
     status_j
     status_m
     exit 1
+}
+
+function display_warning {
+      echo ""
+      echo "***********************************************"
+      echo "***     Warning: Setup is incomplete        ***"
+      echo "***     To run JSB server only:             ***"
+      echo "***     './setup.sh jsb'                    ***"
+      echo "***     'jasper.sh start jsb'               ***"
+      echo "***                                         ***"
+      echo "***     To run JTA server only:             ***"
+      echo "***     './setup.sh jta'                    ***"
+      echo "***     'jasper.sh start jta'               ***"
+      echo "***                                         ***"
+      echo "***     To run both:                        ***"
+      echo "***     './setup.sh all'                    ***"
+      echo "***     'jasper.sh start'                   ***"
+      echo "***********************************************"
+      echo ""
+      exit 0
 }
 
 case "$1" in
