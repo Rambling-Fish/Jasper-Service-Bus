@@ -313,25 +313,27 @@ public class Delegate implements Runnable {
 		
 		queueList = jtaQueueMap.get(username);
 		
-		while(uriIT.hasNext()) {
-			String key= (String)uriIT.next(); 
-			List<String> values = jtaUriMap.get(key);
-			for(int i = 0; i < queueList.size(); i++) {
-				String tmp = queueList.get(i);
-				if(values.contains(tmp)) {
-					values.remove(tmp);
+		if(queueList != null) {
+			while(uriIT.hasNext()) {
+				String key= (String)uriIT.next(); 
+				List<String> values = jtaUriMap.get(key);
+				for(int i = 0; i < queueList.size(); i++) {
+					String tmp = queueList.get(i);
+					if(values.contains(tmp)) {
+						values.remove(tmp);
+					}
 				}
-			}
 			
-			if(values.isEmpty()) {
-				jtaUriMap.remove(key);
-				if(logger.isInfoEnabled()){
-					logger.info("Removed URI " + key + " for JTA " + username);
+				if(values.isEmpty()) {
+					jtaUriMap.remove(key);
+					if(logger.isInfoEnabled()){
+						logger.info("Removed URI " + key + " for JTA " + username);
+					}
 				}
 			}
-		}
 		
-		jtaQueueMap.remove(username);
+			jtaQueueMap.remove(username);
+		}
 	}
 	
 	
