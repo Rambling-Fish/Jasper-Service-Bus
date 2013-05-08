@@ -174,6 +174,8 @@ public class JasperLicenseKeyGenerator {
 			        lic.setLicenseKey(rsaEncrypt(lic.toString().getBytes(), privateKey));
 			        saveJTALicenseToFile(LICENSE_FILE_PATH, lic);
 			        System.out.println("File created : " + LICENSE_FILE_PATH + lic.getAppName() + JAuthHelper.JTA_LICENSE_FILE_SUFFIX);
+			        System.out.println("userName = " + lic.getVendor() + ":" + lic.getAppName() + ":" + lic.getVersion() + ":" + lic.getDeploymentId());
+			        System.out.println("password = " + JAuthHelper.bytesToHex(lic.getLicenseKey()));
 		        }else if (input.startsWith("jsbv")){
 		        	System.out.print("Enter the deploymentID and instance for JSB lisence file validation i.e. jasperLab:0 = ");
 			        input = in.readLine();
