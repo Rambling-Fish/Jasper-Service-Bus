@@ -135,6 +135,7 @@ public class Delegate implements Runnable {
 	      			  producer.send(message);
 
 	                  // Clean up
+	      			  producer.close();
 	                  jClientSession.close();
 		          }
 		      }while(!isShutdown);
@@ -169,6 +170,7 @@ public class Delegate implements Runnable {
         producer.send(message);
 
         // Clean up
+        producer.close();
         jClientSession.close();
 	}
 	
