@@ -258,7 +258,8 @@ public class Delegate implements Runnable {
 		      			  producer.send(message);
 		
 		                  // Clean up
-		                  jtaSession.close();
+		      			  producer.close();
+		      			  jtaSession.close();
 		        	  }
 		          }
 		      }while(!isShutdown);
