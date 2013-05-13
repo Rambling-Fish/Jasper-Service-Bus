@@ -28,7 +28,7 @@
    </logger>
    <!-- default mule logging -->
    <root>
-      <level value="WARN" />
+      <level value="ERROR" />
       <appender-ref ref="stdout" />
       <appender-ref ref="JTALogger" />
    </root>
