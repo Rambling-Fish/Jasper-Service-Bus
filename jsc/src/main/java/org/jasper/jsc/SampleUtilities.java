@@ -1,4 +1,4 @@
-package coralcea.JClient;
+package org.jasper.jsc;
 
 /*
  * @(#)SampleUtilities.java     1.7 00/08/18
@@ -45,15 +45,12 @@ public class SampleUtilities {
 	 */
 	public static javax.jms.QueueConnectionFactory getQueueConnectionFactory()
 			throws Exception {
-
-	
-		//Properties props = new Properties();
 		
 		if (USE_JNDI) {
 			return (QueueConnectionFactory) jndiLookup("ConnectionFactory");
 		}
 		String transportURL = PropertiesUtil.getProperty("jclient.transport");
-//		ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("failover://(" + transportURL + ")?maxReconnectDelay=1000");
+//		ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("failover://(" + transportURL + ")?trace=true&wireFormat.maxInactivityDuration=0");
 		ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory(transportURL);
 		return cf;
 	}

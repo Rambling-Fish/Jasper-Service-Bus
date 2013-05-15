@@ -1,4 +1,4 @@
-package coralcea.JClient;
+package org.jasper.jsc;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,16 +23,18 @@ public class PropertiesUtil
     try
     {
       PropertiesUtil util = new PropertiesUtil();
-      props = util.getPropertiesFromClasspath("coralcea/JClient/resources/JClient.properties");
+      props = util.getPropertiesFromClasspath("org/jasper/jsc/resources/JClient.properties");
       String deployToWebContainer = "no";
       if (props.getProperty("jclient.tw") != null) {
     	  deployToWebContainer = props.getProperty("jclient.tw");
       }
 		 if (deployToWebContainer.equalsIgnoreCase("yes")) {
+			 Properties props2 = new Properties();
 			 String catalinaPropFileName = (CATALINA_HOME + (String) File.separator + JCLIENT_PROPERTIES );
 			 System.out.println("deploying into tomcat for TW" + catalinaPropFileName); 
-			 props = util.getPropertiesFromCatalina(catalinaPropFileName );
+			 props2 = util.getPropertiesFromCatalina(catalinaPropFileName );
 		     System.out.println("deploying into tomcat for TW" + catalinaPropFileName); 
+		     props.putAll(props2);
 		 }
     }
     catch (FileNotFoundException e)

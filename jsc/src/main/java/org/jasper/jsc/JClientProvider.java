@@ -1,24 +1,20 @@
-package coralcea.JClient;
+package org.jasper.jsc;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
 import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
 import javax.jms.TextMessage;
 import org.codehaus.jettison.json.JSONObject;
-import org.apache.activemq.broker.BrokerService;
 import org.apache.log4j.Logger;
 
 public class JClientProvider {
@@ -53,13 +49,21 @@ public class JClientProvider {
 			}
 
 			if (queueConnection == null) {
+											
 				String user = PropertiesUtil.getProperty("jclient.username");
 				String password = PropertiesUtil
 						.getProperty("jclient.password");
 
 				queueConnection = queueConnectionFactory.createQueueConnection(
 						user, password);
-
+				
+				queueConnection.setExceptionListener(new ExceptionListener() {               
+				    @Override
+				    public void onException(JMSException arg0) {
+				        System.out.println("Exception Occurred: " + arg0);
+				    }
+				});
+				
 				queueConnection.start();
 			}
 

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package coralcea.JClient.test;
+package org.jasper.jsc.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -11,14 +11,14 @@ import java.io.UnsupportedEncodingException;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONObject;
+import org.jasper.jsc.JClientProvider;
+import org.jasper.jsc.ReplyThread;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import coralcea.JClient.JClientProvider;
-import coralcea.JClient.ReplyThread;
 
 import org.codehaus.jettison.json.JSONObject;
 
