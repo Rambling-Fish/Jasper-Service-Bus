@@ -4,13 +4,12 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>coralcea</groupId>
+	<groupId>org.jasper.jsc</groupId>
 	<artifactId>JClient</artifactId>
 	<packaging>jar</packaging>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0</version>
 
 	<name>JClient</name>
-	<url>http://www.willgiveitanamelater.org</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
