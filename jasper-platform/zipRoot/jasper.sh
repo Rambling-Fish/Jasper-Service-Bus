@@ -5,6 +5,8 @@ JW_PID=""
 M_PID=""
 UNAME=`uname`
 OS="$UNAME"
+JSB=""
+JTA=""
 
 function get_j_pid {
     J_PID=""
@@ -100,6 +102,7 @@ function force_stop_m {
 
 function start_j {
    if ! [ -x jsb-core/bin/jsb ]; then
+      JSB='y'
       display_warning
       exit 0
    fi
@@ -120,6 +123,7 @@ function start_j {
 
 function start_m {
    if ! [ -d jsb-core/mule-standalone-3.3.0 ]; then
+      JTA='y'
       display_warning
       exit 0
   fi
@@ -190,7 +194,13 @@ function status {
 function display_warning {
       echo ""
       echo "***********************************************"
-      echo "***     Warning: Setup is incomplete        ***"
+      if [ "$JSB" == 'y' ]; then
+         echo "***       Warning: JSB not setup            ***"
+      else
+         if [ "$JTA" == 'y' ]; then
+            echo "***       Warning: JTA not setup            ***"
+         fi
+      fi
       echo "***     To run JSB server only:             ***"
       echo "***     './setup.sh jsb'                    ***"
       echo "***     'jasper.sh start jsb'               ***"
