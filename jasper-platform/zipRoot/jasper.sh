@@ -47,7 +47,7 @@ function stop_j {
       cd jsb-core/bin/ 
       ./jsb stop
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-1.1/jsbAutoStart
+         rm /opt/jasper/jasper-2.0/jsbAutoStart
       fi
       echo ".. Done."
    fi
@@ -63,7 +63,7 @@ function stop_m {
       ./mule stop
       cd ../../../
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-1.1/jtaAutoStart
+         rm /opt/jasper/jasper-2.0/jtaAutoStart
       fi 
       sleep 1
       echo ".. Done."
@@ -79,7 +79,7 @@ function force_stop_j {
       kill $J_PID 
       sleep 1
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-1.1/jsbAutoStart
+         rm /opt/jasper/jasper-2.0/jsbAutoStart
       fi
       echo ".. Done."
    fi
@@ -93,7 +93,7 @@ function force_stop_m {
       echo -n "Stopping JTA Server.."
       kill $M_PID
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-1.1/jtaAutoStart
+         rm /opt/jasper/jasper-2.0/jtaAutoStart
       fi 
       sleep 1
       echo ".. Done."
@@ -112,8 +112,8 @@ function start_j {
       ./jsb start
       cd ../../
       if [ "$OS" == 'Linux' ]; then
-         if [ ! -L /opt/jasper/jasper-1.1/jsbAutoStart ]; then
-            ln -s /opt/jasper/jasper-1.1/jsb-core/jsbAutoStart /opt/jasper/jasper-1.1/jsbAutoStart
+         if [ ! -L /opt/jasper/jasper-2.0/jsbAutoStart ]; then
+            ln -s /opt/jasper/jasper-2.0/jsb-core/jsbAutoStart /opt/jasper/jasper-2.0/jsbAutoStart
          fi
       fi
       else
@@ -137,8 +137,8 @@ if [ -z "$M_PID" ]; then
       get_m_pid
       echo "Done. PID=$M_PID" 
       if [ "$OS" == 'Linux' ]; then
-         if [ ! -L /opt/jasper/jasper-1.1/jtaAutoStart ]; then
-            ln -s /opt/jasper/jasper-1.1/jsb-core/jtaAutoStart /opt/jasper/jasper-1.1/jtaAutoStart
+         if [ ! -L /opt/jasper/jasper-2.0/jtaAutoStart ]; then
+            ln -s /opt/jasper/jasper-2.0/jsb-core/jtaAutoStart /opt/jasper/jasper-2.0/jtaAutoStart
          fi
       fi     
    else
