@@ -204,7 +204,7 @@ public class JClientProvider {
 			log.error(e.getCause() + " is what caused the exception");
 			exceptionHappened = true;
 			// close the session.
-			RC.shutdown();
+			//RC.shutdown();
 			
 			return JSONObject.quote("{ }");
 		} catch (InterruptedException e) {
