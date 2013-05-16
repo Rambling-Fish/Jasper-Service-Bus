@@ -7,15 +7,14 @@
     <parent>
         <groupId>org.jasper.jTransport</groupId>
         <artifactId>jTransport-parent</artifactId>
-        <version>1.1</version>    
+        <version>2.0</version>    
     </parent>
     <groupId>org.jasper.jTransport</groupId>
     <artifactId>jTransport-jasperEngine</artifactId>
     <packaging>jar</packaging>
     <name>jTransport-jasperEngine</name>
-    <version>1.0</version>
+    <version>2.0</version>
     <description>This transport will be used for communication to and from the Jasper Engine.</description>
-    <url>http://www.muleforge.org/projects/JASPERENGINE</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -155,13 +154,13 @@
    		<dependency>
 			<groupId>org.jasper.jLib</groupId>
 			<artifactId>jLib-jAuth-lib</artifactId>
-			<version>1.1</version>
+			<version>2.0</version>
 		</dependency>
-                <dependency>
-                       <groupId>org.jasper.jLib</groupId>
-                       <artifactId>jLib-jCommons-lib</artifactId>
-                       <version>1.1</version>
-                </dependency>
+        <dependency>
+           <groupId>org.jasper.jLib</groupId>
+           <artifactId>jLib-jCommons-lib</artifactId>
+           <version>2.0</version>
+        </dependency>
         <!-- Mule Modules: You will need to add and remove as necessary -->
         <dependency>
             <groupId>org.mule</groupId>
