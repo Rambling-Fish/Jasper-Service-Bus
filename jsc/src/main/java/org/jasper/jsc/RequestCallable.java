@@ -1,4 +1,4 @@
-package coralcea.JClient;
+package org.jasper.jsc;
 
 import java.util.concurrent.Callable;
 

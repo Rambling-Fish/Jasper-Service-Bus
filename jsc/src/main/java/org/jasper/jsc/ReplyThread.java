@@ -1,4 +1,4 @@
-package coralcea.JClient;
+package org.jasper.jsc;
 
 import javax.jms.JMSException;
 import javax.jms.Queue;
