@@ -202,10 +202,7 @@ public class JClientProvider {
 
 			// return empty JSON body;
 			log.error(e.getCause() + " is what caused the exception");
-			exceptionHappened = true;
-			// close the session.
-			//RC.shutdown();
-			
+			exceptionHappened = true;			
 			return JSONObject.quote("{ }");
 		} catch (InterruptedException e) {
 			exceptionHappened = true;
@@ -225,14 +222,14 @@ public class JClientProvider {
 		} finally {
 			
 			if (exceptionHappened){
-				// close the session.
-				RC.shutdown();
-				// return empty JSON body;
-				return JSONObject.quote("{ }");
-			}
-			
+				if (RC != null) {
+					// close the session.
+					RC.shutdown();
+					// return empty JSON body;
+					return JSONObject.quote("{ }");
+				}
+			}			
 	    }
-
 		return text;
 	}
 
