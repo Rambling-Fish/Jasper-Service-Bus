@@ -22,6 +22,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerService;
 
+import org.jasper.core.constants.JasperConstants;
 import org.jasper.jCore.auth.JasperAuthenticationPlugin;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
@@ -31,12 +32,9 @@ import org.junit.Test;
 
 public class TestDelegate  extends TestCase {
 
-	private static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
 	private static final String TEST_URI = "http://coralcea.com/1.0/testURI";
 	private static final String TEST_QUEUE = "jms.jta.testJTA.replyToQueue";
 	private static final String TEST_JTA_NAME = "TestJTA";
-	private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
-	private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
 	private static final String EMPTY_JTA_RESPONSE = "{}";
 	private Connection connection;
 	private DelegateFactory delegateFactory;
@@ -140,7 +138,7 @@ public class TestDelegate  extends TestCase {
 		DelegateFactory factory = DelegateFactory.getInstance();
 		factory.jtaUriMap.clear();
 
-		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE, DELEGATE_GLOBAL_QUEUE, TEST_URI);
+		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE, JasperConstants.DELEGATE_GLOBAL_QUEUE, TEST_URI);
         
 		message = session.createObjectMessage(jam);
 		producer.send(message);
@@ -301,7 +299,7 @@ public class TestDelegate  extends TestCase {
 		delegateFactory.jtaUriMap.put(TEST_URI, l);
 		delegateFactory.jtaQueueMap.put(TEST_JTA_NAME, l);
 
-		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, TEST_JTA_NAME, DELEGATE_GLOBAL_QUEUE, TEST_URI);
+		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, TEST_JTA_NAME, JasperConstants.DELEGATE_GLOBAL_QUEUE, TEST_URI);
         
 		message = session.createObjectMessage(jam);
 		producer.send(message);
@@ -317,8 +315,8 @@ public class TestDelegate  extends TestCase {
 		 delegateFactory.jtaUriMap.clear();
 
         // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+        connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+        connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
         connection = connectionFactory.createConnection();
         connection.start();
 		
@@ -332,7 +330,7 @@ public class TestDelegate  extends TestCase {
 		}
        
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		globalQueue = session.createQueue(DELEGATE_GLOBAL_QUEUE);
+		globalQueue = session.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
 		producer = session.createProducer(globalQueue);
 		producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 		producer.setTimeToLive(30000);

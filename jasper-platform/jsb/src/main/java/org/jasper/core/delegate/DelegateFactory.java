@@ -9,14 +9,10 @@ import javax.jms.Connection;
 import javax.jms.JMSException;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.jasper.core.constants.JasperConstants;
 
 public class DelegateFactory{
 
-	public static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
-
-	private static final String DELEGATE_DEFAULT_NAME = "jasperDelegate";
-	private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
-	private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
 	private static DelegateFactory factory;
 	private AtomicInteger count;
 	protected Map<String, List<String>> jtaUriMap;
@@ -31,8 +27,8 @@ public class DelegateFactory{
 		
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
         // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+        connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+        connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
         connection = connectionFactory.createConnection();
         connection.start(); 
 	}
@@ -43,7 +39,7 @@ public class DelegateFactory{
 	}
 	
 	public Delegate createDelegate(){
-		return createDelegate(DELEGATE_DEFAULT_NAME);
+		return createDelegate(JasperConstants.DELEGATE_DEFAULT_NAME);
 	}
 	
 	public Delegate createDelegate(String name){

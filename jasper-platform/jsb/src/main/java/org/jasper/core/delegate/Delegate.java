@@ -19,14 +19,13 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.log4j.Logger;
+import org.jasper.core.constants.JasperConstants;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
 
 public class Delegate implements Runnable {
 
-	private static final String DELEGATE_QUEUE_PREFIX = "jms.jasper.delegate.";
-	private static final String DELEGATE_QUEUE_SUFFIX = ".queue";
 	private Map<String,List<String>> jtaUriMap;
 	private Map<String,List<String>> jtaQueueMap;
 	private Map<String, Destination> reqRespMap;
@@ -94,7 +93,7 @@ public class Delegate implements Runnable {
 		      Session delegateSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
 		      // Create Queue
-		      Destination delegateQueue = delegateSession.createQueue(DELEGATE_QUEUE_PREFIX + name + DELEGATE_QUEUE_SUFFIX);
+		      Destination delegateQueue = delegateSession.createQueue(JasperConstants.DELEGATE_QUEUE_PREFIX + name + JasperConstants.DELEGATE_QUEUE_SUFFIX);
 		      setDelegateQueue(delegateQueue);
 		                  
 		      // Create a MessageConsumer from the Session to the Queue
@@ -135,7 +134,6 @@ public class Delegate implements Runnable {
 	      			  producer.send(message);
 
 	                  // Clean up
-	      			  producer.close();
 	                  jClientSession.close();
 		          }
 		      }while(!isShutdown);
@@ -170,7 +168,6 @@ public class Delegate implements Runnable {
         producer.send(message);
 
         // Clean up
-        producer.close();
         jClientSession.close();
 	}
 	
@@ -180,7 +177,7 @@ public class Delegate implements Runnable {
 		      Session globalSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
 		      // Create Queue
-		      Destination globalQueue = globalSession.createQueue(DelegateFactory.DELEGATE_GLOBAL_QUEUE);
+		      Destination globalQueue = globalSession.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
 		                  
 		      // Create a MessageConsumer from the Session to the Queue
 		      MessageConsumer globalDelegateConsumer = globalSession.createConsumer(globalQueue);
@@ -260,8 +257,7 @@ public class Delegate implements Runnable {
 		      			  producer.send(message);
 		
 		                  // Clean up
-		      			  producer.close();
-		      			  jtaSession.close();
+		                  jtaSession.close();
 		        	  }
 		          }
 		      }while(!isShutdown);

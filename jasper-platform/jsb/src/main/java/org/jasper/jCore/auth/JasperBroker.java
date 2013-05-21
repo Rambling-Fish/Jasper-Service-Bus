@@ -28,16 +28,9 @@ import org.jasper.jLib.jAuth.util.JAuthHelper;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
+import org.jasper.core.constants.JasperConstants;
 
 public class JasperBroker extends BrokerFilter {
-    
-	private static final String JASPER_ADMIN_TOPIC = "jms.jasper.admin.messages.topic";
-	private static final String JASPER_ADMIN_QUEUE_PREFIX = "jms.jasper.admin.messages.queue.";
-	
-	private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
-	private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
-	
-	public static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
 	
 	/*
 	 * Map will store known connections to prevent multiple JTAs from using same JTA license key
@@ -161,8 +154,8 @@ public class JasperBroker extends BrokerFilter {
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 
             // Create a Connection
-            connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-            connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+            connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+            connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
             Connection connection = connectionFactory.createConnection();
             connection.start();
 
@@ -170,7 +163,7 @@ public class JasperBroker extends BrokerFilter {
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             // Create the destination (Topic or Queue)
-            Destination destination = session.createTopic(JASPER_ADMIN_TOPIC);
+            Destination destination = session.createTopic(JasperConstants.JASPER_ADMIN_TOPIC);
             
             // Create a MessageProducer from the Session to the Topic or Queue
             MessageProducer producer = session.createProducer(destination);
@@ -197,8 +190,8 @@ public class JasperBroker extends BrokerFilter {
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 
             // Create a Connection
-            connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-            connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+            connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+            connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
             Connection connection = connectionFactory.createConnection();
             connection.start();
 
@@ -206,7 +199,7 @@ public class JasperBroker extends BrokerFilter {
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             // Create the destination (Topic or Queue)
-            Destination destination = session.createQueue(JASPER_ADMIN_QUEUE_PREFIX + dst);
+            Destination destination = session.createQueue(JasperConstants.JASPER_ADMIN_QUEUE_PREFIX + dst);
 
             // Create a MessageProducer from the Session to the Topic or Queue
             MessageProducer producer = session.createProducer(destination);
@@ -234,8 +227,8 @@ public class JasperBroker extends BrokerFilter {
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 
             // Create a Connection
-            connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-            connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+            connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+            connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
             Connection connection = connectionFactory.createConnection();
             connection.start();
 
@@ -243,7 +236,7 @@ public class JasperBroker extends BrokerFilter {
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             // Create the destination (Topic or Queue)
-            Destination destination = session.createTopic(JASPER_ADMIN_TOPIC);
+            Destination destination = session.createTopic(JasperConstants.JASPER_ADMIN_TOPIC);
 
             // Create a MessageConsumer from the Session to the Topic or Queue
             MessageConsumer consumer = session.createConsumer(destination);
@@ -281,8 +274,8 @@ public class JasperBroker extends BrokerFilter {
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 
             // Create a Connection
-            connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-            connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+            connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+            connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
             Connection connection = connectionFactory.createConnection();
             connection.start();
 
@@ -290,7 +283,7 @@ public class JasperBroker extends BrokerFilter {
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             // Create the destination (Topic or Queue)
-            Destination destination = session.createQueue(JASPER_ADMIN_QUEUE_PREFIX + core.getJSBInstance());
+            Destination destination = session.createQueue(JasperConstants.JASPER_ADMIN_QUEUE_PREFIX + core.getJSBInstance());
                         
             // Create a MessageConsumer from the Session to the Topic or Queue
             MessageConsumer consumer = session.createConsumer(destination);
@@ -363,7 +356,7 @@ public class JasperBroker extends BrokerFilter {
    
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
     	 
-    	if(info.getUserName().equals(JASPER_ADMIN_USERNAME) && info.getPassword().equals(JASPER_ADMIN_PASSWORD) && info.getClientIp().startsWith("vm://localhost")){
+    	if(info.getUserName().equals(JasperConstants.JASPER_ADMIN_USERNAME) && info.getPassword().equals(JasperConstants.JASPER_ADMIN_PASSWORD) && info.getClientIp().startsWith("vm://localhost")){
     		super.addConnection(context, info);	
     		return;
     	}
@@ -511,8 +504,8 @@ public class JasperBroker extends BrokerFilter {
 			ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 
 			// Create a Connection
-			connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-			connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+			connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+			connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
 			Connection connection = connectionFactory.createConnection();
 			connection.start();
 
@@ -520,7 +513,7 @@ public class JasperBroker extends BrokerFilter {
 			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
 			// Create the destination (Topic or Queue)
-			Destination destination = session.createQueue(DELEGATE_GLOBAL_QUEUE);
+			Destination destination = session.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
 
 			// Create a MessageProducer from the Session to the Topic or Queue
 			MessageProducer producer = session.createProducer(destination);
