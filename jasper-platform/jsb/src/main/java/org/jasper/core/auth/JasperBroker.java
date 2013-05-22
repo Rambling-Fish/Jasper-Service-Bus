@@ -1,4 +1,4 @@
-package org.jasper.jCore.auth;
+package org.jasper.core.auth;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,7 +22,7 @@ import org.apache.activemq.broker.ConnectionContext;
 import org.apache.activemq.command.ConnectionInfo;
 import org.apache.log4j.Logger;
 
-import org.jasper.jCore.engine.JECore;
+import org.jasper.core.JECore;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
@@ -376,7 +376,13 @@ public class JasperBroker extends BrokerFilter {
     	 * or a Peer JSB and run validation logic depending on which it is, if the validation logic
     	 * is success 
     	 */
-    	if(core.isJSBLicenseKey(info.getPassword())){	
+    	if(core.isJSBLicenseKey(info.getPassword())){
+    		
+    		if(core.isThisMyJSBLicense(info.getPassword())){
+        		super.addConnection(context, info);
+        		return;
+    		}
+    		
         	/*
         	 * During connection setup we validate that the JSB lisence key provided is valid and
         	 * matches the stated JSB. JSB info is stored in username and the license key in the password
@@ -503,7 +509,6 @@ public class JasperBroker extends BrokerFilter {
 	    	jsbConnectionInfoMap.remove(info.getPassword());
 	    	cleanRemoteJtaMap(core.getJSBInstance(info.getPassword()));
     	}
-
     	super.removeConnection(context, info, null);
     }
 	

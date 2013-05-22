@@ -1,4 +1,4 @@
-package org.jasper.jCore.engine;
+package org.jasper.core;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,9 +25,9 @@ import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
+import org.jasper.core.auth.JasperAuthenticationPlugin;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateFactory;
-import org.jasper.jCore.auth.JasperAuthenticationPlugin;
 import org.jasper.jLib.jAuth.JSBLicense;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
@@ -96,6 +96,10 @@ public class JECore {
 	
 	private JSBLicense getJSBLicense(){
 		return license;
+	}
+	
+	public boolean isThisMyJSBLicense(String password){
+		return JAuthHelper.bytesToHex(license.getLicenseKey()).equals(password);
 	}
 	
 	public Calendar getExpiry(String licenseKey) {
@@ -231,6 +235,7 @@ public class JECore {
 	private void shutdown(){
 		logger.info("received shutdown request, shutting down");
 		exec.shutdown();
+		//TODO SHUTDOWN DELEGATE
 		try {
 			broker.stop();
 		} catch (Exception e) {
@@ -409,14 +414,15 @@ public class JECore {
     			
     			// Instantiate the delegate pool
     			ExecutorService executorService = Executors.newCachedThreadPool();
-    			DelegateFactory factory = DelegateFactory.getInstance();
+//    			DelegateFactory factory = DelegateFactory.getInstance();
+    			executorService.execute(DelegateFactory.getInstance().createDelegate());
+//    			Delegate[] delegates = new Delegate[numDelegates];
+//    			
+//    			for(int i=0;i<delegates.length;i++){
+//    				delegates[i]=factory.createDelegate();
+//    				executorService.execute(delegates[i]);
+//    			} 
     			
-    			Delegate[] delegates = new Delegate[numDelegates];
-    			
-    			for(int i=0;i<delegates.length;i++){
-    				delegates[i]=factory.createDelegate();
-    				executorService.execute(delegates[i]);
-    			} 
     			core.setupAudit();
 			}else{
     			logger.error("license key expired, jsb not starting"); 
