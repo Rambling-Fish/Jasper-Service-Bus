@@ -1,4 +1,4 @@
-package org.jasper.jCore.auth;
+package org.jasper.core.auth;
 
 import org.apache.activemq.broker.Broker;
 import org.apache.activemq.broker.BrokerPlugin;
