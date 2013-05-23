@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -20,7 +22,9 @@ import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.Message;
+import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
 import javax.jms.Session;
 
 public class JasperEngineConnector extends ActiveMQJmsConnector{
@@ -32,10 +36,14 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 	private JTALicense license;
 	private String jasperEngineURL;
 	private Map<String,String> endpointUriMap;
+	protected boolean isAdminHandlerStopped;
+	private ExecutorService adminHandler;
 	
     /* This constant defines the main transport protocol identifier */
     public static final String JASPERENGINE = "jasperengine";
     private static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
+    private static final String JTA_QUEUE_SUFFIX = ".queue";
+    private static final String JTA_QUEUE_PREFIX = "jms.";
   
     public JasperEngineConnector(MuleContext context){
         super(context);
@@ -71,13 +79,17 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     		super.connect();
     		
     		if(endpointUriMap.size() > 0) {
-    			publishURI();
-    		}
+    			initializeAdminHandler();
+    		}	
     	}
     	catch (Exception e) {
     		e.printStackTrace();
     	}
     	
+    }
+    
+    public void disconnect(){
+    	stopAdminHandler();
     }
     
     /**
@@ -86,6 +98,71 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
      * global queue that contains URI value and the JTAs replyToQueue that
      * the core will use to send requests for data to the JTA based on URI
      */
+    private void initializeAdminHandler() {
+    	adminHandler = Executors.newSingleThreadExecutor();
+    	isAdminHandlerStopped = false;
+    	
+    	Runnable task = new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					
+					while(!isAdminHandlerStopped){
+						try {
+					  	     	
+							Session adminSession = getConnection().createSession(false, Session.AUTO_ACKNOWLEDGE);
+						      
+						    // Create Queue
+						    String queueName = JTA_QUEUE_PREFIX.concat(getVendor()).concat(".").concat(getAppName()).concat(".").concat(getVersion()).concat(JTA_QUEUE_SUFFIX);
+						    Destination adminQueue = adminSession.createQueue(queueName);
+						                  
+						    // Create a MessageConsumer from the Session to the Queue
+						    MessageConsumer adminConsumer = adminSession.createConsumer(adminQueue);
+
+						    // Wait for a message
+						    Message adminRequest;
+						      
+						    do{
+						    	do{
+						    		adminRequest = adminConsumer.receive(3000);
+						    	}while(adminRequest == null && !isAdminHandlerStopped);
+						    	if(isAdminHandlerStopped) break;
+						          
+						        if (adminRequest instanceof ObjectMessage) {
+						        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
+						        	Object obj = objMessage.getObject();
+						        	if(obj instanceof JasperAdminMessage){
+						        		if(((JasperAdminMessage) obj).getType() == Type.jtaDataManagement && ((JasperAdminMessage) obj).getCommand() == Command.notify)
+						        			publishURI();
+						                }
+						          }
+						          
+						      }while(!isAdminHandlerStopped);
+						      
+						      adminConsumer.close();
+						      adminSession.close();
+						     
+						  } catch (Exception e) {
+						      logger.error("Exception received while listening for admin message",e);
+						      isAdminHandlerStopped = true;
+						  }
+					}
+					
+		    	}catch (Exception e) {
+		    		e.printStackTrace();
+		    	}
+			}
+		};;;
+		adminHandler.submit(task);
+    }
+
+    private void stopAdminHandler() {
+    	isAdminHandlerStopped = true;
+    	adminHandler.shutdown();
+	} 	
+    
+    
     private void publishURI() {
     	try {
     		

@@ -473,7 +473,12 @@ public class JasperBroker extends BrokerFilter {
         			logger.error("JTA not registred in system, JTA with same license key already registered on JSB : " + remoteJtaRegistrationMap.get(info.getPassword()));
 	        		throw (SecurityException)new SecurityException("JTA not registred in system, JTA with same license key already registered on JSB : " + remoteJtaRegistrationMap.get(info.getPassword()));        		}
         	}
-    		super.addConnection(context, info);	
+    		super.addConnection(context, info);
+    		String vendor = info.getUserName().split(":")[0];
+    		String appName = info.getUserName().split(":")[1];
+    		String version = info.getUserName().split(":")[2];
+    		String jtaQueueName = JasperConstants.JTA_QUEUE_PREFIX.concat(vendor).concat(".").concat(appName).concat(".").concat(version).concat(JasperConstants.DELEGATE_QUEUE_SUFFIX);
+    		notifyDelegate(Command.publish, jtaQueueName);
     	}
     }
     
@@ -533,6 +538,5 @@ public class JasperBroker extends BrokerFilter {
 			logger.error("Exception caught while notifying peers: ", e);
 		}
 	}
-	
 	
 }

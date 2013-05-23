@@ -18,6 +18,7 @@ import javax.jms.ObjectMessage;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Logger;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
@@ -199,6 +200,9 @@ public class Delegate implements Runnable {
 		          			if(jam.getCommand() == Command.notify) {
 		          				updateURIMaps(jam);
 		          			}
+		          			else if(jam.getCommand() == Command.publish) {
+		          				notifyJTA(jam);
+		          			}
 		          			else if(jam.getCommand() == Command.delete) {
 		          				cleanURIMaps(jam.getSrc());
 		          			}
@@ -335,6 +339,47 @@ public class Delegate implements Runnable {
 			}
 		
 			jtaQueueMap.remove(username);
+		}
+	}
+
+	// Send message to JTA to republish its URI if it has one after
+	// JSB connection re-established (for single JSB deployment scenario only)
+
+	private void notifyJTA(JasperAdminMessage msg) {
+		String jtaQueueName = msg.getDetails()[0];
+		
+		try {
+			// Create a ConnectionFactory
+			ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
+
+			// Create a Connection
+			connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+			connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
+			Connection connection = connectionFactory.createConnection();
+			connection.start();
+
+			// Create a Session
+			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+			// Create the destination (Topic or Queue)
+			Destination destination = session.createQueue(jtaQueueName);
+
+			// Create a MessageProducer from the Session to the Topic or Queue
+			MessageProducer producer = session.createProducer(destination);
+			producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+			producer.setTimeToLive(30000);
+
+			JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, "*",  "*", jtaQueueName);
+
+			Message message = session.createObjectMessage(jam);
+			producer.send(message);
+
+			// Clean up
+			session.close();
+			connection.close();
+		}
+		catch (Exception e) {
+			logger.error("Exception caught while notifying peers: ", e);
 		}
 	}
 	

@@ -15,6 +15,7 @@ public class JasperAdminMessage implements Serializable{
 		add,
 		delete,
 		notify,
+		publish,
 		update
 	}
 	
