@@ -1,5 +1,6 @@
 package org.jasper.core.delegate;
 
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -280,21 +281,21 @@ public class Delegate implements Runnable {
 	private synchronized void updateURIMaps(JasperAdminMessage jam) throws Exception{
 		List<String> uriQueueList = new ArrayList<String>();
 		List<String> jtaQueueList = new ArrayList<String>();
-		String uri = jam.getDetails()[0];
+		String decodedURI = URLDecoder.decode(jam.getDetails()[0], "UTF-8");
 		String jtaName = jam.getDst();
 		
 		// Add URI if it does not exist in map
-		if(!jtaUriMap.containsKey(uri)) {
+		if(!jtaUriMap.containsKey(decodedURI)) {
 			uriQueueList.add(jam.getSrc());
 		}
 		else {
 			// URI (key) exists we want to add to the queue list
 			uriQueueList.clear();
-			uriQueueList = jtaUriMap.get(uri);
+			uriQueueList = jtaUriMap.get(decodedURI);
 			uriQueueList.add(jam.getSrc());
 		}
 		
-		jtaUriMap.put(uri, uriQueueList);
+		jtaUriMap.put(decodedURI, uriQueueList);
 		
 		// If JTAName exists then add to existing queue list
 		if(jtaQueueMap.containsKey(jtaName)) {
@@ -309,7 +310,7 @@ public class Delegate implements Runnable {
 		jtaQueueMap.put(jtaName, jtaQueueList);
 		
 		if(logger.isInfoEnabled()) {
-			logger.info("Received " + jam.getCommand() + " from " + jam.getSrc() + " with details: " + jam.getDetails()[0]);
+			logger.info("Received " + jam.getCommand() + " from " + jam.getSrc() + " with details: " + decodedURI);
   		}
 	}
 
