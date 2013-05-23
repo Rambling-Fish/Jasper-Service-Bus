@@ -204,6 +204,9 @@ public class Delegate implements Runnable {
 		          			}
 		          		}
 		              }
+		              else {
+		            	  logger.error("Invalid message received: " + jmsRequest.toString());
+		              }
 		          }else if(jmsRequest instanceof TextMessage){
 		        	  TextMessage txtMsg = (TextMessage) jmsRequest;
 
