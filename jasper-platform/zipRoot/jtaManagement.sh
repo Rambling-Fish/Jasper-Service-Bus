@@ -125,6 +125,12 @@ configure_JTA()
         *)
             echo "Enter new value for $parm: "
             read newValue
+            if echo $newValue | grep ["="] > /dev/null
+            then
+                read -p "Sorry '=' is not allowed"
+                configure_JTA
+                break
+            fi
             pattern=$parm
             replacement=$newValue
             propvalue=`sed '/^\#/d' $FILENAME | grep $parm | tail -n 1 | sed 's/^.*=//;s/^[[:space:]]*//;s/[[:space:]]*$//'`
@@ -158,6 +164,13 @@ configure_global_JasperEngineURL() {
    pattern="jasperEngineURL"
    echo "Enter new value (format: tcp://host:port): "
    read replacement
+   if echo $replacement | grep ["="] > /dev/null
+   then
+       read -p "Sorry '=' is not allowed"
+       configure_global_JasperEngineURL 
+       break
+   fi
+
    echo "Set jasperEngineURL as $replacement in all JTAs? (y/n/q)"
    read choice
    if [ "$choice" == "n" ];then
