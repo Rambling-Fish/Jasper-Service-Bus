@@ -162,7 +162,7 @@ configure_global_JasperEngineURL() {
          done  
    else
    pattern="jasperEngineURL"
-   echo "Enter new value (format: tcp://host:port): "
+   echo "Enter new value - format: 'failover://(tcp://<host:port>)': "
    read replacement
    if echo $replacement | grep ["="] > /dev/null
    then
