@@ -1,18 +1,11 @@
 package org.jasper.jsc;
 
-/*
- * @(#)SampleUtilities.java     1.7 00/08/18
- *
- */
 import java.util.List;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import javax.naming.*;
 import javax.jms.*;
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -50,8 +43,8 @@ public class SampleUtilities {
 			return (QueueConnectionFactory) jndiLookup("ConnectionFactory");
 		}
 		String transportURL = PropertiesUtil.getProperty("jclient.transport");
-//		ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("failover://(" + transportURL + ")?trace=true&wireFormat.maxInactivityDuration=0");
 		ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory(transportURL);
+		
 		return cf;
 	}
 
@@ -167,10 +160,10 @@ public class SampleUtilities {
 		for (String key : myMap.keySet()) {
 			// Put a validation check here (i.e. key = Ward|VisitId|etc ..
 			// Will do that shortly. For now just iterate and print.
-			System.out.println("query param # " + i + " is " + key);
+		//	System.out.println("query param # " + i + " is " + key);
 			i++;
 			for (String value : myMap.get(key)) {
-				System.out.println("query value # " + j + " equals to " + value);
+			//	System.out.println("query value # " + j + " equals to " + value);
 				j++;
 			}
 			j = 0;

@@ -118,7 +118,7 @@ public class RequestCallable implements Callable<TextMessage> {
 			if (reply != null) {
 
 				// Extract and display the reply message
-				log.info("RequestCallable: Reply received: " + reply.getText());
+				// log.info("RequestCallable: Reply received: " + reply.getText());
 
 				replyID = new String(reply.getJMSCorrelationID());
 

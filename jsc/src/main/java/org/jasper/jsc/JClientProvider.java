@@ -11,6 +11,7 @@ import java.util.concurrent.TimeoutException;
 
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
+import javax.jms.JMSSecurityException;
 import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
 import javax.jms.TextMessage;
@@ -41,41 +42,51 @@ public class JClientProvider {
 	 * 
 	 */
 	public synchronized static JClientProvider getInstance() {
-		try {
-			if (queueConnectionFactory == null) {
-				// create a queue connection
+
+		if (queueConnectionFactory == null) {
+			// create a queue connection
+			try {
 				queueConnectionFactory = SampleUtilities
 						.getQueueConnectionFactory();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+		}
 
-			if (queueConnection == null) {
-											
+		if (queueConnection == null) {
+			try {
 				String user = PropertiesUtil.getProperty("jclient.username");
 				String password = PropertiesUtil
 						.getProperty("jclient.password");
 
 				queueConnection = queueConnectionFactory.createQueueConnection(
 						user, password);
-				
-				queueConnection.setExceptionListener(new ExceptionListener() {               
-				    @Override
-				    public void onException(JMSException arg0) {
-				        System.out.println("Exception Occurred: " + arg0);
-				    }
-				});
-				
-				queueConnection.start();
-			}
 
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+				queueConnection.setExceptionListener(new ExceptionListener() {
+					@Override
+					public void onException(JMSException arg0) {
+						log.error("Exception Occurred: " + arg0);
+					}
+				});
+
+				queueConnection.start();
+				log.info("Queue Connection successfully established with "
+						+ PropertiesUtil.getProperty("jclient.transport"));
+
+			} catch (JMSSecurityException se) {
+				log.error(" client authentication failed due to an invalid user name or password."
+						+ se.getCause());
+			} catch (JMSException e) {
+				// TODO Auto-generated catch block
+				log.error("the JMS provider failed to create the queue connection "
+						+ e.getCause());
+			}
 		}
-		
 		return INSTANCE;
+
 	}
 
-	
 	/**
 	 * 
 	 * The entry point into the api interface which all users must call first
@@ -95,10 +106,12 @@ public class JClientProvider {
 			}
 
 			if (queueConnection == null) {
-				
-				queueConnection = queueConnectionFactory.createQueueConnection("user","password");
 
-				queueConnection.start();
+				queueConnection = queueConnectionFactory.createQueueConnection(
+						"user", "password");
+				if (queueConnection != null) {
+					queueConnection.start();
+				}
 			}
 
 		} catch (Exception e) {
@@ -108,8 +121,6 @@ public class JClientProvider {
 
 		return INSTANCE;
 	}
-	
-	
 
 	/**
 	 * 
@@ -120,14 +131,15 @@ public class JClientProvider {
 
 	public static void shutdown() {
 
-		log.info("Shutting down Executor."); 
+		log.info("Shutting down Executor.");
 
 		execute.shutdown();
 		try {
 			if (!execute.awaitTermination(100, TimeUnit.MICROSECONDS)) {
-	            log.error("Executor did not terminate in the specified time."); 
-	            List<Runnable> droppedTasks = execute.shutdownNow(); 
-	            log.error("Executor is now being abruptly shut down. " + droppedTasks.size() + " tasks will not be executed."); 
+				log.error("Executor did not terminate in the specified time.");
+				List<Runnable> droppedTasks = execute.shutdownNow();
+				log.error("Executor is now being abruptly shut down. "
+						+ droppedTasks.size() + " tasks will not be executed.");
 			}
 		} catch (InterruptedException e1) {
 			// TODO Auto-generated catch block
@@ -135,10 +147,10 @@ public class JClientProvider {
 		}
 		log.debug("Exiting normally...");
 
-		log.info("Shutting down JCLientProvider."); 
+		log.info("Shutting down JCLientProvider.");
 		if (queueConnection != null) {
 			try {
-				log.info("Shutting down QueueConnection."); 
+				log.info("Shutting down QueueConnection.");
 
 				queueConnection.stop();
 				queueConnection.close();
@@ -147,7 +159,6 @@ public class JClientProvider {
 		}
 	}
 
-	
 	/**
 	 * Sets the Query to be sent to the Jasper Server and sends it while
 	 * blocking until it gets a reply.
@@ -175,43 +186,45 @@ public class JClientProvider {
 		} catch (UnsupportedEncodingException e1) {
 			e1.printStackTrace();
 		}
+		String text = JSONObject.quote("{ }");
+		// once we understand the thoughtwire error reporting scenario, we can
+		// come up with a proper error reporting schema. For now, it's { }.
+		if (log.isDebugEnabled())
+			log.debug("queueConnection is : " + queueConnection);
 
-		if (!isQueryValid) {
-			return JSONObject.quote("{ }");
+		if ((!isQueryValid) || (queueConnection == null)) {
+			return text;
 		}
 
 		RequestCallable RC;
-			RC = new RequestCallable(DELEGATE_GLOBAL_QUEUE,
-					QueryUri);
-			System.out.println("queueName is : " + DELEGATE_GLOBAL_QUEUE);
 
+		RC = new RequestCallable(DELEGATE_GLOBAL_QUEUE, QueryUri);
 		Future<TextMessage> future = execute.submit(RC);
-
-		String text = JSONObject.quote("{ }");
 
 		try {
 			TextMessage bigJMSmessage = future.get(20, TimeUnit.SECONDS);
 
 			text = bigJMSmessage.getText();
-
-			log.info("Expecting a JSON String  :  " + text);
+			if (log.isDebugEnabled()) {
+				log.debug("Expecting a JSON String  :  " + text);
+			}
 		} catch (TimeoutException e) {
+			exceptionHappened = true;
+
 			log.error("Timed out waiting for server check thread."
 					+ "We'll try to interrupt it."
 					+ "Sending  back an empty JSON");
 
-			// return empty JSON body;
 			log.error(e.getCause() + " is what caused the exception");
-			exceptionHappened = true;			
-			return JSONObject.quote("{ }");
+			e.printStackTrace();
 		} catch (InterruptedException e) {
 			exceptionHappened = true;
-			
+
 			log.error(e.getCause() + " is what caused the exception");
 			e.printStackTrace();
 		} catch (ExecutionException e) {
 			exceptionHappened = true;
-			
+
 			log.error(e.getCause() + " is what caused the exception");
 			e.printStackTrace();
 		} catch (JMSException e) {
@@ -220,21 +233,19 @@ public class JClientProvider {
 			log.error(e.getCause() + " is what caused the exception");
 			e.printStackTrace();
 		} finally {
-			
-			if (exceptionHappened){
+
+			if (exceptionHappened) {
 				if (RC != null) {
 					// close the session.
 					RC.shutdown();
 					// return empty JSON body;
 					return JSONObject.quote("{ }");
 				}
-			}			
-	    }
+			}
+		}
 		return text;
 	}
 
-	
-	
 	/**
 	 * Sets the Query to be sent to the Jasper Server and sends it while
 	 * blocking until it gets a reply.
@@ -246,7 +257,7 @@ public class JClientProvider {
 	 * 
 	 * @param string
 	 *            QueryUri a String representing the ask of the client to the
-	 *            server. The convention is to use a URI form.
+	 *            server. The convention i[]\ to use a URI form.
 	 * @return string a String encoded in Json format if the query finds the
 	 *         data to handle the response. Otherwise, a String representing an
 	 *         empty Json is returned.
@@ -268,16 +279,10 @@ public class JClientProvider {
 		}
 
 		RequestCallable RC;
-		if (queueName != null)
-		{
-			System.out.println("queueName is : " + queueName);
-
-			RC = new RequestCallable(queueName,
-					QueryUri);
+		if (queueName != null) {
+			RC = new RequestCallable(queueName, QueryUri);
 		} else {
-			RC = new RequestCallable(DELEGATE_GLOBAL_QUEUE,
-					QueryUri);
-			System.out.println("queueName is : " + DELEGATE_GLOBAL_QUEUE);
+			RC = new RequestCallable(DELEGATE_GLOBAL_QUEUE, QueryUri);
 		}
 
 		Future<TextMessage> future = execute.submit(RC);
@@ -289,7 +294,6 @@ public class JClientProvider {
 
 			text = bigJMSmessage.getText();
 
-			log.info("Expecting a JSON String  :  " + text);
 		} catch (TimeoutException e) {
 			log.error("Timed out waiting for server check thread."
 					+ "We'll try to interrupt it."
@@ -300,16 +304,16 @@ public class JClientProvider {
 			exceptionHappened = true;
 			// close the session.
 			RC.shutdown();
-			
+
 			return JSONObject.quote("{ }");
 		} catch (InterruptedException e) {
 			exceptionHappened = true;
-			
+
 			log.error(e.getCause() + " is what caused the exception");
 			e.printStackTrace();
 		} catch (ExecutionException e) {
 			exceptionHappened = true;
-			
+
 			log.error(e.getCause() + " is what caused the exception");
 			e.printStackTrace();
 		} catch (JMSException e) {
@@ -318,15 +322,15 @@ public class JClientProvider {
 			log.error(e.getCause() + " is what caused the exception");
 			e.printStackTrace();
 		} finally {
-			
-			if (exceptionHappened){
+
+			if (exceptionHappened) {
 				// close the session.
 				RC.shutdown();
 				// return empty JSON body;
 				return JSONObject.quote("{ }");
 			}
-			
-	    }
+
+		}
 
 		return text;
 	}
@@ -335,6 +339,9 @@ public class JClientProvider {
 
 		try {
 			if (queueConnectionFactory == null) {
+				if (log.isDebugEnabled())
+					log.info("queueConnectionFactory is null.");
+
 				// create a queue connection
 				queueConnectionFactory = SampleUtilities
 						.getQueueConnectionFactory();
