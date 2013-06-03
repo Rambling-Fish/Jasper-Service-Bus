@@ -214,8 +214,9 @@ public class Delegate implements Runnable {
 		          }else if(jmsRequest instanceof TextMessage){
 		        	  TextMessage txtMsg = (TextMessage) jmsRequest;
 
-		        	  String uri = txtMsg.getText();
-     	  
+		        	  // Remove leading and trailing spaces in incoming URI
+		        	  String uri = txtMsg.getText().trim();
+		        	  
 		        	  if(!jtaUriMap.containsKey(uri)){
 			        	  logger.error("URI " + uri + " in incoming request not found");
 			        	  processInvalidRequest(txtMsg);
@@ -280,7 +281,7 @@ public class Delegate implements Runnable {
 	private synchronized void updateURIMaps(JasperAdminMessage jam) throws Exception{
 		List<String> uriQueueList = new ArrayList<String>();
 		List<String> jtaQueueList = new ArrayList<String>();
-		String uri = jam.getDetails()[0];
+		String uri = jam.getDetails()[0].trim();
 		String jtaName = jam.getDst();
 		
 		// Add URI if it does not exist in map

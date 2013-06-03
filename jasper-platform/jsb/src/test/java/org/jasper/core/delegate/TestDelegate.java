@@ -33,6 +33,7 @@ import org.junit.Test;
 public class TestDelegate  extends TestCase {
 
 	private static final String TEST_URI = "http://coralcea.com/1.0/testURI";
+	private static final String WHITESPACE_URI = "    http://coralcea.com/1.0/testURI   ";
 	private static final String TEST_QUEUE = "jms.jta.testJTA.replyToQueue";
 	private static final String TEST_JTA_NAME = "TestJTA";
 	private static final String EMPTY_JTA_RESPONSE = "{}";
@@ -143,6 +144,67 @@ public class TestDelegate  extends TestCase {
 		message = session.createObjectMessage(jam);
 		producer.send(message);
 		Thread.sleep(1000);
+		tearDownConnection();
+
+	}
+	
+	/*
+	 * This test checks to see that the core removes all leading and trailing whitespace
+	 * in incoming URI before storing in internal map.
+	 */
+	@Test
+	public void testWhitespaceURI() throws Exception {
+		setUpConnection(1);
+		
+		DelegateFactory factory = DelegateFactory.getInstance();
+		Destination jtaQueue = session.createQueue(TEST_QUEUE);
+		factory.jtaUriMap.clear();
+
+		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE, JasperConstants.DELEGATE_GLOBAL_QUEUE, WHITESPACE_URI);
+     
+		// send admin message to delegate to store URI. Leading/trailing whitespace should be removed by delegate
+		message = session.createObjectMessage(jam);
+		producer.send(message);
+		Thread.sleep(1000);
+		
+		//Send message with URI with no leading/trailing whitespace. Should be found by delegate
+		Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+	    MessageConsumer jtaConsumer = jtaSession.createConsumer(jtaQueue);
+	    Message jClientRequest;
+	    Message jtaResponse;
+		
+		message = session.createTextMessage(TEST_URI);
+		message.setJMSCorrelationID(null);
+		message.setJMSReplyTo(jtaQueue);
+		
+		// Send message to delegate
+		producer.send(message);
+		
+		Thread.sleep(2000);
+		
+		// simulate jClient timeout
+		int maxCount = 10;
+	
+		do{
+          	jClientRequest = jtaConsumer.receive(1000);
+          	maxCount--;
+          }while(jClientRequest == null && maxCount > 0);
+
+		 if (jClientRequest!= null && jClientRequest instanceof TextMessage) {
+			 TextMessage txtMsg = (TextMessage) jClientRequest;
+			 Assert.assertNotNull(txtMsg.getText());
+		 }
+
+		 // reply back to delegate with empty response from JTA if valid reply
+		 if(jClientRequest != null && jClientRequest instanceof ObjectMessage) {
+			ObjectMessage objMessage = (ObjectMessage) jClientRequest;
+            Object obj = objMessage.getObject();
+            String[] uri = (String[])obj;
+            
+            // URI in response message should have length of 31 which is URI without leading/trailing whitespace
+            Assert.assertEquals(31, uri[0].length());		 
+		 }
+		
 		tearDownConnection();
 
 	}
