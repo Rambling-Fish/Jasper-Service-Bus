@@ -1,5 +1,20 @@
 #!/bin/bash
 
+M_PID=""
+function get_m_pid {
+    M_PID=""
+    M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d' ' -f1`
+    if [ -z "$M_PID" ]
+    then
+      M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d' ' -f2`
+      if [ -z "$M_PID" ]
+      then
+      M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d' ' -f3`
+      fi
+    fi
+}
+
+
 unzipFiles()
 {
     cd JTAs
@@ -16,7 +31,13 @@ deploy()
     echo "---------------"
     echo
     JTAList=`ls JTAs`
-    
+    get_m_pid 
+    if [ -z "$M_PID" ]; then
+              echo "Cannot deploy when JTA Server is not running. Use './jasper.sh start jta'"
+              read -p "Press any key to continue"
+              menuScreen
+              break
+    fi
     select CHOICE in ${JTAList[*]} Back
     do
         case "$CHOICE" in
@@ -34,7 +55,7 @@ deploy()
             break
         ;;
         esac
-    done    
+    done
 }
 
 undeploy()
@@ -47,6 +68,13 @@ undeploy()
     cd jsb-core/mule-standalone-3.3.0/apps/
     JTAList=`find . -maxdepth 1 -name "*-anchor.txt" | grep -v default-anchor.txt | rev | cut -c 12- | rev | cut -c 3-`
     cd ../../../
+    get_m_pid
+    if [ -z "$M_PID" ]; then
+              echo "Cannot undeploy when JTA Server is not running. Use './jasper.sh start jta'"
+              read -p "Press any key to continue"
+              menuScreen
+              break
+    fi
     
     select CHOICE in ${JTAList[*]} Back
     do
@@ -60,10 +88,10 @@ undeploy()
             break
             ;;
         *)
-            cp -r jsb-core/mule-standalone-3.3.0/apps/"$CHOICE" JTAs/"$CHOICE"
-            rm jsb-core/mule-standalone-3.3.0/apps/"$CHOICE"-anchor.txt
-            undeploy
-            break
+           cp -rf jsb-core/mule-standalone-3.3.0/apps/"$CHOICE" JTAs/"$CHOICE"
+           rm jsb-core/mule-standalone-3.3.0/apps/"$CHOICE"-anchor.txt
+           undeploy
+           break
         ;;
         esac
     done    
