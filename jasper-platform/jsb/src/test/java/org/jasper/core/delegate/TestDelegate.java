@@ -283,6 +283,27 @@ public class TestDelegate  extends TestCase {
 	}
 	
 	/*
+	 * This test sends an admin message with the publish command to test new
+	 * functionality of having delegate request JTA to republish URI for cases
+	 * when JSB goes down and comes back up
+	 */
+	@Test
+	public void testNotifyAdminMessage() throws Exception {
+		setUpConnection(2);
+		
+		DelegateFactory factory = DelegateFactory.getInstance();
+		factory.jtaUriMap.clear();
+
+		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.publish, TEST_QUEUE, JasperConstants.DELEGATE_GLOBAL_QUEUE, TEST_URI);
+        
+		message = session.createObjectMessage(jam);
+		producer.send(message);
+		Thread.sleep(1000);
+		tearDownConnection();
+
+	}
+	
+	/*
 	 * This test sends two request to the delegate with the same correlation Id
 	 * Exception should be thrown indicating non-unique correlation Id
 	 */
