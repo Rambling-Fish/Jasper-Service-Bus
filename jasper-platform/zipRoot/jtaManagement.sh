@@ -1,7 +1,12 @@
 #!/bin/bash
 
 M_PID=""
-function get_m_pid {
+url_prefix="failover://(tcp://"
+url_suffix=")"
+str1=""
+
+function get_m_pid 
+{
     M_PID=""
     M_PID=`ps ax | grep mule | grep wrapper.pidfile | cut -d' ' -f1`
     if [ -z "$M_PID" ]
@@ -13,7 +18,6 @@ function get_m_pid {
       fi
     fi
 }
-
 
 unzipFiles()
 {
@@ -151,13 +155,28 @@ configure_JTA()
             break
             ;;
         *)
-            echo "Enter new value for $parm: "
+            if [ `echo $parm | grep -c "jasperEngineURL" ` -gt 0 ]; then
+               echo "Enter new value for $parm (format: host:port): "
+            else
+               echo "Enter new value for $parm: "
+            fi
             read newValue
             if echo $newValue | grep ["="] > /dev/null
             then
                 read -p "Sorry '=' is not allowed"
                 configure_JTA
                 break
+            fi
+            if [ `echo $parm | grep -c  "jasperEngineURL" ` -gt 0 ]; then
+               var=$(echo $newValue | awk -F":" '{print $1,$2}')   
+               set -- $var
+               newValue=$url_prefix$newValue$url_suffix
+               if [[ $2 -lt 1 || $2 -gt 65535 ]]; then
+                  echo "Not a valid port. Must be from 1 - 65535"
+                  read -p "Press any key"
+                  configure_JTA
+                  break
+               fi
             fi
             pattern=$parm
             replacement=$newValue
@@ -190,7 +209,7 @@ configure_global_JasperEngineURL() {
          done  
    else
    pattern="jasperEngineURL"
-   echo "Enter new value - format: 'failover://(tcp://<host:port>)': "
+   echo "Enter new value - format: host:port: "
    read replacement
    if echo $replacement | grep ["="] > /dev/null
    then
@@ -198,7 +217,15 @@ configure_global_JasperEngineURL() {
        configure_global_JasperEngineURL 
        break
    fi
-
+   var=$(echo $replacement | awk -F":" '{print $1,$2}')
+   set -- $var
+   replacement=$url_prefix$replacement$url_suffix
+   if [[ $2 -lt 1 || $2 -gt 65535 ]]; then
+      echo "Not a valid port. Must be from 1 - 65535"
+      read -p "Press any key"
+      configure_global_JasperEngineURL
+      break
+   fi
    echo "Set jasperEngineURL as $replacement in all JTAs? (y/n/q)"
    read choice
    if [ "$choice" == "n" ];then
