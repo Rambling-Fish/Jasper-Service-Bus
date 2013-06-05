@@ -89,7 +89,9 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     }
     
     public void disconnect(){
-    	stopAdminHandler();
+    	if(adminHandler != null){
+    		stopAdminHandler();
+    	}
     }
     
     /**

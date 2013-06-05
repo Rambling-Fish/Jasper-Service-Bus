@@ -263,7 +263,9 @@ public class JasperBroker extends BrokerFilter {
             session.close();
             connection.close();
         } catch (Exception e) {
-            logger.error("Exception caught while listening for broadcast events: ", e);
+        	if (!listenForBroadcastEventsExec.isShutdown()) {
+        		logger.error("Exception caught while listening for broadcast events: ", e);
+        	}
         }
     }
     
@@ -309,7 +311,9 @@ public class JasperBroker extends BrokerFilter {
             session.close();
             connection.close();
         } catch (Exception e) {
-            logger.error("Exception caught while listening for my events: ", e);
+        	if (!listenForMyEventsExec.isShutdown()) {
+        		logger.error("Exception caught while listening for my events: ", e);
+        	}
         }
     }
     
