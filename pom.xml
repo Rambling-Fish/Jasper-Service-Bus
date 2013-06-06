@@ -9,5 +9,6 @@
         <module>jTransport</module>
         <module>jasper-platform</module>
         <module>jsc</module>
+        <module>jasper</module>
     </modules>
 </project>
