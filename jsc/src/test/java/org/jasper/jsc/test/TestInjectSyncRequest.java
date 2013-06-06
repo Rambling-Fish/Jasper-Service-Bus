@@ -20,7 +20,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 
-import org.codehaus.jettison.json.JSONObject;
+//import org.codehaus.jettison.json.JSONObject;
 
 import com.jayway.jsonpath.JsonPath;
 
@@ -28,8 +28,8 @@ import com.jayway.jsonpath.JsonPath;
  * @author pierrerahme
  * 
  */
-public class InjectSyncRequest {
-	static Logger log = Logger.getLogger(InjectSyncRequest.class.getName());
+public class TestInjectSyncRequest {
+	static Logger log = Logger.getLogger(TestInjectSyncRequest.class.getName());
 	static final int threadCount = 2;
 	private final String QUEUE_NAME = "JClientQueue";
 	private final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
