@@ -11,4 +11,14 @@
         <module>jsc</module>
         <module>jasper</module>
     </modules>
+    <build>
+       <plugins>
+          <plugin>
+             <groupId>com.atlassian.maven.plugins</groupId>
+             <artifactId>maven-clover2-plugin</artifactId>
+             <version>3.1.11</version>
+          </plugin>
+       </plugins>
+    </build>
+
 </project>
