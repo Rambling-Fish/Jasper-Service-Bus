@@ -34,3 +34,5 @@ jta
 jasper:jtaDemo-EMR-C:2.0:jasperLab:2013-06-30
 jta
 jasper:jtaDemo-blood-pressure-monitor-B:2.0:jasperLab:2013-06-30
+jta
+jasper:jtaDemo-heart-rate-monitor-D:2.0:jasperLab:2013-06-30
