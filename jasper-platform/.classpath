@@ -3,7 +3,7 @@
 	<classpathentry kind="src" path="jsb/src/main/java"/>
 	<classpathentry kind="src" path="jsb/src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="var" path="M2_REPO/org/apache/activemq/activemq-all/5.7.0/activemq-all-5.7.0.jar" sourcepath="M2_REPO/org/apache/activemq/activemq-all/5.7.0/activemq-all-5.7.0-sources.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/activemq/activemq-all/5.8.0/activemq-all-5.8.0.jar" sourcepath="M2_REPO/org/apache/activemq/activemq-all/5.7.0/activemq-all-5.7.0-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/commons-codec/commons-codec/1.4/commons-codec-1.4.jar" sourcepath="M2_REPO/commons-codec/commons-codec/1.4/commons-codec-1.4-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.6/commons-lang-2.6.jar" sourcepath="M2_REPO/commons-lang/commons-lang/2.6/commons-lang-2.6-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/commons-net/commons-net/3.1/commons-net-3.1.jar" sourcepath="M2_REPO/commons-net/commons-net/3.1/commons-net-3.1-sources.jar"/>
@@ -11,19 +11,7 @@
 	<classpathentry kind="var" path="M2_REPO/org/jasper/jLib/jLib-jCommons-lib/2.0/jLib-jCommons-lib-2.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/jena/jena-core/2.10.0/jena-core-2.10.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/jena/jena-arq/2.10.0/jena-arq-2.10.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/com/hazelcast/hazelcast-all/2.6/hazelcast-all-2.6.jar"/>
 	<classpathentry kind="var" path="M2_REPO/junit/junit/4.9/junit-4.9.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/commons-codec-1.6.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/httpclient-4.2.3.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/httpcore-4.2.2.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/jcl-over-slf4j-1.6.4.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/jena-arq-2.10.0.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/jena-core-2.10.0.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/jena-iri-0.9.5.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/jena-tdb-0.10.0.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/log4j-1.2.16.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/slf4j-api-1.6.4.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/slf4j-log4j12-1.6.4.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/xercesImpl-2.10.0.jar"/>
-	<classpathentry kind="lib" path="/Users/abrahamwehbi/workspace_eclipse/apache-jena-2.10.0/lib/xml-apis-1.4.01.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

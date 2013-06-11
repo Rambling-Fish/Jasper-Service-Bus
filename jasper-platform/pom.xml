@@ -105,11 +105,16 @@
     </build>
 
     <dependencies>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-all</artifactId>
+			<version>5.8.0</version>
+		</dependency>
         <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-all</artifactId>
-            <version>5.7.0</version>
-        </dependency>
+			<groupId>javax.jmdns</groupId>
+			<artifactId>jmdns</artifactId>
+			<version>3.4.1</version>
+		</dependency>
         <dependency>
             <groupId>org.jasper.jTransport</groupId>
             <artifactId>jTransport-jasperEngine</artifactId>
