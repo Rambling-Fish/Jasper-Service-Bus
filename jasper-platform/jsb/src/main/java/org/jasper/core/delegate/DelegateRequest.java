@@ -1,12 +1,15 @@
 package org.jasper.core.delegate;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import javax.jms.DeliveryMode;
+import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
 import javax.jms.Message;
@@ -19,13 +22,12 @@ import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.broker.BrokerService;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonString;
 import org.apache.jena.atlas.json.JsonValue;
+import org.apache.log4j.Logger;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -36,12 +38,17 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 public class DelegateRequest implements Runnable {
 
+	private Delegate delegate;
 	private QueueConnection queueConnection;
 	private DelegateOntology jOntology;
 	private Message jmsRequest;
+	
+	private static Logger logger = Logger.getLogger("org.jasper");
 
 
-	public DelegateRequest(QueueConnection queueConnection, DelegateOntology jOntology, Message jmsRequest) {
+
+	public DelegateRequest(Delegate delegate, QueueConnection queueConnection, DelegateOntology jOntology, Message jmsRequest) {
+		this.delegate = delegate;
 		this.queueConnection = queueConnection;
 		this.jOntology = jOntology;
 		this.jmsRequest = jmsRequest;
@@ -58,27 +65,252 @@ public class DelegateRequest implements Runnable {
 	          	  handleJasperAdminMessage((JasperAdminMessage)obj);
 	        	}
 	        }else if(jmsRequest instanceof TextMessage){
-	  	  	  // Create a Session
-	        	QueueSession queueSession = queueConnection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
-	        	TextMessage txtMsg = (TextMessage) jmsRequest;
-	      	    String body = txtMsg.getText();
-	      	    String ruri = getRuri(body);
-	      	    JsonArray response = getResponse(ruri,body);
-	      	  String responseTxt;
-	      	    try{
-	      	    	responseTxt=(response == null)?"{}":response.toString();
-	      	    }catch (Exception e){
-	      	    	responseTxt="{}";
-	      	    }
-	      	    sendResponse(queueSession, txtMsg,responseTxt);
-	      	  queueSession.close();		
+	        	if(isOntologyRequest( (TextMessage) jmsRequest)){
+	        		handleOntologyRequest( (TextMessage) jmsRequest);
+	        	}else{
+	        		handleSynchronousRequest( (TextMessage) jmsRequest);
+	        	}	
+	        }else{
+	        	logger.warn("JMS Message neither ObjectMessage nor TextMessage, ignoring request : " + jmsRequest);
 	        }
 		}catch (Exception e){
 			e.printStackTrace();
 		}
 	}
 	
-	private void handleJasperAdminMessage(JasperAdminMessage jam) {
+	private boolean isOntologyRequest(TextMessage txtMsg) {
+			//TODO currently don't support ontology, only for demo.
+			return false;
+	}
+	
+	/*
+	 * Whenever an error is detected in incoming request rather than letting
+	 * the client timeout, the core responds with an empty JSON message.
+	 * Currently this occurs if incoming URI cannot be mapped to a JTA or the
+	 * incoming correlationID is not unique
+	 */
+	private void processInvalidRequest(TextMessage msg) throws Exception {
+		// Create a Session
+        Session jClientSession = queueConnection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+  	  	Destination jClientQueueDestination = msg.getJMSReplyTo();
+       
+        // Create a MessageProducer from the Session to the Queue
+        MessageProducer producer = jClientSession.createProducer(jClientQueueDestination);
+        producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+        producer.setTimeToLive(30000);
+
+        // For now we always send back empty JSON for all error scenarios
+        Message message = jClientSession.createTextMessage("{}");
+        if(msg.getJMSCorrelationID() == null){
+            message.setJMSCorrelationID(msg.getJMSMessageID());
+  	  	}else{
+            message.setJMSCorrelationID(msg.getJMSCorrelationID());
+  	  	}
+        
+        producer.send(message);
+
+        // Clean up
+        jClientSession.close();
+	}
+	
+	private void handleSynchronousRequest(TextMessage txtMsg) throws Exception {
+
+		String uri = txtMsg.getText();
+		Map<String, List<String>> jtaUriMap = delegate.getJtaUriMap();
+		
+	  	if(!jtaUriMap.containsKey(uri)){
+	      	  logger.error("URI " + uri + " in incoming request not found");
+	      	  processInvalidRequest(txtMsg);
+	  	  }else{
+	      	  String correlationID = txtMsg.getJMSCorrelationID();
+        	  if(correlationID == null){
+        		  if(logger.isInfoEnabled()){
+        			  logger.info("jmsCorrelationID is null, setting jmsCorrelationID to jmsMessageID : " + txtMsg.getJMSMessageID());
+        		  }
+        		  correlationID = txtMsg.getJMSMessageID();
+        	  }
+	      	  if(logger.isInfoEnabled()){
+	      		  logger.info("request getJMSCorrelationID = " + txtMsg.getJMSCorrelationID());
+	      		  logger.info("request getJMSReplyTo       = " + txtMsg.getJMSReplyTo());
+	      	  }
+  
+	      	  String[] req = new String[]{uri};
+	      	  
+              // TODO need to get multiple responses and coordinate replies
+              // for when multiple queues per URI
+	      	  String response = getResponseFromQueue(jtaUriMap.get(uri).get(0), req);
+	
+	      	  Session jClientSession = queueConnection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+	      	  Destination jClientQueueDestination = txtMsg.getJMSReplyTo();
+	       
+	      	  // Create a MessageProducer from the Session to the Queue
+	      	  MessageProducer producer = jClientSession.createProducer(jClientQueueDestination);
+	      	  producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+	      	  producer.setTimeToLive(30000);
+	      	  Message message = jClientSession.createTextMessage(response);
+	      	  message.setJMSCorrelationID(correlationID);
+			  producer.send(message);
+
+			  // Clean up
+			  jClientSession.close();
+	  	  }
+	
+	}
+	
+	private void handleOntologyRequest(TextMessage txtMsg) throws Exception {
+    	// Create a Session
+    	QueueSession queueSession = queueConnection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+  	    String request = txtMsg.getText();
+  	    String ruri = getRuri(request);
+  	    JsonArray response = getResponse(ruri,request);
+  	    String responseTxt;
+  	    try{
+  	    	responseTxt=(response == null)?"{}":response.toString();
+  	    }catch (Exception e){
+  	    	responseTxt="{}";
+  	    }
+  	    sendResponse(queueSession, txtMsg,responseTxt);
+  	    queueSession.close();			
+	}
+
+	private void handleJasperAdminMessage(JasperAdminMessage jam) throws Exception {
+		if(isUriUpdate(jam)){
+			handleJasperUriUpdateAdminMessage(jam);
+		}else if(isOntologyUpdate(jam)){
+			handleJasperOntologyAdminMessage(jam);
+		}else{
+			logger.warn("JasperAdminMessage neither Uri update nor Ontology update, ignorning message : " + jam);
+		}
+	}
+
+	private void handleJasperUriUpdateAdminMessage(JasperAdminMessage jam) throws Exception {
+		if(jam.getType() == Type.jtaDataManagement) {
+  			if(jam.getCommand() == Command.notify) {
+  				updateURIMaps(jam);
+  			}
+  			else if(jam.getCommand() == Command.publish) {
+  				notifyJTA(jam);
+  			}
+  			else if(jam.getCommand() == Command.delete) {
+  				cleanURIMaps(jam.getSrc());
+  			}
+  		}
+	}
+
+	private synchronized void updateURIMaps(JasperAdminMessage jam) throws Exception{
+		List<String> uriQueueList = new ArrayList<String>();
+		List<String> jtaQueueList = new ArrayList<String>();
+		String uri = jam.getDetails()[0];
+		String jtaName = jam.getDst();
+		
+		Map<String, List<String>> jtaUriMap = delegate.getJtaUriMap();
+		Map<String, List<String>> jtaQueueMap = delegate.getJtaQueueMap();
+		
+		// Add URI if it does not exist in map
+		if(!jtaUriMap.containsKey(uri)) {
+			uriQueueList.add(jam.getSrc());
+		}
+		else {
+			// URI (key) exists we want to add to the queue list
+			uriQueueList.clear();
+			uriQueueList = jtaUriMap.get(uri);
+			uriQueueList.add(jam.getSrc());
+		}
+		
+		jtaUriMap.put(uri, uriQueueList);
+		
+		// If JTAName exists then add to existing queue list
+		if(jtaQueueMap.containsKey(jtaName)) {
+			jtaQueueList.clear();
+			jtaQueueList = jtaQueueMap.get(jtaName);
+			jtaQueueList.add(jam.getSrc());
+		}
+		else {
+			jtaQueueList.add(jam.getSrc());
+		}
+		
+		jtaQueueMap.put(jtaName, jtaQueueList);
+		
+		if(logger.isInfoEnabled()) {
+			logger.info("Received " + jam.getCommand() + " from " + jam.getSrc() + " with details: " + uri);
+  		}
+	}
+
+	private synchronized void cleanURIMaps(String username) throws Exception {
+		
+		Map<String, List<String>> jtaUriMap = delegate.getJtaUriMap();
+		Map<String, List<String>> jtaQueueMap = delegate.getJtaQueueMap();
+
+		Iterator<String> uriIT = jtaUriMap.keySet().iterator();
+		List<String> queueList = new ArrayList<String>();
+		
+		queueList = jtaQueueMap.get(username);
+		
+		if(queueList != null) {
+			while(uriIT.hasNext()) {
+				String key= (String)uriIT.next(); 
+				List<String> values = jtaUriMap.get(key);
+				for(int i = 0; i < queueList.size(); i++) {
+					String tmp = queueList.get(i);
+					if(values.contains(tmp)) {
+						values.remove(tmp);
+					}
+				}
+			
+				if(values.isEmpty()) {
+					jtaUriMap.remove(key);
+					if(logger.isInfoEnabled()){
+						logger.info("Removed URI " + key + " for JTA " + username);
+					}
+				}
+			}
+		
+			jtaQueueMap.remove(username);
+		}
+	}
+
+	// Send message to JTA to republish its URI if it has one after
+	// JSB connection re-established (for single JSB deployment scenario only)
+	private void notifyJTA(JasperAdminMessage msg) {
+		String jtaQueueName = msg.getDetails()[0];
+		
+		try {
+
+			// Create a Session
+			Session session = queueConnection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+			// Create the destination (Topic or Queue)
+			Destination destination = session.createQueue(jtaQueueName);
+
+			// Create a MessageProducer from the Session to the Topic or Queue
+			MessageProducer producer = session.createProducer(destination);
+			producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+			producer.setTimeToLive(30000);
+
+			JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, "*",  "*", jtaQueueName);
+
+			Message message = session.createObjectMessage(jam);
+			producer.send(message);
+
+			// Clean up
+			session.close();
+		}
+		catch (Exception e) {
+			logger.error("Exception caught while notifying peers: ", e);
+		}
+	}
+
+	private boolean isUriUpdate(JasperAdminMessage jam) {
+		// TODO Auto-generated method stub
+		return true;
+	}
+
+	private boolean isOntologyUpdate(JasperAdminMessage jam) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	private void handleJasperOntologyAdminMessage(JasperAdminMessage jam) {
 		String uri = jam.getDetails()[0];
 		if(uri == null) return;
 		
@@ -194,22 +426,37 @@ public class DelegateRequest implements Runnable {
   				continue;
   			}
   			
-  			JsonObject reponse = JSON.parse(getResponseFromJTA(jta, q,valuePair));
+  			JsonObject reponse = JSON.parse(getResponseFromQueue(q,valuePair));
   			JsonValue r = reponse.get(provides);
   			result.add(r);
       	}
       	return result;
 	}
 
-	private String getResponseFromJTA(String jta, String q, Map<String, String> valuePair) throws JMSException {
+	private String getResponseFromQueue(String q, Object obj) throws JMSException {
 		QueueSession queueSession = queueConnection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
 		Queue queue = queueSession.createQueue(q);
 		QueueRequestor requestor = new QueueRequestor(queueSession, queue);
-		MapMessage msg = queueSession.createMapMessage();
+		Message msg;
 		
-	    for (String key : valuePair.keySet()) {
-	        msg.setObject(key, valuePair.get(key));
-	    }
+		if(obj instanceof Map){
+			msg = queueSession.createMapMessage();
+			Map valuePair = (Map)obj;
+		    for (Object key : valuePair.keySet()) {
+		    	if(key instanceof String){
+		    		((MapMessage)msg).setObject((String)key, valuePair.get(key));
+		    	}else{
+		    		logger.warn("Creating MapMessage however key not String, ignoring key and value pair : " + key);
+		    	}
+		    }
+		}else{
+			msg = queueSession.createObjectMessage();
+			if(obj instanceof Serializable){
+				((ObjectMessage)msg).setObject((Serializable)obj);
+			}else{
+				logger.warn("Creating objectMessage however obj not Serializable, not setting obj : " + obj);
+			}
+		}
 		
         String correlationID = UUID.randomUUID().toString();
         msg.setJMSCorrelationID(correlationID);
@@ -263,30 +510,5 @@ public class DelegateRequest implements Runnable {
 		}
 		return result;
 	}
-	
-	public static void main(String[] args) throws Exception{
-		 
-		BrokerService broker = new BrokerService();
-		broker.addConnector("tcp://0.0.0.0:61616");
-		broker.start();
-		
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
-        // Create a Connection
-        QueueConnection qc = connectionFactory.createQueueConnection();
-        qc.start(); 		
-		DelegateRequest dr = new DelegateRequest(qc, null, null);
-		
-		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-	    String input = "";
-	    while (input != null) {
-	        System.out.print("Queue leter : ");
-	        input = in.readLine();
-	        input = input.toLowerCase();
-			Map<String, String> valuePair = new HashMap<String, String>();
-			valuePair.put("p1", "v1");
-			String response = dr.getResponseFromJTA("jta", "jms.jasper.queue."+ input +".queue", valuePair);
-			System.out.println(response);
-	    }
-		
-	}
+
 }

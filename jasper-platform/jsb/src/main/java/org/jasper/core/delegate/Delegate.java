@@ -1,5 +1,7 @@
 package org.jasper.core.delegate;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -22,17 +24,29 @@ public class Delegate implements Runnable {
 	private boolean isShutdown;
 	private DelegateOntology jOntology;	
 	private ExecutorService delegateHandlers;
+	private Map<String, List<String>> jtaUriMap;
+	private Map<String, List<String>> jtaQueueMap;
 	
 	static Logger logger = Logger.getLogger("org.jasper");
 
-	public Delegate(String name,QueueConnection queueConnection, Model model) {
+	public Delegate(String name,QueueConnection queueConnection, Map<String, List<String>> jtaUriMap,  Map<String, List<String>> jtaQueueMap, Model model) {
 		this.name = name;
 		this.queueConnection  = queueConnection;
 		this.isShutdown  = false;
 		this.jOntology = new DelegateOntology(model);
+		this.jtaUriMap = jtaUriMap;
+		this.jtaQueueMap = jtaQueueMap;
 		delegateHandlers = Executors.newCachedThreadPool();
 	}
 	
+	public Map<String, List<String>> getJtaUriMap() {
+		return jtaUriMap;
+	}
+	
+	public Map<String, List<String>> getJtaQueueMap() {
+		return jtaQueueMap;
+	}	
+
 	public void shutdown(){
 		isShutdown = true;
 		delegateHandlers.shutdown();
@@ -63,7 +77,7 @@ public class Delegate implements Runnable {
 		          }while(jmsRequest == null && !isShutdown);
 		          if(isShutdown) break;
 		          
-		          delegateHandlers.submit(new DelegateRequest(queueConnection,jOntology,jmsRequest));        
+		          delegateHandlers.submit(new DelegateRequest(this, queueConnection,jOntology,jmsRequest));        
 
 		      }while(!isShutdown);
 		      
@@ -73,5 +87,5 @@ public class Delegate implements Runnable {
 		  } catch (Exception e) {
 		      logger.error("Exception caught while listening for request in delegate : " + name,e);
 		  }
-	}	
+	}
 }

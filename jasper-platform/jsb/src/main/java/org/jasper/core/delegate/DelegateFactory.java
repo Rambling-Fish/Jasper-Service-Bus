@@ -2,6 +2,7 @@ package org.jasper.core.delegate;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -10,9 +11,12 @@ import javax.jms.QueueConnection;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.config.GroupConfig;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.Resource;
 
 public class DelegateFactory{
 
@@ -32,14 +36,18 @@ public class DelegateFactory{
 	private static final String DELEGATE_DEFAULT_NAME = "jasperDelegate";
 	private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
 	private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
-	private static DelegateFactory factory;
+
 	private AtomicInteger count;
 	private QueueConnection queueConnection;
 	
 	private Model model;
 	
-	private DelegateFactory() throws JMSException{
-		initlalizeModel();
+	private Map<String,List<String>> jtaUriMap;
+	private Map<String, List<String>> jtaQueueMap;
+	
+	public DelegateFactory() throws JMSException{
+//		initializeModel();
+		initializeMaps();
 		
 		count = new AtomicInteger();
 		
@@ -51,7 +59,16 @@ public class DelegateFactory{
 		queueConnection.start(); 
 	}
 	
-	private void initlalizeModel() {
+	private void initializeMaps() {
+		Config cfg = new Config();
+		GroupConfig groupConfig = new GroupConfig("jasperLab", "jasperLabPasswordJune_05_2013_1510"); //TODO USE DEPLOYMENET ID
+		cfg.setGroupConfig(groupConfig);
+		HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(cfg);
+		jtaUriMap = hazelcastInstance.getMap("jtaUriMap");
+		jtaQueueMap = hazelcastInstance.getMap("jtaQueueMap");
+	}
+
+	private void initializeModel() {
 		model = ModelFactory.createDefaultModel();
 		
 		model.setNsPrefix("jasper", "http://coralcea.ca/jasper/");
@@ -77,14 +94,7 @@ public class DelegateFactory{
 		model.createResource("http://coralcea.ca/jasper/timeStamp");
 		model.createResource("http://coralcea.ca/jasper/medicalSensor/bloodPressure/sensorId");
 		model.createResource("http://coralcea.ca/jasper/medicalSensor/heartRate/sensorId");
-
-
 		
-	}
-
-	public static DelegateFactory getInstance() throws JMSException{
-		if(factory == null) factory = new DelegateFactory();
-		return factory;
 	}
 	
 	public Delegate createDelegate(){
@@ -92,6 +102,6 @@ public class DelegateFactory{
 	}
 	
 	public Delegate createDelegate(String name){
-		return new Delegate(name + "." + count.getAndIncrement(),queueConnection, model);
+		return new Delegate(name + "." + count.getAndIncrement(),queueConnection, jtaUriMap, jtaQueueMap, model);
 	}	
 }
