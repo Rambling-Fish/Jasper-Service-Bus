@@ -431,7 +431,10 @@ public class JasperBroker extends BrokerFilter {
         	 */
         	if(core.isJTAAuthenticationValid(info.getUserName(), info.getPassword())){
         		if(logger.isInfoEnabled()){
-        			logger.info("JTA authenticated : " + info.getUserName());
+        			if(info.getUserName().contains("jsc")) 
+        				logger.info("JSC authenticated : " + info.getUserName());
+        			else
+        				logger.info("JTA authenticated : " + info.getUserName());
         		}
         	}else if(core.willLicenseKeyExpireInDays(core.getJTALicense(JAuthHelper.hexToBytes(info.getPassword())), 0)){
         		logger.error("Valid JTA license key, however it has expired : " + info.getUserName());
@@ -446,7 +449,10 @@ public class JasperBroker extends BrokerFilter {
         	 */
         	if(core.isSystemDeploymentId(info.getUserName().split(":")[3])){
         		if(logger.isInfoEnabled()){
-        			logger.info("JTA deploymentId matches that of the system : " + info.getUserName().split(":")[3]);
+        			if(info.getUserName().contains("jsc"))
+        				logger.info("JSC deploymentId matches that of the system : " + info.getUserName().split(":")[3]);
+        			else
+        				logger.info("JTA deploymentId matches that of the system : " + info.getUserName().split(":")[3]);
         		}
         	}else{
         		logger.error("JTA deploymentId does not match that of the system. JTA deploymentId : " + info.getUserName().split(":")[3] + " and system deploymentId : " + JECore.getInstance().getDeploymentID());
@@ -463,7 +469,10 @@ public class JasperBroker extends BrokerFilter {
         		notifyPeers(Command.add, info.getPassword());
         		
         		//WARN level so that we log when a JTA has registered
-        		logger.warn("JTA registered on JSB : " + info.getUserName());
+        		if(info.getUserName().contains("jsc"))
+        			logger.warn("JSC registered on JSB : " + info.getUserName());
+        		else
+        			logger.warn("JTA registered on JSB : " + info.getUserName());
         	}else{
         		if(jtaConnectionInfoMap.containsKey(info.getPassword())){
 	        		ConnectionInfo oldAppInfo = jtaConnectionInfoMap.get(info.getPassword());
@@ -489,7 +498,10 @@ public class JasperBroker extends BrokerFilter {
 	public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error)throws Exception{
     	if(jtaConnectionInfoMap.get(info.getPassword()) != null ){
     		//WARN level so that we log when a JTA has de-registered
-    		logger.warn("JTA de-registered from JSB : " + info.getUserName());
+    		if(info.getUserName().contains("jsc"))
+    			logger.warn("JSC de-registered from JSB : " + info.getUserName());
+    		else
+    			logger.warn("JTA de-registered from JSB : " + info.getUserName());
 	    	jtaConnectionInfoMap.remove(info.getPassword());
     		notifyPeers(Command.delete,info.getPassword());
     		
