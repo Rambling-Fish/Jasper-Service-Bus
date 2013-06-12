@@ -23,7 +23,7 @@ import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerService;
 
 import org.jasper.core.constants.JasperConstants;
-import org.jasper.jCore.auth.JasperAuthenticationPlugin;
+import org.jasper.core.auth.JasperAuthenticationPlugin;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -40,6 +40,7 @@ public class TestDelegate  extends TestCase {
 	private Connection connection;
 	private DelegateFactory delegateFactory;
 	private ActiveMQConnectionFactory connectionFactory;
+	private Delegate delegate;
 	private Session session;
 	private Destination globalQueue;
 	private MessageProducer producer;
@@ -49,27 +50,28 @@ public class TestDelegate  extends TestCase {
 	
 	
 	/*
-	 * This test creates a pool of 3 delegates using the delegate factory
+	 * This test creates a pool of 2 delegates using the delegate factory
 	 */
 	@Test
 	public void testDelegateFactoryAndPool() throws Exception {
 		// Instantiate the delegate pool
 		ExecutorService executorService = Executors.newCachedThreadPool();
-		delegateFactory = DelegateFactory.getInstance();
-		Delegate[] delegates = new Delegate[3];
+		delegateFactory = new DelegateFactory();
+		Delegate delegateOne = delegateFactory.createDelegate("delegate");
+		Delegate delegateTwo = delegateFactory.createDelegate("delegate");
 		
-		for(int i=0;i<delegates.length;i++) {
-			delegates[i] = delegateFactory.createDelegate();
-			executorService.execute(delegates[i]);
-		} 
+		executorService.execute(delegateOne); 
+		executorService.execute(delegateTwo); 
 		
-			Assert.assertEquals(delegates.length, 3);
-			Assert.assertNotNull(delegateFactory);
-			for(int i=0;i<delegates.length;i++) {
-				delegates[i].shutdown();
-			}
+		Assert.assertNotNull(delegateOne);
+		Assert.assertNotNull(delegateTwo);
+		Assert.assertNotNull(delegateFactory);
+		
+		delegateOne.shutdown();
+		delegateTwo.shutdown();
+		delegateFactory = null;
 			
-			Thread.sleep(3000);
+		Thread.sleep(3000);
 	}
 		
 	/*
@@ -79,28 +81,32 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testDelegateMaps() throws Exception {
-		delegateFactory = DelegateFactory.getInstance();
-		delegateFactory.jtaUriMap.clear();
+		delegateFactory = new DelegateFactory();
+		delegate = delegateFactory.createDelegate();
+		delegate.getJtaUriMap().clear();
+
 		for(int i = 0; i < 5; i++) {
 			List<String> l = new ArrayList<String>();
 			l.add(TEST_QUEUE+i);
-			delegateFactory.jtaUriMap.put(TEST_URI+i, l);
-			delegateFactory.jtaQueueMap.put(TEST_JTA_NAME+i, l);
+			delegate.getJtaUriMap().put(TEST_URI+i, l);
+			delegate.getJtaQueueMap().put(TEST_JTA_NAME+i, l);
 		}
-		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 5);
-		Assert.assertEquals(delegateFactory.jtaQueueMap.size(), 5);
+		Assert.assertEquals(delegate.getJtaUriMap().size(), 5);
+		Assert.assertEquals(delegate.getJtaQueueMap().size(), 5);
 		
-		delegateFactory.jtaUriMap.remove(TEST_URI+3);
-		delegateFactory.jtaQueueMap.remove(TEST_JTA_NAME+0);
-		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 4);
-		Assert.assertEquals(delegateFactory.jtaQueueMap.size(), 4);
+		delegate.getJtaUriMap().remove(TEST_URI+3);
+		delegate.getJtaQueueMap().remove(TEST_JTA_NAME+0);
+		Assert.assertEquals(delegate.getJtaUriMap().size(), 4);
+		Assert.assertEquals(delegate.getJtaQueueMap().size(), 4);
 		
 		// test NPE exception with null map key
 		try {
-			delegateFactory.jtaUriMap.put(null, null);
+			delegate.getJtaUriMap().put(null, null);
 		} catch(Exception ex) {
 			Assert.assertNotNull(ex);
 		}
+		delegateFactory = null;
+		delegate = null;
 	}
 	
 	/*
@@ -108,10 +114,9 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testJTAMap() throws Exception {
-		setUpConnection(2);
-		DelegateFactory factory = DelegateFactory.getInstance();
-		factory.jtaQueueMap.clear();
-		factory.jtaUriMap.clear();
+		setUpConnection(1);
+		delegates[0].getJtaUriMap().clear();
+		delegates[0].getJtaQueueMap().clear();
 
 		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE+"1", TEST_JTA_NAME, TEST_URI);
 		JasperAdminMessage jam2 = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE+"2", TEST_JTA_NAME, TEST_URI);
@@ -124,7 +129,9 @@ public class TestDelegate  extends TestCase {
 		producer.send(message);
 		Thread.sleep(1000);
 		
-		Assert.assertEquals(delegateFactory.jtaQueueMap.size(), 1);
+		Assert.assertEquals(delegates[0].getJtaQueueMap().size(), 1);
+		
+		tearDown();
 		
 	}
 	
@@ -134,16 +141,17 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testPublishURI() throws Exception {
-		setUpConnection(2);
-		
-		DelegateFactory factory = DelegateFactory.getInstance();
-		factory.jtaUriMap.clear();
+		setUpConnection(1);
+		delegates[0].getJtaUriMap().clear();
 
 		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE, JasperConstants.DELEGATE_GLOBAL_QUEUE, TEST_URI);
         
 		message = session.createObjectMessage(jam);
 		producer.send(message);
 		Thread.sleep(1000);
+		
+		Assert.assertEquals(delegates[0].getJtaUriMap().keySet().isEmpty(), false);
+		
 		tearDownConnection();
 
 	}
@@ -156,9 +164,8 @@ public class TestDelegate  extends TestCase {
 	public void testWhitespaceURI() throws Exception {
 		setUpConnection(1);
 		
-		DelegateFactory factory = DelegateFactory.getInstance();
 		Destination jtaQueue = session.createQueue(TEST_QUEUE);
-		factory.jtaUriMap.clear();
+		delegates[0].getJtaUriMap().clear();
 
 		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE, JasperConstants.DELEGATE_GLOBAL_QUEUE, WHITESPACE_URI);
      
@@ -171,7 +178,6 @@ public class TestDelegate  extends TestCase {
 		Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	    MessageConsumer jtaConsumer = jtaSession.createConsumer(jtaQueue);
 	    Message jClientRequest;
-	    Message jtaResponse;
 		
 		message = session.createTextMessage(TEST_URI);
 		message.setJMSCorrelationID(null);
@@ -195,7 +201,7 @@ public class TestDelegate  extends TestCase {
 			 Assert.assertNotNull(txtMsg.getText());
 		 }
 
-		 // reply back to delegate with empty response from JTA if valid reply
+		 // the reply should contain the uri with out spaces
 		 if(jClientRequest != null && jClientRequest instanceof ObjectMessage) {
 			ObjectMessage objMessage = (ObjectMessage) jClientRequest;
             Object obj = objMessage.getObject();
@@ -223,13 +229,13 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testEndToEndMessaging() throws Exception {
-		setUpConnection(2);
+		setUpConnection(1);
 		
 		// Setup so delegate will forward request back here (JTA)
 		Destination jtaQueue = session.createQueue(TEST_QUEUE);
 		List<String> l = new ArrayList<String>();
 		l.add(TEST_QUEUE);
-		delegateFactory.jtaUriMap.put(TEST_URI, l);
+		delegates[0].getJtaUriMap().put(TEST_URI, l);
 		
 		// Setup consumer to receive message from delegate (i.e. pretend to be a JTA)
 		Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -259,26 +265,13 @@ public class TestDelegate  extends TestCase {
 			 Assert.assertNotNull(txtMsg.getText());
 		 }
 
-		 // reply back to delegate with empty response from JTA if valid reply
+		 // check that delegate forward message back here
 		 if(jClientRequest != null && jClientRequest instanceof ObjectMessage) {
-			 session  = null;
-			 producer = null;
-		 
-			 Destination delegateUniqueQueue = jClientRequest.getJMSReplyTo();
-			 session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			 producer = session.createProducer(delegateUniqueQueue);
-		 
-			 jtaResponse = session.createTextMessage(EMPTY_JTA_RESPONSE);
-			 jtaResponse.setJMSDestination(jClientRequest.getJMSReplyTo());
-			 jtaResponse.setJMSCorrelationID(jClientRequest.getJMSCorrelationID());
-
-			 producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-			 producer.setTimeToLive(30000);
-			 session.createQueue(delegateUniqueQueue.toString());
-			 producer.send(jtaResponse);
-			 Thread.sleep(1000);
+			 ObjectMessage objMsg = (ObjectMessage)jClientRequest;
+			 Object obj = objMsg.getObject();
+			 Assert.assertNotNull(obj);
 		 } 
-			
+		
 		tearDownConnection();
 	}
 	
@@ -289,16 +282,15 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testNotifyAdminMessage() throws Exception {
-		setUpConnection(2);
-		
-		DelegateFactory factory = DelegateFactory.getInstance();
-		factory.jtaUriMap.clear();
+		setUpConnection(1);
+		delegates[0].getJtaUriMap().clear();
 
 		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.publish, TEST_QUEUE, JasperConstants.DELEGATE_GLOBAL_QUEUE, TEST_URI);
         
 		message = session.createObjectMessage(jam);
 		producer.send(message);
 		Thread.sleep(1000);
+		
 		tearDownConnection();
 
 	}
@@ -315,7 +307,7 @@ public class TestDelegate  extends TestCase {
 		Destination jtaQueue = session.createQueue(TEST_QUEUE);
 		List<String> l = new ArrayList<String>();
 		l.add(TEST_QUEUE);
-		delegateFactory.jtaUriMap.put(TEST_URI, l);
+		delegates[0].getJtaUriMap().put(TEST_URI, l);
 		
 		message = session.createTextMessage(TEST_URI);
 		String corrId = "1234";
@@ -373,14 +365,13 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testRemoveURI() throws Exception {
-		setUpConnection(2);
+		setUpConnection(1);
 		
 		// manually add uri to internal hashmap
-		delegateFactory = DelegateFactory.getInstance();
 		List<String> l = new ArrayList<String>();
 		l.add(TEST_QUEUE);
-		delegateFactory.jtaUriMap.put(TEST_URI, l);
-		delegateFactory.jtaQueueMap.put(TEST_JTA_NAME, l);
+		delegates[0].getJtaUriMap().put(TEST_URI, l);
+		delegates[0].getJtaQueueMap().put(TEST_JTA_NAME, l);
 
 		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, TEST_JTA_NAME, JasperConstants.DELEGATE_GLOBAL_QUEUE, TEST_URI);
         
@@ -389,13 +380,14 @@ public class TestDelegate  extends TestCase {
 		Thread.sleep(1000);
 		
 		tearDownConnection();
-		
+
 	}	
 	
 	private void setUpConnection(int numDelegates) throws Exception {
 		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
-		 delegateFactory = DelegateFactory.getInstance();
-		 delegateFactory.jtaUriMap.clear();
+		 delegateFactory = new DelegateFactory();
+		 delegate = delegateFactory.createDelegate();
+		 delegate.getJtaUriMap().clear();
 
         // Create a Connection
         connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
