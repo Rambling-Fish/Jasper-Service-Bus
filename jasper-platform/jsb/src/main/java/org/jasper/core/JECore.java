@@ -52,6 +52,8 @@ public class JECore {
 	private List<Delegate> delegates = new ArrayList<Delegate>();
 
 	private String brokerTransportIp;
+
+	private DelegateFactory delegateFactory;
 	
 	private static JECore instance;
 	
@@ -150,7 +152,7 @@ public class JECore {
 		
 		// Instantiate the delegate pool
 		delegateService = Executors.newCachedThreadPool();
-		DelegateFactory delegateFactory = new DelegateFactory();
+		delegateFactory = new DelegateFactory();
 		delegates.add(delegateFactory.createDelegate());
 		
 		for(Delegate d:delegates) delegateService.execute(d);
@@ -349,6 +351,7 @@ public class JECore {
 		for(Delegate d:delegates) d.shutdown();
 		
 		delegateService.shutdown();
+		delegateFactory.shutdown();
 		
 		try {
 			broker.stop();

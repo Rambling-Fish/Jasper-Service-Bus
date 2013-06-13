@@ -44,6 +44,7 @@ public class DelegateFactory{
      
     private Map<String,List<String>> jtaUriMap;
     private Map<String, List<String>> jtaQueueMap;
+	private HazelcastInstance hazelcastInstance;
      
     public DelegateFactory() throws JMSException{
 //      initializeModel();
@@ -63,9 +64,27 @@ public class DelegateFactory{
         Config cfg = new Config();
         GroupConfig groupConfig = new GroupConfig("jasperLab", "jasperLabPasswordJune_05_2013_1510"); //TODO USE DEPLOYMENET ID
         cfg.setGroupConfig(groupConfig);
-        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(cfg);
+        hazelcastInstance = Hazelcast.newHazelcastInstance(cfg);
         jtaUriMap = hazelcastInstance.getMap("jtaUriMap");
         jtaQueueMap = hazelcastInstance.getMap("jtaQueueMap");
+    }
+    
+    public void shutdown(){
+    	hazelcastInstance.getLifecycleService().shutdown();
+    	int count = 0;
+		try {
+	    	while(hazelcastInstance.getLifecycleService().isRunning()){
+				Thread.sleep(500);
+	    		count++;
+	    		if(count > 20){
+	    			hazelcastInstance.getLifecycleService().kill();
+	    			break;
+	    		}
+	    	}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
  
     private void initializeModel() {
