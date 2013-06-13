@@ -29,6 +29,7 @@ unzipFiles()
 
 deploy()
 {
+    unzipFiles
     clear
     PS3='Please select JTA to deploy: '
     echo "JTA deployment"
@@ -64,6 +65,7 @@ deploy()
 
 undeploy()
 {
+    unzipFiles
     clear
     PS3='Please select JTA to undeploy: '
     echo "JTA undeployment"
