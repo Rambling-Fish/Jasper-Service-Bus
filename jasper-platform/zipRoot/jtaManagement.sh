@@ -36,6 +36,10 @@ deploy()
     echo "---------------"
     echo
     JTAList=`ls JTAs`
+    LicenseSuffix="jta-license.key"
+    LicensePrefix=""
+    LicenseFilename=""
+    ValidLicense="n"
     get_m_pid 
     if [ -z "$M_PID" ]; then
               echo "Cannot deploy when JTA Server is not running. Use './jasper.sh start jta'"
@@ -55,6 +59,13 @@ deploy()
             break
             ;;
         *)
+            checkLicense
+            if [[ $ValidLicense != 'y' ]]; then
+               echo ""
+               read -p "Cannot deploy $CHOICE - License key file is missing"
+               deploy
+               break
+            fi
             echo ""
             echo "$CHOICE is being deployed...please wait"
             sleep 10s
@@ -261,6 +272,17 @@ configure_global_JasperEngineURL() {
       fi
    fi
    fi
+}
+
+checkLicense()
+{
+   LicensePrefix=`echo "$CHOICE" | rev | cut -c 4- | rev`
+   LicenseFilename="$LicensePrefix$LicenseSuffix"
+   if [ -f JTAs/"$CHOICE"/"$LicenseFilename" ]; then
+      ValidLicense='y'
+   else
+      ValidLicense='n'
+  fi
 }
 
 menuScreen()
