@@ -55,7 +55,11 @@ deploy()
             break
             ;;
         *)
+            echo ""
+            echo "$CHOICE is being deployed...please wait"
+            sleep 10s
             mv JTAs/"$CHOICE" jsb-core/mule-standalone-3.3.0/apps/"$CHOICE" 
+            sleep 5s
             deploy
             break
         ;;
@@ -94,8 +98,12 @@ undeploy()
             break
             ;;
         *)
+           echo ""
+           echo "$CHOICE is being undeployed...please wait"
+           sleep 10s
            cp -rf jsb-core/mule-standalone-3.3.0/apps/"$CHOICE" JTAs/"$CHOICE"
            rm jsb-core/mule-standalone-3.3.0/apps/"$CHOICE"-anchor.txt
+           sleep 5s
            undeploy
            break
         ;;
