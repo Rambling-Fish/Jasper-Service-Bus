@@ -6,6 +6,10 @@ jsb
 jasperLab:0:2013-6-30
 jsb
 jasperLab:1:2013-6-30
+jsb
+jasperLab:2:2013-6-30
+jsb
+jasperLab:3:2013-6-30
 jta
 jasper:jta-client-metpx:2.0:jasperLab:2013-6-30
 jta
@@ -26,3 +30,9 @@ jta
 jasper:jtaDemo-interface-airport-map:2.0:jasperLab:2013-6-30
 jta
 jasper:jtaDemo-heart-rate-monitor-A:2.0:jasperLab:2013-06-30
+jta
+jasper:jtaDemo-EMR-C:2.0:jasperLab:2013-06-30
+jta
+jasper:jtaDemo-blood-pressure-monitor-B:2.0:jasperLab:2013-06-30
+jta
+jasper:jtaDemo-heart-rate-monitor-D:2.0:jasperLab:2013-06-30

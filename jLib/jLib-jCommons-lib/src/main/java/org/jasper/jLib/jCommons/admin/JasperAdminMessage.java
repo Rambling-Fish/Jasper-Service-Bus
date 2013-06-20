@@ -10,7 +10,7 @@ public class JasperAdminMessage implements Serializable{
 		jsbClusterManagement,
 		jtaDataManagement
 	}
-	
+
 	public enum Command{
 		add,
 		delete,
@@ -18,13 +18,13 @@ public class JasperAdminMessage implements Serializable{
 		publish,
 		update
 	}
-	
+
 	private Type type;
 	private Command command;
 	private String src;
 	private String dst;
 	private String[] details;
-	
+
 	public JasperAdminMessage(Type type, Command command, String src, String dst, String... details) {
 		this.type = type;
 		this.command = command;
@@ -44,13 +44,13 @@ public class JasperAdminMessage implements Serializable{
 	public String getSrc() {
 		return src;
 	}
-	
+
 	public String getDst() {
 		return dst;
 	}
-	
+
 	public String[] getDetails() {
 		return details;
 	}
-	
+
 }
