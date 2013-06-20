@@ -86,6 +86,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     				super.connect();
     		
     				if(endpointUriMap.size() > 0) {
+    					publishURI();
     					initializeAdminHandler();
     				}	
     			}
