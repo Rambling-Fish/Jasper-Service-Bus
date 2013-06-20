@@ -4,12 +4,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
  
 import javax.jms.JMSException;
 import javax.jms.QueueConnection;
  
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.jasper.core.JECore;
  
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
@@ -25,8 +27,8 @@ public class DelegateFactory{
     static {
         Map<String, String> aMap = new HashMap<String, String>();
         aMap.put("patientId", "http://coralcea.ca/jasper/patient/id");
-        aMap.put("hrsId"     , "http://coralcea.ca/jasper/medicalSensor/heartRate/sensorId");
-        aMap.put("bpsId"     , "http://coralcea.ca/jasper/medicalSensor/bloodPressure/sensorId");
+        aMap.put("hrsId"    , "http://coralcea.ca/jasper/medicalSensor/heartRate/sensorId");
+        aMap.put("bpsId"    , "http://coralcea.ca/jasper/medicalSensor/bloodPressure/sensorId");
         aMap.put("msData"   , "http://coralcea.ca/jasper/medicalSensor/data");
         aMap.put("hrData"   , "http://coralcea.ca/jasper/medicalSensor/heartRate/data");
         aMap.put("bpData"   , "http://coralcea.ca/jasper/medicalSensor/bloodPressure/data");
@@ -41,15 +43,32 @@ public class DelegateFactory{
     private QueueConnection queueConnection;
      
     private Model model;
-     
+    
     private Map<String,List<String>> jtaUriMap;
     private Map<String, List<String>> jtaQueueMap;
 	private HazelcastInstance hazelcastInstance;
-     
-    public DelegateFactory() throws JMSException{
+    
+	public DelegateFactory() throws JMSException{
+		this(false,null,null);
+	}
+	
+    public DelegateFactory(boolean distributed, String clusterName, String clusterPassword) throws JMSException{
 //      initializeModel();
-        initializeMaps();
-         
+    	   	
+    	if(distributed){
+	        Config cfg = new Config();
+	        if(clusterName != null && clusterPassword != null && !"".equals(clusterName) && !"".equals(clusterPassword)){
+	        	GroupConfig groupConfig = new GroupConfig(clusterName, clusterPassword);
+		        cfg.setGroupConfig(groupConfig);
+	        }
+	        hazelcastInstance = Hazelcast.newHazelcastInstance(cfg);
+	        jtaUriMap = hazelcastInstance.getMap("jtaUriMap");
+	        jtaQueueMap = hazelcastInstance.getMap("jtaQueueMap");
+    	}else{
+    		jtaUriMap = new ConcurrentHashMap<String, List<String>>();
+    		jtaQueueMap = new ConcurrentHashMap<String, List<String>>();
+    		
+    	}         
         count = new AtomicInteger();
          
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
@@ -59,32 +78,25 @@ public class DelegateFactory{
         queueConnection = connectionFactory.createQueueConnection();
         queueConnection.start(); 
     }
-     
-    private void initializeMaps() {
-        Config cfg = new Config();
-        GroupConfig groupConfig = new GroupConfig("jasperLab", "jasperLabPasswordJune_05_2013_1510"); //TODO USE DEPLOYMENET ID
-        cfg.setGroupConfig(groupConfig);
-        hazelcastInstance = Hazelcast.newHazelcastInstance(cfg);
-        jtaUriMap = hazelcastInstance.getMap("jtaUriMap");
-        jtaQueueMap = hazelcastInstance.getMap("jtaQueueMap");
-    }
     
     public void shutdown(){
-    	hazelcastInstance.getLifecycleService().shutdown();
-    	int count = 0;
-		try {
-	    	while(hazelcastInstance.getLifecycleService().isRunning()){
-				Thread.sleep(500);
-	    		count++;
-	    		if(count > 20){
-	    			hazelcastInstance.getLifecycleService().kill();
-	    			break;
-	    		}
-	    	}
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+    	if(hazelcastInstance != null){
+	    	hazelcastInstance.getLifecycleService().shutdown();
+	    	int count = 0;
+			try {
+		    	while(hazelcastInstance.getLifecycleService().isRunning()){
+					Thread.sleep(500);
+		    		count++;
+		    		if(count > 20){
+		    			hazelcastInstance.getLifecycleService().kill();
+		    			break;
+		    		}
+		    	}
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
     }
  
     private void initializeModel() {

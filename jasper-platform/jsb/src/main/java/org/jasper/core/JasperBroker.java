@@ -39,7 +39,7 @@ public class JasperBroker extends BrokerFilter {
 	
 	public static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
 	
-	private IMap<String,JtaInfo> jtaInfoMap;
+	private Map<String,JtaInfo> jtaInfoMap;
 	
 	/*
 	 * Map will store known connections to prevent multiple JTAs from using same JTA license key
@@ -73,12 +73,17 @@ public class JasperBroker extends BrokerFilter {
         super(next);
         core = JECore.getInstance();
         
-        Config cfg = new Config();
-		GroupConfig groupConfig = new GroupConfig("jasperLab", "jasperLabPasswordJune_05_2013_1510");  ////TODO ADD DEPLOYEMENT ID TO USERNAME
-		cfg.setGroupConfig(groupConfig);
-		HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(cfg);
-		
-		jtaInfoMap = hazelcastInstance.getMap("jtaInfoMap");
+        if(core.isClusterEnabled()){
+            Config cfg = new Config();
+    		GroupConfig groupConfig = new GroupConfig(core.getDeploymentID(), core.getDeploymentID() + "password_june_05_2013_1510");
+    		cfg.setGroupConfig(groupConfig);
+    		HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(cfg);
+    		
+    		jtaInfoMap = hazelcastInstance.getMap("jtaInfoMap");
+        }else{
+        	jtaInfoMap = new ConcurrentHashMap<String, JtaInfo>();
+        }
+        
         jsbConnectionInfoMap = new ConcurrentHashMap<String, ConnectionInfo>();
         jtaConnectionContextMap = new ConcurrentHashMap<String, ConnectionContext>();
     }
@@ -133,7 +138,7 @@ public class JasperBroker extends BrokerFilter {
 
 	private void cleanRemoteJtaMap(String jsbInstance) {
 		logger.info("removing all JTA license keys from remote map for jsb : " + jsbInstance);
-		jtaInfoMap.lockMap(30, TimeUnit.SECONDS);
+		if(jtaInfoMap instanceof IMap)((IMap)jtaInfoMap).lockMap(30, TimeUnit.SECONDS);
 		JtaInfo jtaInfo;
 		for(String key:jtaInfoMap.keySet()){
 			jtaInfo = jtaInfoMap.get(key);
@@ -143,7 +148,7 @@ public class JasperBroker extends BrokerFilter {
 				jtaConnectionContextMap.remove(key);
 			}
 		}
-		jtaInfoMap.unlockMap();
+		if(jtaInfoMap instanceof IMap)((IMap)jtaInfoMap).unlockMap();
 	}
    
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
@@ -300,7 +305,7 @@ public class JasperBroker extends BrokerFilter {
     }
 	
 	private void logJtaInfoMap() {
-		jtaInfoMap.lockMap(30, TimeUnit.SECONDS);
+		if(jtaInfoMap instanceof IMap)((IMap)jtaInfoMap).lockMap(30, TimeUnit.SECONDS);
 		JtaInfo jtaInfo;
 		StringBuilder sb = new StringBuilder();
 
@@ -309,7 +314,7 @@ public class JasperBroker extends BrokerFilter {
 			jtaInfo = jtaInfoMap.get(key);
 			sb.append("jta = " + jtaInfo.getJtaName() + " - connected to jsb = " + jtaInfo.getJsbConnectedTo() + "\n");
 		}
-		jtaInfoMap.unlockMap();
+		if(jtaInfoMap instanceof IMap)((IMap)jtaInfoMap).unlockMap();
 		sb.append("-----  JTA dist map  end  ----\n");
 		logger.info(sb.toString());
 	}

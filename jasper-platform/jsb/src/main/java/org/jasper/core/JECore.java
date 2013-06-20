@@ -54,6 +54,8 @@ public class JECore {
 	private String brokerTransportIp;
 
 	private DelegateFactory delegateFactory;
+
+	private boolean clusterEnabled;
 	
 	private static JECore instance;
 	
@@ -119,7 +121,10 @@ public class JECore {
     				connector = new JsbTransportConnector("tcp://"+ brokerTransportIp + ":61616?maximumConnections=1000&wireformat.maxFrameSize=104857600");	
     			}
     			
-    			if(!prop.getProperty("jsbClusterEnabled", "true").equalsIgnoreCase("false")){
+    			//clusteredEnable is by default false, only set to false if false 
+    			clusterEnabled = prop.getProperty("jsbClusterEnabled", "false").equalsIgnoreCase("true");
+    			
+    			if(isClusterEnabled()){
     				NetworkConnector networkConnector = broker.addNetworkConnector("multicast://224.1.2.3:6255?group=" + getJSBLicense().getDeploymentId());
     				networkConnector.setUserName(getJSBLicense().getDeploymentId() + ":" + getJSBLicense().getInstanceId());
     				networkConnector.setPassword(JAuthHelper.bytesToHex((getJSBLicense().getLicenseKey())));
@@ -139,6 +144,10 @@ public class JECore {
     	}
 	}
 	
+	public boolean isClusterEnabled() {
+		return clusterEnabled;
+	}
+
 	public String getBrokerTransportIp() {
 		return brokerTransportIp;
 	}
@@ -152,7 +161,7 @@ public class JECore {
 		
 		// Instantiate the delegate pool
 		delegateService = Executors.newCachedThreadPool();
-		delegateFactory = new DelegateFactory();
+		delegateFactory = new DelegateFactory(isClusterEnabled(),getDeploymentID(),getDeploymentID() + "_password_2013_jun_20_1030");
 		delegates.add(delegateFactory.createDelegate());
 		
 		for(Delegate d:delegates) delegateService.execute(d);
