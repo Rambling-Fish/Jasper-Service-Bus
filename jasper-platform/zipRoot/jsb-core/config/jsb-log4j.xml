@@ -18,11 +18,10 @@
    </appender>
    <!-- jasper logging -->
    <logger name="org.jasper" additivity="false">
-      <level value="INFO"/>
+      <level value="WARN"/>
       <appender-ref ref="stdout"/>
       <appender-ref ref="JTALogger"/>
    </logger>
-   <!-- default mule logging -->
    <root>
       <level value="WARN" />
       <appender-ref ref="stdout" />
