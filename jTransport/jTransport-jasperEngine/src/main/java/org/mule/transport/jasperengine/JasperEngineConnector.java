@@ -1,8 +1,11 @@
 package org.mule.transport.jasperengine;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,16 +80,21 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 		}
     }
     
-    public void connect() {
-    	try {
-    		super.connect();
+    public void connect() throws Exception{
+    	if(!willLicenseKeyExpireInDays(license, 0)){
+    			try {
+    				super.connect();
     		
-    		if(endpointUriMap.size() > 0) {
-    			initializeAdminHandler();
-    		}	
+    				if(endpointUriMap.size() > 0) {
+    					initializeAdminHandler();
+    				}	
+    			}
+    			catch (Exception e) {
+    				e.printStackTrace();
+    			}
     	}
-    	catch (Exception e) {
-    		e.printStackTrace();
+    	else{
+    		throw new DefaultMuleException("Invalid JTA license key");
     	}
     	
     }
@@ -234,6 +242,17 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     			 (license.getAppName().equals(appName)) &&
     			 (license.getVersion().equals(version)) &&
     			 (license.getDeploymentId().equals(deploymentId)) );
+	}
+    
+    private boolean willLicenseKeyExpireInDays(JTALicense license, int days) {
+		if(license.getExpiry() == null){
+			return false;
+		}else{
+			Calendar currentTime;
+			currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+			currentTime.add(Calendar.DAY_OF_YEAR, days);
+			return currentTime.after(license.getExpiry());
+		}		
 	}
   
 	public String getVendor() {
