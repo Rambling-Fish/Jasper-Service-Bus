@@ -1,11 +1,16 @@
 package org.mule.transport.jasperengine;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -38,6 +43,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 	private Map<String,String> endpointUriMap;
 	protected boolean isAdminHandlerStopped;
 	private ExecutorService adminHandler;
+	private Future adminTask;
 	
     /* This constant defines the main transport protocol identifier */
     public static final String JASPERENGINE = "jasperengine";
@@ -74,16 +80,21 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 		}
     }
     
-    public void connect() {
-    	try {
-    		super.connect();
+    public void connect() throws Exception{
+    	if(!willLicenseKeyExpireInDays(license, 0)){
+    			try {
+    				super.connect();
     		
-    		if(endpointUriMap.size() > 0) {
-    			initializeAdminHandler();
-    		}	
+    				if(endpointUriMap.size() > 0) {
+    					initializeAdminHandler();
+    				}	
+    			}
+    			catch (Exception e) {
+    				e.printStackTrace();
+    			}
     	}
-    	catch (Exception e) {
-    		e.printStackTrace();
+    	else{
+    		throw new DefaultMuleException("Invalid JTA license key");
     	}
     	
     }
@@ -146,7 +157,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 						      adminSession.close();
 						     
 						  } catch (Exception e) {
-						      logger.error("Exception received while listening for admin message",e);
+							  logger.error("Exception received while listening for admin message",e);
 						      isAdminHandlerStopped = true;
 						  }
 					}
@@ -156,12 +167,31 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 		    	}
 			}
 		};;;
-		adminHandler.submit(task);
+		adminTask = adminHandler.submit(task);
     }
 
     private void stopAdminHandler() {
     	isAdminHandlerStopped = true;
+    	
+    	int count = 10;
+    	while(!adminTask.isDone() && count > 0){
+    		try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			count--;
+    	}
+    	if(!adminTask.isDone()) adminTask.cancel(true);
     	adminHandler.shutdown();
+    	try {
+			adminHandler.awaitTermination(10, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	if(!adminHandler.isTerminated()) adminHandler.shutdownNow();
 	} 	
     
     
@@ -212,6 +242,17 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     			 (license.getAppName().equals(appName)) &&
     			 (license.getVersion().equals(version)) &&
     			 (license.getDeploymentId().equals(deploymentId)) );
+	}
+    
+    private boolean willLicenseKeyExpireInDays(JTALicense license, int days) {
+		if(license.getExpiry() == null){
+			return false;
+		}else{
+			Calendar currentTime;
+			currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+			currentTime.add(Calendar.DAY_OF_YEAR, days);
+			return currentTime.after(license.getExpiry());
+		}		
 	}
   
 	public String getVendor() {

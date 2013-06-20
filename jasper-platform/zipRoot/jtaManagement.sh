@@ -29,12 +29,17 @@ unzipFiles()
 
 deploy()
 {
+    unzipFiles
     clear
     PS3='Please select JTA to deploy: '
     echo "JTA deployment"
     echo "---------------"
     echo
     JTAList=`ls JTAs`
+    LicenseSuffix="jta-license.key"
+    LicensePrefix=""
+    LicenseFilename=""
+    ValidLicense="n"
     get_m_pid 
     if [ -z "$M_PID" ]; then
               echo "Cannot deploy when JTA Server is not running. Use './jasper.sh start jta'"
@@ -54,7 +59,18 @@ deploy()
             break
             ;;
         *)
+            checkLicense
+            if [[ $ValidLicense != 'y' ]]; then
+               echo ""
+               read -p "Cannot deploy $CHOICE - License key file is missing"
+               deploy
+               break
+            fi
+            echo ""
+            echo "$CHOICE is being deployed...please wait"
+            sleep 10s
             mv JTAs/"$CHOICE" jsb-core/mule-standalone-3.3.0/apps/"$CHOICE" 
+            sleep 5s
             deploy
             break
         ;;
@@ -64,6 +80,7 @@ deploy()
 
 undeploy()
 {
+    unzipFiles
     clear
     PS3='Please select JTA to undeploy: '
     echo "JTA undeployment"
@@ -92,8 +109,12 @@ undeploy()
             break
             ;;
         *)
+           echo ""
+           echo "$CHOICE is being undeployed...please wait"
+           sleep 10s
            cp -rf jsb-core/mule-standalone-3.3.0/apps/"$CHOICE" JTAs/"$CHOICE"
            rm jsb-core/mule-standalone-3.3.0/apps/"$CHOICE"-anchor.txt
+           sleep 5s
            undeploy
            break
         ;;
@@ -251,6 +272,17 @@ configure_global_JasperEngineURL() {
       fi
    fi
    fi
+}
+
+checkLicense()
+{
+   LicensePrefix=`echo "$CHOICE" | rev | cut -c 4- | rev`
+   LicenseFilename="$LicensePrefix$LicenseSuffix"
+   if [ -f JTAs/"$CHOICE"/"$LicenseFilename" ]; then
+      ValidLicense='y'
+   else
+      ValidLicense='n'
+  fi
 }
 
 menuScreen()
