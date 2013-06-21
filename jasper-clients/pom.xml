@@ -16,7 +16,7 @@
     
     <modules>
         <module>jsc</module>
-        <module>jsc-webapp</module>
+        <module>jscWebApp</module>
     </modules>
     
     <build>

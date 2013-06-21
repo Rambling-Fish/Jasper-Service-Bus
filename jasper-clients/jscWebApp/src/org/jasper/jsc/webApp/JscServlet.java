@@ -1,22 +1,26 @@
-package com.coralcea.web;
+package org.jasper.jsc.webApp;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
 import javax.servlet.ServletException;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.jasper.jsc.JClientProvider;
-import com.coralcea.web.Coralcea.MyShutdown;
 
 // Send to ThroughtWire
-public class Coralcea extends HttpServlet
+public class JscServlet extends HttpServlet
 {
 	  MyShutdown sh;
 
-    public Coralcea()
+    public JscServlet()
     {
     		super();
     		sh = new MyShutdown(this);
     		Runtime.getRuntime().addShutdownHook(sh);
-        System.out.println("In Default Constructor for coralcea.");
+            System.out.println("In Default Constructor for coralcea.");
     		System.out.println("Added shutdown hook <v2>");
 
     }
@@ -67,9 +71,9 @@ public class Coralcea extends HttpServlet
     }
     
   	class MyShutdown extends Thread {
-  		private Coralcea managedClass;
+  		private JscServlet managedClass;
 
-  		public MyShutdown(Coralcea managedClass) {
+  		public MyShutdown(JscServlet managedClass) {
   			super();
   			this.managedClass = managedClass;
   		}
