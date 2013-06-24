@@ -74,6 +74,7 @@ public class TestInjectSyncRequest {
 	private static void startBroker() {
 		broker = new BrokerService();
 		broker.setUseJmx(true);
+		broker.setPersistent(false);
 		broker.setBrokerName("Broker_for_stubbing_activemq");
 		try {
 			broker.addConnector("tcp://0.0.0.0:61616");
