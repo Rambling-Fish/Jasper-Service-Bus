@@ -1,25 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
 	<modelVersion>4.0.0</modelVersion>
-    <parent>
+
+  <parent>
       <groupId>org.jasper.jasper-clients</groupId>
       <artifactId>jasper-clients</artifactId>
       <version>2.0</version>
-    </parent>
+  </parent>
 	<groupId>org.jasper.jasper-clients</groupId>
 	<artifactId>jsc</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0</version>
-
-	<name>jsc</name>
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-	</properties>
-
 
 	<dependencies>
 
@@ -97,34 +89,5 @@
 		</dependency>
 
 	</dependencies>
-
-	<build>
-		<defaultGoal>install</defaultGoal>
-
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.5.1</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.4.3</version>
-				<configuration>
-					<encoding>UTF-8</encoding>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.atlassian.maven.plugins</groupId>
-				<artifactId>maven-clover2-plugin</artifactId>
-				<version>3.1.11</version>
-			</plugin>
-		</plugins>
-	</build>
 
 </project>

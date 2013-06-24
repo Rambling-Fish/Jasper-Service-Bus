@@ -36,7 +36,7 @@ public class Delegate implements Runnable {
         this.jOntology = new DelegateOntology(model);
         this.jtaUriMap = jtaUriMap;
         this.jtaQueueMap = jtaQueueMap;
-        delegateHandlers = Executors.newCachedThreadPool();
+        delegateHandlers = Executors.newFixedThreadPool(2);
     }
      
     public Map<String, List<String>> getJtaUriMap() {

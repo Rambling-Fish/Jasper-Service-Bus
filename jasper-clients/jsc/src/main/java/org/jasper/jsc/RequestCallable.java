@@ -94,7 +94,6 @@ public class RequestCallable implements Callable<TextMessage> {
 	 * 
 	 */
 
-	@Override
 	public TextMessage call() throws Exception {
 
 		try {

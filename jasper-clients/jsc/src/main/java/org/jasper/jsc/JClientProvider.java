@@ -64,7 +64,6 @@ public class JClientProvider {
 						user, password);
 
 				queueConnection.setExceptionListener(new ExceptionListener() {
-					@Override
 					public void onException(JMSException arg0) {
 						log.error("Exception Occurred: " + arg0);
 					}

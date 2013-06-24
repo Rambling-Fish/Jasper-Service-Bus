@@ -162,7 +162,9 @@ public class JECore {
 		// Instantiate the delegate pool
 		delegateService = Executors.newCachedThreadPool();
 		delegateFactory = new DelegateFactory(isClusterEnabled(),getDeploymentID(),getDeploymentID() + "_password_2013_jun_20_1030");
-		delegates.add(delegateFactory.createDelegate());
+		for(int i = 0;i<5;i++){
+			delegates.add(delegateFactory.createDelegate());
+		}
 		
 		for(Delegate d:delegates) delegateService.execute(d);
 		

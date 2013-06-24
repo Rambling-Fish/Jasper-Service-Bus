@@ -12,6 +12,7 @@
             <excludes>
                 <exclude>archive-tmp</exclude>
                 <exclude>*.sh</exclude>
+                <exclude>jsb-core/mule-standalone-3.4.0.tar.gz</exclude>
             </excludes>
         </fileSet>
         <fileSet>
