@@ -19,6 +19,7 @@ import org.apache.activemq.broker.BrokerFilter;
 import org.apache.activemq.broker.ConnectionContext;
 import org.apache.activemq.command.ConnectionInfo;
 import org.apache.log4j.Logger;
+import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JtaInfo;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
@@ -151,9 +152,10 @@ public class JasperBroker extends BrokerFilter {
 		if(jtaInfoMap instanceof IMap)((IMap)jtaInfoMap).unlockMap();
 	}
    
-    public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
-    	 
-    	if(info.getClientIp().startsWith("vm://localhost") || info.getClientIp().startsWith("vm://" + context.getBroker().getBrokerName()) || info.getClientIp().startsWith("tcp://" + core.getBrokerTransportIp())){
+    public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {  
+    	
+    	if(info.getClientIp().startsWith("vm://localhost") || info.getClientIp().startsWith("vm://" + context.getBroker().getBrokerName())
+    			|| info.getClientIp().startsWith("tcp://" + core.getBrokerTransportIp()) && core.isJSBLicenseKey(info.getPassword())){
     		super.addConnection(context, info);	
     		return;
     	}
@@ -281,6 +283,12 @@ public class JasperBroker extends BrokerFilter {
 	                    "clientId:clientIp = " + registeredJtaInfo.getClientId() + ":" + registeredJtaInfo.getClientIp());
         	}
     		super.addConnection(context, info);	
+    		String vendor = info.getUserName().split(":")[0];
+    		String appName = info.getUserName().split(":")[1];
+    		String version = info.getUserName().split(":")[2];
+    		String jtaQueueName = JasperConstants.JTA_QUEUE_PREFIX.concat(vendor).concat(".").concat(appName).concat(".").concat(version).concat(JasperConstants.DELEGATE_QUEUE_SUFFIX);
+    		notifyDelegate(Command.publish, jtaQueueName);
+
         	if(logger.isInfoEnabled()){
         		logJtaInfoMap();
         	}
