@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jasper.jsc.JClientProvider;
 
-@WebServlet("/jasper")
+@WebServlet("/")
 public class JscServlet extends HttpServlet
 {
 	
@@ -42,12 +42,11 @@ public class JscServlet extends HttpServlet
   		freeResources();
   	}
 
-
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException
     {
         StringBuffer jasperQuery = new StringBuffer();
-        String path = request.getRequestURI().substring(request.getContextPath().length());
+        String path = request.getRequestURI().substring(request.getContextPath().length()+1);
         jasperQuery.append(path);
         System.out.println((new StringBuilder("path = ")).append(path).toString());
         if(request.getQueryString() != null)
