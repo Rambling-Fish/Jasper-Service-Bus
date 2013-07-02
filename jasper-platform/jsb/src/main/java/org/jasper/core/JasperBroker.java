@@ -360,7 +360,7 @@ public class JasperBroker extends BrokerFilter {
    
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
     	 
-    	if(info.getUserName().equals(JasperConstants.JASPER_ADMIN_USERNAME) && info.getPassword().equals(JasperConstants.JASPER_ADMIN_PASSWORD) && info.getClientIp().startsWith("vm://localhost")){
+    	if(info.getClientIp().startsWith("vm://localhost") || info.getClientIp().startsWith("vm://" + context.getBroker().getBrokerName()) || info.getClientIp().startsWith("tcp://" + core.getBrokerTransportIp()) && core.isJSBLicenseKey(info.getPassword())){
     		super.addConnection(context, info);	
     		return;
     	}

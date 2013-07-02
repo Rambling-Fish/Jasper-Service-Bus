@@ -52,6 +52,8 @@ public class JECore {
 	private static int defaultNumDelegates = 5;
 	
 	private ScheduledExecutorService exec;
+
+	private static String brokerTransportIp;
 	
 	private JECore(){
 		
@@ -419,7 +421,7 @@ public class JECore {
 				//default value, which will work on both MAC OS and Windows, however for linux machines
 				//we need to find the interface with the IPv4 address, we use the default eth0 but this
 				//can be overwritten using the property jsbLocalNetworkInterface
-				String brokerTransportIp = InetAddress.getLocalHost().getHostAddress();
+				brokerTransportIp = InetAddress.getLocalHost().getHostAddress();
 				
 				Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 				while (interfaces.hasMoreElements()){
@@ -482,5 +484,9 @@ public class JECore {
     	}else{
 			logger.error("invalid license key, jsb not starting"); 
     	}
+	}
+
+	public String getBrokerTransportIp() {
+		return brokerTransportIp;
 	}
 }
