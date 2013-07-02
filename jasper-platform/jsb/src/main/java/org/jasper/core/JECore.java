@@ -395,10 +395,21 @@ public class JECore {
     			core.broker.setBrokerName(core.getJSBLicense().getDeploymentId() + "_" + core.getJSBLicense().getInstanceId());
     			core.broker.setPersistent(false);
     			
+    			try{
+    				core.broker.getSystemUsage().getMemoryUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("memoryLimit","64")));
+    				core.broker.getSystemUsage().getStoreUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("storeLimit","10000")));
+    				core.broker.getSystemUsage().getTempUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("tempLimit","15000")));
+    			}catch (NumberFormatException nfe){
+    				logger.warn("Error in properties file. One of the following properties not set to valid number: memoryLimit, storeLimit or tempLimit. Setting to 64, 10000 and 15000 respectively");
+    				core.broker.getSystemUsage().getMemoryUsage().setLimit(1024L * 1024 * 64);
+    				core.broker.getSystemUsage().getStoreUsage().setLimit(1024L * 1024 * 10000);
+    				core.broker.getSystemUsage().getTempUsage().setLimit(1024L * 1024 * 15000);
+    			}
+    			
     			core.broker.setPlugins(new BrokerPlugin[]{new JasperAuthenticationPlugin()});
     			
     			try {
-    				numDelegates = Integer.parseInt(prop.getProperty("numDelegates"));
+    				numDelegates = Integer.parseInt(prop.getProperty("numDelegates","5"));
     			} catch (NumberFormatException ex) {
     				numDelegates = defaultNumDelegates;
     				logger.warn("Error in properties file. numDelegates = " + prop.getProperty("numDelegates") + ". Using default value of " + defaultNumDelegates);
