@@ -408,10 +408,7 @@ public class JasperBroker extends BrokerFilter {
         	 */
         	if(!(jsbConnectionInfoMap.containsKey(info.getPassword()))){
         		jsbConnectionInfoMap.put(info.getPassword(), info);
-
-        		if(logger.isInfoEnabled()){
-        			logger.info("Peer JSB registered in system : " + core.getJSBInstance(info.getPassword()));
-        		}
+        		logger.warn("Peer JSB registered in system : " + core.getJSBInstance(info.getPassword()));
         	}else{
         		ConnectionInfo oldJSBInfo = jsbConnectionInfoMap.get(info.getPassword());
         		logger.error("Peer JSB not registred in system, JSB instance id must be unique and another peer JSB has registered using same instance id, peer JSB with the following info already registered \n" +
@@ -509,9 +506,7 @@ public class JasperBroker extends BrokerFilter {
     		// map can be cleaned up. This needs to change to listener pattern
     		notifyDelegate(Command.delete, info.getUserName());
     	}else if(jsbConnectionInfoMap.get(info.getPassword()) != null){
-    		if(logger.isInfoEnabled()){
-	    		logger.info("Peer JSB deregistered from system : " + info.getUserName());
-	    	}
+	    	logger.warn("Peer JSB deregistered from system : " + info.getUserName());
 	    	jsbConnectionInfoMap.remove(info.getPassword());
 	    	cleanRemoteJtaMap(core.getJSBInstance(info.getPassword()));
     	}
