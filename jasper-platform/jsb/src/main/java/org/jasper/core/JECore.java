@@ -31,9 +31,10 @@ import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
-import org.jasper.core.auth.JasperAuthenticationPlugin;
+import org.jasper.core.JasperBrokerService;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateFactory;
+import org.jasper.core.auth.JasperAuthenticationPlugin;
 import org.jasper.jLib.jAuth.JSBLicense;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
@@ -41,141 +42,24 @@ import org.jasper.jLib.jAuth.util.JAuthHelper;
 public class JECore {
 	
 	static Logger logger = Logger.getLogger("org.jasper");
+
+	private static JECore core;
 	
 	private BrokerService broker;
 	private JSBLicense license;
 	private PublicKey publicKey;
+	private static int numDelegates;
+	private static int defaultNumDelegates = 5;
 	
-	private ScheduledExecutorService auditExec;
-	private ExecutorService delegateService;
-
-	private List<Delegate> delegates = new ArrayList<Delegate>();
-
-	private String brokerTransportIp;
-
-	private DelegateFactory delegateFactory;
-
-	private boolean clusterEnabled;
+	private ScheduledExecutorService exec;
 	
-	private static JECore instance;
-	
-	public static JECore getInstance() {
-		if(instance == null){
-	    	Properties prop = new Properties();
-	        //load a properties file
-	   		try {
-				prop.load(new FileInputStream(System.getProperty("jsb-property-file")));
-		   		if(System.getProperty("jsb-log4j-xml") != null) DOMConfigurator.configure(System.getProperty("jsb-log4j-xml"));
-				instance = new JECore(prop);
-	   		} catch (Exception e) {
-	   			logger.error("Error when initilizing JECore : ",e);
-	   		}
-		}
-		return instance;
-	}
-
-	private JECore(Properties prop) throws Exception{
-    	loadKeys(System.getProperty("jsb-keystore"));
-    	
-    	if(isValidLicenseKey()){
-    		if(isValidLicenseKeyExpiry()){
-    			
-    			broker = new JasperBrokerService();
-    			broker.setBrokerName(getJSBLicense().getDeploymentId() + "_" + getJSBLicense().getInstanceId());
-    			broker.setPersistent(false);
-    			
-    			setBrokerMemoryUsage(prop);
-    			
-    			broker.setPlugins(new BrokerPlugin[]{new JasperAuthenticationPlugin()});
-
-				//default value, which will work on both MAC OS and Windows, however for linux machines
-				//we need to find the interface with the IPv4 address, we use the default eth0 but this
-				//can be overwritten using the property jsbLocalNetworkInterface
-				brokerTransportIp = InetAddress.getLocalHost().getHostAddress();
-				
-				Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-				while (interfaces.hasMoreElements()){
-				    NetworkInterface current = interfaces.nextElement();
-				    if (!current.isUp() || current.isLoopback() || current.isVirtual()) continue;
-				    if(current.getName().equals(prop.getProperty("jsbLocalNetworkInterface", "eth0"))){
-				    	Enumeration<InetAddress> addresses = current.getInetAddresses();
-    				    while (addresses.hasMoreElements()){
-    				        InetAddress current_addr = addresses.nextElement();
-    				        if (current_addr.isLoopbackAddress()) continue;
-    				        if (current_addr instanceof Inet4Address){
-    				        	brokerTransportIp = current_addr.getHostAddress();
-    				        	break;
-    				        }
-    				    }
-				    } 
-				}
-    			
-    			JsbTransportConnector connector;
-    			if(prop.getProperty("jsbLocalURL") != null){
-    				if(prop.getProperty("jsbLocalNetworkInterface") == null){
-    					logger.error("jsbLocalNetworkInterface must be set when setting jsbLocalURL");
-    					throw new InvalidParameterException("jsbLocalNetworkInterface must be set when setting jsbLocalURL");
-    				}
-    				connector = new JsbTransportConnector(prop.getProperty("jsbLocalURL"));	
-    			}else{
-    				connector = new JsbTransportConnector("tcp://"+ brokerTransportIp + ":61616?maximumConnections=1000&wireformat.maxFrameSize=104857600");	
-    			}
-    			
-    			//clusteredEnable is by default false, only set to false if false 
-    			clusterEnabled = prop.getProperty("jsbClusterEnabled", "false").equalsIgnoreCase("true");
-    			
-    			if(isClusterEnabled()){
-    				NetworkConnector networkConnector = broker.addNetworkConnector("multicast://224.1.2.3:6255?group=" + getJSBLicense().getDeploymentId());
-    				networkConnector.setUserName(getJSBLicense().getDeploymentId() + ":" + getJSBLicense().getInstanceId());
-    				networkConnector.setPassword(JAuthHelper.bytesToHex((getJSBLicense().getLicenseKey())));
-    				connector.setDiscoveryUri(new URI("multicast://224.1.2.3:6255?group=" + getJSBLicense().getDeploymentId()));
-    				connector.setUpdateClusterClients(true);
-    				connector.setUpdateClusterClientsOnRemove(true);
-    				connector.setRebalanceClusterClients(true);
-    			}
-    			
-    			broker.addConnector(connector);
-
-			}else{
-    			logger.error("license key expired, jsb not starting"); 
-    		}		
-    	}else{
-			logger.error("invalid license key, jsb not starting"); 
-    	}
+	private JECore(){
+		
 	}
 	
-	public boolean isClusterEnabled() {
-		return clusterEnabled;
-	}
-
-	public String getBrokerTransportIp() {
-		return brokerTransportIp;
-	}
-
-	public void start() throws Exception{
-		broker.start();
-		
-		if (!broker.waitUntilStarted()) {
-            throw new Exception(broker.getStartException());
-        }
-		
-		// Instantiate the delegate pool
-		delegateService = Executors.newCachedThreadPool();
-		delegateFactory = new DelegateFactory(isClusterEnabled(),getDeploymentID(),getDeploymentID() + "_password_2013_jun_20_1030");
-		for(int i = 0;i<5;i++){
-			delegates.add(delegateFactory.createDelegate());
-		}
-		
-		for(Delegate d:delegates) delegateService.execute(d);
-		
-		setupAudit();
-		
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-            	shutdown();
-            }
-        });
-		
+	public static JECore getInstance(){
+		if(core == null) core = new JECore();
+		return core;
 	}
 	
 	public boolean isSystemDeploymentId(String id) {
@@ -219,10 +103,6 @@ public class JECore {
 	
 	private JSBLicense getJSBLicense(){
 		return license;
-	}
-	
-	public boolean isThisMyJSBLicense(String password){
-		return JAuthHelper.bytesToHex(license.getLicenseKey()).equals(password);
 	}
 	
 	public Calendar getExpiry(String licenseKey) {
@@ -269,7 +149,7 @@ public class JECore {
 	}
 	
 	public void setupAudit(){
-		auditExec = Executors.newSingleThreadScheduledExecutor();
+		exec = Executors.newSingleThreadScheduledExecutor();
 		Runnable command = new Runnable() {
 			@Override
 			public void run() {
@@ -277,7 +157,7 @@ public class JECore {
 			}
 		};;;
 		
-		auditExec.scheduleAtFixedRate(command , 12, 12, TimeUnit.HOURS);
+		exec.scheduleAtFixedRate(command , 12, 12, TimeUnit.HOURS);
 	}
 	
 	private void auditSystem(){
@@ -357,13 +237,7 @@ public class JECore {
 
 	private void shutdown(){
 		logger.info("received shutdown request, shutting down");
-		auditExec.shutdown();
-		
-		for(Delegate d:delegates) d.shutdown();
-		
-		delegateService.shutdown();
-		delegateFactory.shutdown();
-		
+		exec.shutdown();
 		try {
 			broker.stop();
 		} catch (Exception e) {
@@ -384,13 +258,13 @@ public class JECore {
 		return (lic != null) && (userName.equals( lic.getDeploymentId() + ":" + lic.getInstanceId()));
 	}
 	
-	public String getJSBDeploymentAndInstance(String password) {
+	public String getJSBInstance(String password) {
 		JSBLicense lic = getJSBLicense(JAuthHelper.hexToBytes(password));
 		if(lic == null) return null;
 		return (lic.getDeploymentId() + ":" + lic.getInstanceId());
 	}
 	
-	public String getJSBDeploymentAndInstance() {
+	public String getJSBInstance() {
 		return license.getDeploymentId() + ":" + license.getInstanceId();
 	}
 	
@@ -493,34 +367,109 @@ public class JECore {
         
         return new JTALicense(vendor, appName, version, deploymentId, expiry, ntpHost, ntpPort, null);
 	}
-	
-	private void setBrokerMemoryUsage(Properties prop) {
-		if(prop.getProperty("memoryLimit") != null){
-			broker.getSystemUsage().getMemoryUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("memoryLimit")));
-		}else{
-			broker.getSystemUsage().getMemoryUsage().setLimit(1024L * 1024 * 64);
-		}
-		
-		if(prop.getProperty("storeLimit") != null){
-			broker.getSystemUsage().getStoreUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("storeLimit")));
-		}else{
-			broker.getSystemUsage().getStoreUsage().setLimit(1024L * 1024 * 10000);
-		}
-		
-		if(prop.getProperty("tempLimit") != null){
-			broker.getSystemUsage().getTempUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("tempLimit")));
-		}else{
-			broker.getSystemUsage().getTempUsage().setLimit(1024L * 1024 * 15000);
-		}	
-	}
 
 	/**
 	 * @param args
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
+	    
+    	Properties prop = new Properties();
+    	 
+    	try {
+            //load a properties file
+    		prop.load(new FileInputStream(System.getProperty("jsb-property-file")));
+    		if(System.getProperty("jsb-log4j-xml") != null) DOMConfigurator.configure(System.getProperty("jsb-log4j-xml"));
+    	} catch (IOException ex) {
+    		ex.printStackTrace();
+    	}
+    	
     	JECore core = JECore.getInstance();
-    	core.start();
-	}
+    	 	
+    	core.loadKeys(System.getProperty("jsb-keystore"));
+    	
+    	if(core.isValidLicenseKey()){
+    		if(core.isValidLicenseKeyExpiry()){
+    			
+    			core.broker = new JasperBrokerService();
+    			core.broker.setBrokerName(core.getJSBLicense().getDeploymentId() + "_" + core.getJSBLicense().getInstanceId());
+    			core.broker.setPersistent(false);
+    			
+    			core.broker.setPlugins(new BrokerPlugin[]{new JasperAuthenticationPlugin()});
+    			
+    			try {
+    				numDelegates = Integer.parseInt(prop.getProperty("numDelegates"));
+    			} catch (NumberFormatException ex) {
+    				numDelegates = defaultNumDelegates;
+    				logger.warn("Error in properties file. numDelegates = " + prop.getProperty("numDelegates") + ". Using default value of " + defaultNumDelegates);
+    			}
+    			
 
+				//default value, which will work on both MAC OS and Windows, however for linux machines
+				//we need to find the interface with the IPv4 address, we use the default eth0 but this
+				//can be overwritten using the property jsbLocalNetworkInterface
+				String brokerTransportIp = InetAddress.getLocalHost().getHostAddress();
+				
+				Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+				while (interfaces.hasMoreElements()){
+				    NetworkInterface current = interfaces.nextElement();
+				    if (!current.isUp() || current.isLoopback() || current.isVirtual()) continue;
+				    if(current.getName().equals(prop.getProperty("jsbLocalNetworkInterface", "eth0"))){
+				    	Enumeration<InetAddress> addresses = current.getInetAddresses();
+    				    while (addresses.hasMoreElements()){
+    				        InetAddress current_addr = addresses.nextElement();
+    				        if (current_addr.isLoopbackAddress()) continue;
+    				        if (current_addr instanceof Inet4Address){
+    				        	brokerTransportIp = current_addr.getHostAddress();
+    				        	break;
+    				        }
+    				    }
+				    } 
+				}
+    			
+    			JsbTransportConnector connector;
+    			if(prop.getProperty("jsbLocalURL") != null){
+    				if(prop.getProperty("jsbLocalNetworkInterface") == null){
+    					logger.error("jsbLocalNetworkInterface must be set when setting jsbLocalURL");
+    					throw new InvalidParameterException("jsbLocalNetworkInterface must be set when setting jsbLocalURL");
+    				}
+    				connector = new JsbTransportConnector(prop.getProperty("jsbLocalURL"));	
+    			}else{
+    				connector = new JsbTransportConnector("tcp://"+ brokerTransportIp + ":61616?maximumConnections=1000&wireformat.maxFrameSize=104857600");	
+    			}
+    			
+    			//clusteredEnable is by default false, only set to false if false 
+    			boolean clusterEnabled = prop.getProperty("jsbClusterEnabled", "false").equalsIgnoreCase("true");
+    			
+    			if(clusterEnabled){
+    				NetworkConnector networkConnector = core.broker.addNetworkConnector("multicast://224.1.2.3:6255?group=" + core.getJSBLicense().getDeploymentId());
+    				networkConnector.setUserName(core.getJSBLicense().getDeploymentId() + ":" + core.getJSBLicense().getInstanceId());
+    				networkConnector.setPassword(JAuthHelper.bytesToHex((core.getJSBLicense().getLicenseKey())));
+    				connector.setDiscoveryUri(new URI("multicast://224.1.2.3:6255?group=" + core.getJSBLicense().getDeploymentId()));
+    				connector.setUpdateClusterClients(true);
+    				connector.setUpdateClusterClientsOnRemove(true);
+    				connector.setRebalanceClusterClients(true);
+    			}
+    			
+    			core.broker.addConnector(connector);
+    			core.broker.start();
+    			
+    			// Instantiate the delegate pool
+    			ExecutorService executorService = Executors.newCachedThreadPool();
+    			DelegateFactory factory = DelegateFactory.getInstance();
+    			
+    			Delegate[] delegates = new Delegate[numDelegates];
+    			
+    			for(int i=0;i<delegates.length;i++){
+    				delegates[i]=factory.createDelegate();
+    				executorService.execute(delegates[i]);
+    			} 
+    			core.setupAudit();
+			}else{
+    			logger.error("license key expired, jsb not starting"); 
+    		}		
+    	}else{
+			logger.error("invalid license key, jsb not starting"); 
+    	}
+	}
 }
