@@ -409,6 +409,7 @@ public class JasperBroker extends BrokerFilter {
         	if(!(jsbConnectionInfoMap.containsKey(info.getPassword()))){
         		jsbConnectionInfoMap.put(info.getPassword(), info);
         		logger.warn("Peer JSB registered in system : " + core.getJSBInstance(info.getPassword()));
+        		logConnectedJSBs();
         	}else{
         		ConnectionInfo oldJSBInfo = jsbConnectionInfoMap.get(info.getPassword());
         		logger.error("Peer JSB not registred in system, JSB instance id must be unique and another peer JSB has registered using same instance id, peer JSB with the following info already registered \n" +
@@ -470,6 +471,8 @@ public class JasperBroker extends BrokerFilter {
         			logger.warn("JSC registered on JSB : " + info.getUserName());
         		else
         			logger.warn("JTA registered on JSB : " + info.getUserName());
+        		
+        		logConnectedJTAs();
         	}else{
         		if(jtaConnectionInfoMap.containsKey(info.getPassword())){
 	        		ConnectionInfo oldAppInfo = jtaConnectionInfoMap.get(info.getPassword());
@@ -501,6 +504,7 @@ public class JasperBroker extends BrokerFilter {
     			logger.warn("JTA de-registered from JSB : " + info.getUserName());
 	    	jtaConnectionInfoMap.remove(info.getPassword());
     		notifyPeers(Command.delete,info.getPassword());
+    		logConnectedJTAs();
     		
     		// TODO right now we are just sending message to delegates so the jta
     		// map can be cleaned up. This needs to change to listener pattern
@@ -509,6 +513,7 @@ public class JasperBroker extends BrokerFilter {
 	    	logger.warn("Peer JSB deregistered from system : " + info.getUserName());
 	    	jsbConnectionInfoMap.remove(info.getPassword());
 	    	cleanRemoteJtaMap(core.getJSBInstance(info.getPassword()));
+	    	logConnectedJSBs();
     	}
 
     	super.removeConnection(context, info, null);
@@ -549,5 +554,28 @@ public class JasperBroker extends BrokerFilter {
 			logger.error("Exception caught while notifying peers: ", e);
 		}
 	}
+	
+	private void logConnectedJTAs(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("\n-----  JTAs connected to this JSB start ----\n");
+		for(String key:jtaConnectionInfoMap.keySet()){
+			sb.append("jta = " + jtaConnectionInfoMap.get(key).getUserName() + "\n");
+		}
+		
+		sb.append("\n-----  JTAs connected to this JSB end ----\n");
+		logger.warn(sb.toString());
+	}
+	
+	private void logConnectedJSBs(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("\n-----  Other JSBs in cluster start ----\n");
+		for(String key:jsbConnectionInfoMap.keySet()){
+			sb.append("jsb = " + jsbConnectionInfoMap.get(key).getUserName() + "  " + jsbConnectionInfoMap.get(key).getClientIp()  + "\n");
+		}
+		
+		sb.append("\n-----  Other JSBs in cluster end ----\n");
+		logger.warn(sb.toString());
+	}
+
 	
 }
