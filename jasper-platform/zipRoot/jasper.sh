@@ -10,13 +10,13 @@ JTA=""
 
 function get_j_pid {
     J_PID=""
-    J_PID=`ps ax | grep java | grep JECore | cut -d' ' -f1`
+    J_PID=`ps ax | grep java | grep 'JSB Server' | cut -d' ' -f1`
     if [ -z "$J_PID" ]
     then 
-      J_PID=`ps ax | grep java | grep JECore | cut -d' ' -f2`
+      J_PID=`ps ax | grep java | grep 'JSB Server' | cut -d' ' -f2`
       if [ -z "$J_PID" ]
       then 
-      J_PID=`ps ax | grep java | grep JECore | cut -d' ' -f3`
+      J_PID=`ps ax | grep java | grep 'JSB Server' | cut -d' ' -f3`
       fi    
     fi
     if [ -e "jsb-core/bin/jsb.pid" ]

@@ -27,7 +27,6 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.build.directory}/3rdParty</outputDirectory>
-                            <excludeTransitive>true</excludeTransitive>
                         </configuration>
                     </execution>
                 </executions>
@@ -114,17 +113,11 @@
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>
         </dependency>
-        
-        <dependency>
-			<groupId>org.apache.jena</groupId>
-			<artifactId>jena-core</artifactId>
-			<version>2.10.0</version>
-		</dependency>
-
         <dependency>
             <groupId>org.apache.jena</groupId>
-            <artifactId>jena-arq</artifactId>
-            <version>2.10.0</version>
+            <artifactId>apache-jena</artifactId>
+            <type>pom</type>
+            <version>2.10.1</version>
         </dependency>
         
     </dependencies>
