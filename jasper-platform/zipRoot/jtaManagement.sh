@@ -3,6 +3,8 @@
 M_PID=""
 url_prefix="failover://(tcp://"
 url_suffix=")"
+comma=","
+tcp="tcp://"
 str1=""
 
 function get_m_pid 
@@ -177,7 +179,8 @@ configure_JTA()
             ;;
         *)
             if [ `echo $parm | grep -c "jasperEngineURL" ` -gt 0 ]; then
-               echo "Enter new value for $parm (format: host:port): "
+               echo "Enter new value - format: host1:port1  [host2:port2] ..."
+               echo "Host:port pairs must be separated by at least one space and port value must be > 0 and < 65535:"
             else
                echo "Enter new value for $parm: "
             fi
@@ -189,18 +192,17 @@ configure_JTA()
                 break
             fi
             if [ `echo $parm | grep -c  "jasperEngineURL" ` -gt 0 ]; then
-               var=$(echo $newValue | awk -F":" '{print $1,$2}')   
-               set -- $var
-               newValue=$url_prefix$newValue$url_suffix
-               if [[ $2 -lt 1 || $2 -gt 65535 ]]; then
-                  echo "Not a valid port. Must be from 1 - 65535"
-                  read -p "Press any key"
-                  configure_JTA
-                  break
-               fi
+               replacement=$newValue
+               var=$replacement
+               formatURIs
             fi
             pattern=$parm
-            replacement=$newValue
+            if [ `echo $parm | grep -c  "jasperEngineURL" ` -gt 0 ]; then
+               : # nothing to do as it should be set
+            else
+               replacement=$newValue
+            fi
+
             propvalue=`sed '/^\#/d' $FILENAME | grep $parm | tail -n 1 | sed 's/^.*=//;s/^[[:space:]]*//;s/[[:space:]]*$//'`
             A="`echo | tr '\012' '\001' `"
             sed -i -e "s$A$pattern=$propvalue$A$pattern=$replacement$A" $FILENAME
@@ -230,7 +232,8 @@ configure_global_JasperEngineURL() {
          done  
    else
    pattern="jasperEngineURL"
-   echo "Enter new value - format: host:port: "
+   echo "Enter new value - format: host1:port1  [host2:port2] ..."
+   echo "Host:port pairs must be separated by at least one space and port value must be > 0 and < 65535:"
    read replacement
    if echo $replacement | grep ["="] > /dev/null
    then
@@ -238,15 +241,9 @@ configure_global_JasperEngineURL() {
        configure_global_JasperEngineURL 
        break
    fi
-   var=$(echo $replacement | awk -F":" '{print $1,$2}')
-   set -- $var
-   replacement=$url_prefix$replacement$url_suffix
-   if [[ $2 -lt 1 || $2 -gt 65535 ]]; then
-      echo "Not a valid port. Must be from 1 - 65535"
-      read -p "Press any key"
-      configure_global_JasperEngineURL
-      break
-   fi
+
+   formatURIs
+
    echo "Set jasperEngineURL as $replacement in all JTAs? (y/n/q)"
    read choice
    if [ "$choice" == "n" ];then
@@ -284,6 +281,34 @@ checkLicense()
       ValidLicense='n'
   fi
 }
+
+formatURIs()
+{
+   var=$replacement
+   set -- $var
+   numPairs="$echo ${#@}"
+   one=1
+   ctr=$((numPairs-one))
+   var=($replacement)
+   replacement=$url_prefix
+   for ((  i = 0 ;  i < $numPairs;  i++  ))
+   do
+      if [ $ctr -eq 0 ];then
+         replacement=$replacement${var[0]}
+         break
+      fi
+      if [ $i -eq 0 ]; then
+         replacement=$replacement${var[$i]}$comma
+      else if [ $i -lt $ctr ]; then
+         replacement+=$tcp${var[$i]}$comma
+      else
+         replacement+=$tcp${var[$i]}
+      fi
+      fi
+   done
+   replacement=$replacement$url_suffix
+}
+
 
 menuScreen()
 {
