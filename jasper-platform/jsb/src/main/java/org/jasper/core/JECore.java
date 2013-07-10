@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.security.InvalidParameterException;
 import java.security.PublicKey;
 import java.text.SimpleDateFormat;
@@ -23,9 +24,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.jms.JMSException;
+
 import org.apache.activemq.broker.BrokerPlugin;
+import org.apache.activemq.broker.BrokerRegistry;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.JsbTransportConnector;
+import org.apache.activemq.broker.TransportConnector;
 import org.apache.activemq.network.NetworkConnector;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
@@ -39,10 +44,15 @@ import org.jasper.jLib.jAuth.JSBLicense;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.config.GroupConfig;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+
 public class JECore {
 	
 	static Logger logger = Logger.getLogger("org.jasper");
-
+	
 	private static JECore core;
 	
 	private BrokerService broker;
@@ -53,7 +63,16 @@ public class JECore {
 	
 	private ScheduledExecutorService exec;
 
+	private boolean clusterEnabled;
+
 	private static String brokerTransportIp;
+
+	private static ExecutorService executorService;
+	private static DelegateFactory factory;
+
+	private static Delegate[] delegates;
+
+	private HazelcastInstance hazelcastInstance;
 	
 	private JECore(){
 		
@@ -71,6 +90,20 @@ public class JECore {
 	public String getDeploymentID() {
 		return license.getDeploymentId();
 	}
+	
+    public String getJSBDeploymentAndInstance(String password) {
+        JSBLicense lic = getJSBLicense(JAuthHelper.hexToBytes(password));
+        if(lic == null) return null;
+        return (lic.getDeploymentId() + ":" + lic.getInstanceId());
+    }
+     
+    public String getJSBDeploymentAndInstance() {
+        return license.getDeploymentId() + ":" + license.getInstanceId();
+    }
+    
+    public boolean isThisMyJSBLicense(String password){
+        return JAuthHelper.bytesToHex(license.getLicenseKey()).equals(password);
+    }
 	
 	private void loadKeys(String keyStore) throws IOException {
 		File licenseKeyFile = getLicenseKeyFile(keyStore);
@@ -240,6 +273,33 @@ public class JECore {
 	private void shutdown(){
 		logger.info("received shutdown request, shutting down");
 		exec.shutdown();
+		for(Delegate d:delegates){
+			try {
+				d.shutdown();
+			} catch (JMSException e1) {
+				logger.error("jmsconnection caught while shutting down delegates",e1);
+			}
+		}
+		executorService.shutdown();
+		
+		if(hazelcastInstance != null){
+	    	hazelcastInstance.getLifecycleService().shutdown();
+	    	int count = 0;
+			try {
+		    	while(hazelcastInstance.getLifecycleService().isRunning()){
+					Thread.sleep(500);
+		    		count++;
+		    		if(count > 20){
+		    			hazelcastInstance.getLifecycleService().kill();
+		    			break;
+		    		}
+		    	}
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+		
 		try {
 			broker.stop();
 		} catch (Exception e) {
@@ -394,7 +454,10 @@ public class JECore {
     		if(core.isValidLicenseKeyExpiry()){
     			
     			core.broker = new JasperBrokerService();
-    			core.broker.setBrokerName(core.getJSBLicense().getDeploymentId() + "_" + core.getJSBLicense().getInstanceId());
+    			String brokerName = core.getJSBLicense().getDeploymentId() + "_" + core.getJSBLicense().getInstanceId();
+    			core.broker.setBrokerName(brokerName);
+    			BrokerRegistry.getInstance().bind(brokerName, core.broker);
+    			BrokerRegistry.getInstance().bind("localhost", core.broker);
     			core.broker.setPersistent(false);
     			
     			try{
@@ -421,8 +484,12 @@ public class JECore {
 				//default value, which will work on both MAC OS and Windows, however for linux machines
 				//we need to find the interface with the IPv4 address, we use the default eth0 but this
 				//can be overwritten using the property jsbLocalNetworkInterface
-				brokerTransportIp = InetAddress.getLocalHost().getHostAddress();
-				
+    			try{
+    				brokerTransportIp = InetAddress.getLocalHost().getHostAddress();
+    			}catch(UnknownHostException e){
+    				logger.info("unknown host exception caught, expected on linux system.", e);
+    			}
+    			
 				Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 				while (interfaces.hasMoreElements()){
 				    NetworkInterface current = interfaces.nextElement();
@@ -448,36 +515,50 @@ public class JECore {
     				}
     				connector = new JsbTransportConnector(prop.getProperty("jsbLocalURL"));	
     			}else{
-    				connector = new JsbTransportConnector("tcp://"+ brokerTransportIp + ":61616?maximumConnections=1000&wireformat.maxFrameSize=104857600");	
+    				connector = new JsbTransportConnector("tcp://"+ brokerTransportIp + ":61616??wireFormat.maxInactivityDurationInitalDelay=30000&maximumConnections=1000&wireformat.maxFrameSize=104857600");	
     			}
     			
     			//clusteredEnable is by default false, only set to false if false 
-    			boolean clusterEnabled = prop.getProperty("jsbClusterEnabled", "false").equalsIgnoreCase("true");
+    			core.clusterEnabled = prop.getProperty("jsbClusterEnabled", "false").equalsIgnoreCase("true");
     			
-    			if(clusterEnabled){
+    			if(core.clusterEnabled){
     				NetworkConnector networkConnector = core.broker.addNetworkConnector("multicast://224.1.2.3:6255?group=" + core.getJSBLicense().getDeploymentId());
     				networkConnector.setUserName(core.getJSBLicense().getDeploymentId() + ":" + core.getJSBLicense().getInstanceId());
     				networkConnector.setPassword(JAuthHelper.bytesToHex((core.getJSBLicense().getLicenseKey())));
+    				networkConnector.setDecreaseNetworkConsumerPriority(true);
     				connector.setDiscoveryUri(new URI("multicast://224.1.2.3:6255?group=" + core.getJSBLicense().getDeploymentId()));
     				connector.setUpdateClusterClients(true);
     				connector.setUpdateClusterClientsOnRemove(true);
     				connector.setRebalanceClusterClients(true);
+					Config cfg = new Config();
+					GroupConfig groupConfig = new GroupConfig(core.getDeploymentID(), core.getDeploymentID() + "_password_july_10_2013_0725");
+					cfg.setGroupConfig(groupConfig);
+					core.hazelcastInstance=Hazelcast.newHazelcastInstance(cfg);
     			}
-    			
+    			    			
     			core.broker.addConnector(connector);
     			core.broker.start();
+    			if (!core.broker.waitUntilStarted()) {
+    	            throw new Exception(core.broker.getStartException());
+    	        }
     			
     			// Instantiate the delegate pool
-    			ExecutorService executorService = Executors.newCachedThreadPool();
-    			DelegateFactory factory = DelegateFactory.getInstance();
-    			
-    			Delegate[] delegates = new Delegate[numDelegates];
+    			executorService = Executors.newCachedThreadPool();
+    			factory = new DelegateFactory(core.clusterEnabled, core);
+    			delegates = new Delegate[numDelegates];
     			
     			for(int i=0;i<delegates.length;i++){
     				delegates[i]=factory.createDelegate();
     				executorService.execute(delegates[i]);
     			} 
+    			
     			core.setupAudit();
+    			Runtime.getRuntime().addShutdownHook(new Thread() {
+    	            public void run() {
+    	            	JECore.getInstance().shutdown();
+    	            }
+    	        });
+    			
 			}else{
     			logger.error("license key expired, jsb not starting"); 
     		}		
@@ -489,4 +570,13 @@ public class JECore {
 	public String getBrokerTransportIp() {
 		return brokerTransportIp;
 	}
+	
+	public boolean isClusterEnabled(){
+		return clusterEnabled;
+	}
+
+	public HazelcastInstance getHazelcastInstance() {
+		return hazelcastInstance;
+	}
+	
 }

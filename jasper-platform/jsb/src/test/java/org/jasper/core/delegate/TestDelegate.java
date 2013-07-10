@@ -55,7 +55,7 @@ public class TestDelegate  extends TestCase {
 	public void testDelegateFactoryAndPool() throws Exception {
 		// Instantiate the delegate pool
 		ExecutorService executorService = Executors.newCachedThreadPool();
-		delegateFactory = DelegateFactory.getInstance();
+		delegateFactory = new DelegateFactory(false, null);
 		Delegate[] delegates = new Delegate[3];
 		
 		for(int i=0;i<delegates.length;i++) {
@@ -79,7 +79,7 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testDelegateMaps() throws Exception {
-		delegateFactory = DelegateFactory.getInstance();
+		delegateFactory = new DelegateFactory(false, null);
 		delegateFactory.jtaUriMap.clear();
 		for(int i = 0; i < 5; i++) {
 			List<String> l = new ArrayList<String>();
@@ -109,7 +109,7 @@ public class TestDelegate  extends TestCase {
 	@Test
 	public void testJTAMap() throws Exception {
 		setUpConnection(2);
-		DelegateFactory factory = DelegateFactory.getInstance();
+		DelegateFactory factory = new DelegateFactory(false, null);
 		factory.jtaQueueMap.clear();
 		factory.jtaUriMap.clear();
 
@@ -136,7 +136,7 @@ public class TestDelegate  extends TestCase {
 	public void testPublishURI() throws Exception {
 		setUpConnection(2);
 		
-		DelegateFactory factory = DelegateFactory.getInstance();
+		DelegateFactory factory = new DelegateFactory(false, null);
 		factory.jtaUriMap.clear();
 
 		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE, JasperConstants.DELEGATE_GLOBAL_QUEUE, TEST_URI);
@@ -156,7 +156,7 @@ public class TestDelegate  extends TestCase {
 	public void testWhitespaceURI() throws Exception {
 		setUpConnection(1);
 		
-		DelegateFactory factory = DelegateFactory.getInstance();
+		DelegateFactory factory = new DelegateFactory(false, null);
 		Destination jtaQueue = session.createQueue(TEST_QUEUE);
 		factory.jtaUriMap.clear();
 
@@ -291,7 +291,7 @@ public class TestDelegate  extends TestCase {
 	public void testNotifyAdminMessage() throws Exception {
 		setUpConnection(2);
 		
-		DelegateFactory factory = DelegateFactory.getInstance();
+		DelegateFactory factory = new DelegateFactory(false, null);
 		factory.jtaUriMap.clear();
 
 		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.publish, TEST_QUEUE, JasperConstants.DELEGATE_GLOBAL_QUEUE, TEST_URI);
@@ -376,7 +376,7 @@ public class TestDelegate  extends TestCase {
 		setUpConnection(2);
 		
 		// manually add uri to internal hashmap
-		delegateFactory = DelegateFactory.getInstance();
+		delegateFactory = new DelegateFactory(false, null);
 		List<String> l = new ArrayList<String>();
 		l.add(TEST_QUEUE);
 		delegateFactory.jtaUriMap.put(TEST_URI, l);
@@ -394,7 +394,7 @@ public class TestDelegate  extends TestCase {
 	
 	private void setUpConnection(int numDelegates) throws Exception {
 		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
-		 delegateFactory = DelegateFactory.getInstance();
+		 delegateFactory = new DelegateFactory(false, null);
 		 delegateFactory.jtaUriMap.clear();
 
         // Create a Connection

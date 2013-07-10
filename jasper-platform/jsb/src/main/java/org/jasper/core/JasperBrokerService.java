@@ -27,9 +27,5 @@ public class JasperBrokerService extends BrokerService {
 
 	public boolean isStopping() {
 		return stopping.get();
-	}
-	
-	
-
-	
+	}	
 }

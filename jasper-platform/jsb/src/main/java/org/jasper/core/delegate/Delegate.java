@@ -5,16 +5,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
+import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
+import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
@@ -25,22 +26,23 @@ import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
 
-public class Delegate implements Runnable {
+public class Delegate implements Runnable, MessageListener {
 
 	private Map<String,List<String>> jtaUriMap;
 	private Map<String,List<String>> jtaQueueMap;
 	private Map<String, Destination> reqRespMap;
 	private Map<String, String> msgIdMap;
-	private String name;
 	private Connection connection;
 	private boolean isShutdown;
-	private ExecutorService singleThreadExecutor;
-	private Destination delegateQueue;
+	private Session globalSession;
+	private Queue globalQueue;
+	private MessageConsumer globalDelegateConsumer;
+	private Session jtaSession;
+	private MessageProducer producer;
 	static Logger logger = Logger.getLogger("org.jasper");
 	
 	
-	public Delegate(String name,Connection connection, Map<String,List<String>> uriMap, Map<String,List<String>> queueMap) {
-		this.name = name;
+	public Delegate(Connection connection, Map<String,List<String>> uriMap, Map<String,List<String>> queueMap) throws JMSException {
 		this.connection  = connection;
 		this.jtaUriMap   = uriMap;
 		this.jtaQueueMap = queueMap;
@@ -48,103 +50,60 @@ public class Delegate implements Runnable {
 		this.msgIdMap    = new ConcurrentHashMap<String, String>();
 		this.isShutdown  = false;
 		
-		singleThreadExecutor = Executors.newSingleThreadExecutor();
-		Runnable processResponsesThread = new Runnable() {
-			@Override
-			public void run() {
-				processResponses();
-			}
-		};;;
-		singleThreadExecutor.submit(processResponsesThread);
-		
-		if(logger.isInfoEnabled()) {
-			logger.info("Delegate created : " + name);
-		}
-
+		globalSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+	    globalQueue = globalSession.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
+	    globalDelegateConsumer = globalSession.createConsumer(globalQueue);
+	    
+        jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        producer = jtaSession.createProducer(null);
+        producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+        producer.setTimeToLive(30000);
 	}
 	
-	public void shutdown(){
+	public void shutdown() throws JMSException{
 		isShutdown = true;
-		singleThreadExecutor.shutdown();
+		producer.close();
+        jtaSession.close();
+        globalDelegateConsumer.close();
+	    globalSession.close();
 	}
 	
 	@Override
 	public void run(){
 		processRequests();
 	}
+		
+	@Override
+	public void onMessage(Message msg) {
+		try{
+			if(logger.isDebugEnabled()){
+				logger.debug("Message response received = " + msg);
+	  	  	}
+		
+			if (msg instanceof TextMessage) {
+				TextMessage responseMessage = (TextMessage) msg;	
+				if(logger.isDebugEnabled()){
+					logger.debug("TextMessage response received = " + responseMessage);
+				}
+	          
+				String correlationID = responseMessage.getJMSCorrelationID();
 	
-	private void setDelegateQueue(Destination queue){
-		delegateQueue = queue;
-	}
-	
-	private Destination getDelegateQueue() {
-		if(delegateQueue == null)
-			try {
-				this.wait(1000);
-				if(delegateQueue != null) logger.info("Successfully waited for delegateQueue to be created");
-			} catch (InterruptedException e) {
-				logger.error("Exception caught while waiting for delegate queue to be initialized");
-				e.printStackTrace();
+				if(!reqRespMap.containsKey(correlationID)) {
+					logger.error("correlationID " + correlationID + " for response not found, ignoring");
+					return;
+				}
+	    	  
+				// Create a Session
+				Destination jClientQueueDestination = reqRespMap.remove(correlationID);
+	       
+				Message message = jtaSession.createTextMessage(responseMessage.getText());
+				if(msgIdMap.containsKey(correlationID)) correlationID = msgIdMap.remove(correlationID);
+				message.setJMSCorrelationID(correlationID);
+				producer.send(jClientQueueDestination,message);
 			}
-		return delegateQueue;
-	}
-	
-	public void processResponses(){
-		 try {
-		      Session delegateSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
-		      // Create Queue
-		      Destination delegateQueue = delegateSession.createQueue(JasperConstants.DELEGATE_QUEUE_PREFIX + name + JasperConstants.DELEGATE_QUEUE_SUFFIX);
-		      setDelegateQueue(delegateQueue);
-		                  
-		      // Create a MessageConsumer from the Session to the Queue
-		      MessageConsumer delegateConsumer = delegateSession.createConsumer(delegateQueue);
-
-
-		      // Wait for a message
-		      Message jtaResponse;
-		      
-		      do{
-		          do{
-		          	jtaResponse = delegateConsumer.receive(1000);
-		          }while(jtaResponse == null && !isShutdown);
-		          if(isShutdown) break;
-		          if (jtaResponse instanceof TextMessage) {
-		        	  TextMessage responseMessage = (TextMessage) jtaResponse;	
-		        	  if(logger.isInfoEnabled()){
-		        		  logger.info("TextMessage response received = " + responseMessage);
-		        	  }
-		              
-	            	  String correlationID = responseMessage.getJMSCorrelationID();
-	            	  if(!reqRespMap.containsKey(correlationID)) {
-	            		  logger.error("correlationID " + correlationID + " for response not found");
-	            		  continue;
-	            	  }
-	            	  
-	            	  // Create a Session
-	                  Session jClientSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-	            	  Destination jClientQueueDestination = reqRespMap.remove(correlationID);
-	  		       
-	                  // Create a MessageProducer from the Session to the Queue
-	                  MessageProducer producer = jClientSession.createProducer(jClientQueueDestination);
-	                  producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-	                  producer.setTimeToLive(30000);
-	                  Message message = jClientSession.createTextMessage(responseMessage.getText());
-	                  if(msgIdMap.containsKey(correlationID)) correlationID = msgIdMap.remove(correlationID);
-	                  message.setJMSCorrelationID(correlationID);
-	      			  producer.send(message);
-
-	                  // Clean up
-	                  jClientSession.close();
-		          }
-		      }while(!isShutdown);
-		      
-		      delegateConsumer.close();
-		      delegateSession.close();
-		     
-		  } catch (Exception e) {
-		      logger.error("Exception caught while listening for response on queue : " + delegateQueue,e);
-		  }
+		}catch (JMSException jmse){
+			logger.error("error occured in onMessage",jmse);
+		}
 	}
 	
 	/*
@@ -174,21 +133,13 @@ public class Delegate implements Runnable {
 	
 	public void processRequests() {
 		  try {
-	  	     	
-		      Session globalSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
-		      // Create Queue
-		      Destination globalQueue = globalSession.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
-		                  
-		      // Create a MessageConsumer from the Session to the Queue
-		      MessageConsumer globalDelegateConsumer = globalSession.createConsumer(globalQueue);
 
 		      // Wait for a message
 		      Message jmsRequest;
-		      
+		      	      
 		      do{
 		          do{
-		          	jmsRequest = globalDelegateConsumer.receive(1000);
+		          	jmsRequest = globalDelegateConsumer.receive(500);
 		          }while(jmsRequest == null && !isShutdown);
 		          if(isShutdown) break;
 		          if (jmsRequest instanceof ObjectMessage) {
@@ -215,7 +166,7 @@ public class Delegate implements Runnable {
 		        	  TextMessage txtMsg = (TextMessage) jmsRequest;
 
 		        	  // Remove leading and trailing spaces in incoming URI
-		        	  String uri = txtMsg.getText().trim();
+		        	  String uri = txtMsg.getText().trim();      	  
 		        	  
 		        	  if(!jtaUriMap.containsKey(uri)){
 			        	  logger.error("URI " + uri + " in incoming request not found");
@@ -229,13 +180,13 @@ public class Delegate implements Runnable {
 			        	  }
 
 			        	  if(correlationID == null){
-			        		  if(logger.isInfoEnabled()){
-			        			  logger.info("jmsCorrelationID is null, assuming jmsReplyTo queue is unique and therefore using jmsReplyTo queue as correlation id : " + jClientQ.toString());
+			        		  if(logger.isDebugEnabled()){
+			        			  logger.debug("jmsCorrelationID is null, assuming jmsReplyTo queue is unique and therefore using jmsReplyTo queue as correlation id : " + jClientQ.toString());
 			        		  }
 			        		  correlationID = jClientQ.toString();
 				        	  msgIdMap.put(correlationID, txtMsg.getJMSMessageID());
 			        	  }
-		        	  
+			        	  
 		            	  if(reqRespMap.containsKey(correlationID)) {
 		            		  logger.error("CorrelationID " + correlationID + " in incoming message not unique");
 		            		  processInvalidRequest(txtMsg);
@@ -244,37 +195,28 @@ public class Delegate implements Runnable {
 		            	  reqRespMap.put(correlationID, jClientQ);
 		            	  
 		            	  String[] req = new String[]{uri};
-		  
-		            	  // Create a Session
-		                  Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		
+		  	
 		                  // Create the destination for JTA queue(s)
 		                  // TODO need to create multiple destinations and coordinate replies
 		                  // for when multiple queues per URI
 		                  Destination jtaQueueDestination = jtaSession.createQueue(jtaUriMap.get(uri).get(0));
 		                  
-		                  // Create a MessageProducer from the Session to the Queue
-		                  MessageProducer producer = jtaSession.createProducer(jtaQueueDestination);
-		                  producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-		                  producer.setTimeToLive(30000);
-		
+		                  Destination tempDest = jtaSession.createTemporaryQueue();
+		                  MessageConsumer responseConsumer = jtaSession.createConsumer(tempDest);
+		                  responseConsumer.setMessageListener(this);
+		                  
 		                  Message message = jtaSession.createObjectMessage(req);
 		                  message.setJMSCorrelationID(correlationID);
-		                  message.setJMSReplyTo(getDelegateQueue());
+		                  message.setJMSReplyTo(tempDest);
 		
-		      			  producer.send(message);
-		
-		                  // Clean up
-		                  jtaSession.close();
+		      			  producer.send(jtaQueueDestination, message);
+
 		        	  }
 		          }
 		      }while(!isShutdown);
-		      
-		      globalDelegateConsumer.close();
-		      globalSession.close();
 		     
 		  } catch (Exception e) {
-		      logger.error("Exception caught while listening for request in delegate : " + name,e);
+		      logger.error("Exception caught while listening for request in delegate : ",e);
 		  }
 	}
 	
@@ -383,6 +325,4 @@ public class Delegate implements Runnable {
 			logger.error("Exception caught while notifying peers: ", e);
 		}
 	}
-	
-	
 }
