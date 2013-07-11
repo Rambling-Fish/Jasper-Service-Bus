@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -21,6 +22,7 @@ import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Logger;
+import org.jasper.core.JECore;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
@@ -39,8 +41,11 @@ public class Delegate implements Runnable, MessageListener {
 	private MessageConsumer globalDelegateConsumer;
 	private Session jtaSession;
 	private MessageProducer producer;
-	static Logger logger = Logger.getLogger("org.jasper");
+	private Destination delegateQ;
+	private MessageConsumer responseConsumer;
 	
+	static Logger logger = Logger.getLogger("org.jasper");
+	static private AtomicInteger count = new AtomicInteger(0);
 	
 	public Delegate(Connection connection, Map<String,List<String>> uriMap, Map<String,List<String>> queueMap) throws JMSException {
 		this.connection  = connection;
@@ -58,11 +63,16 @@ public class Delegate implements Runnable, MessageListener {
         producer = jtaSession.createProducer(null);
         producer.setDeliveryMode(DeliveryMode.PERSISTENT);
         producer.setTimeToLive(30000);
+        
+        delegateQ = jtaSession.createQueue("jms.delegate." + JECore.getInstance().getBrokerTransportIp() + "." + count.getAndIncrement() + ".queue");
+        responseConsumer = jtaSession.createConsumer(delegateQ);
+        responseConsumer.setMessageListener(this);
 	}
 	
 	public void shutdown() throws JMSException{
 		isShutdown = true;
 		producer.close();
+		responseConsumer.close();
         jtaSession.close();
         globalDelegateConsumer.close();
 	    globalSession.close();
@@ -195,21 +205,12 @@ public class Delegate implements Runnable, MessageListener {
 		            	  reqRespMap.put(correlationID, jClientQ);
 		            	  
 		            	  String[] req = new String[]{uri};
-		  	
-		                  // Create the destination for JTA queue(s)
-		                  // TODO need to create multiple destinations and coordinate replies
-		                  // for when multiple queues per URI
-		                  Destination jtaQueueDestination = jtaSession.createQueue(jtaUriMap.get(uri).get(0));
-		                  
-		                  Destination tempDest = jtaSession.createTemporaryQueue();
-		                  MessageConsumer responseConsumer = jtaSession.createConsumer(tempDest);
-		                  responseConsumer.setMessageListener(this);
-		                  
+		  	              
 		                  Message message = jtaSession.createObjectMessage(req);
 		                  message.setJMSCorrelationID(correlationID);
-		                  message.setJMSReplyTo(tempDest);
+		                  message.setJMSReplyTo(delegateQ);
 		
-		      			  producer.send(jtaQueueDestination, message);
+		      			  producer.send(jtaSession.createQueue(jtaUriMap.get(uri).get(0)), message);
 
 		        	  }
 		          }
