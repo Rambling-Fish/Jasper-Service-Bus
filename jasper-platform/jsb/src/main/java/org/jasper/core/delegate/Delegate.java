@@ -34,7 +34,6 @@ public class Delegate implements Runnable, MessageListener {
 	private Map<String,List<String>> jtaQueueMap;
 	private Map<String, Destination> reqRespMap;
 	private Map<String, String> msgIdMap;
-	private Connection connection;
 	private boolean isShutdown;
 	private Session globalSession;
 	private Queue globalQueue;
@@ -48,7 +47,6 @@ public class Delegate implements Runnable, MessageListener {
 	static private AtomicInteger count = new AtomicInteger(0);
 	
 	public Delegate(Connection connection, Map<String,List<String>> uriMap, Map<String,List<String>> queueMap) throws JMSException {
-		this.connection  = connection;
 		this.jtaUriMap   = uriMap;
 		this.jtaQueueMap = queueMap;
 		this.reqRespMap  = new ConcurrentHashMap<String, Destination>();
@@ -97,7 +95,7 @@ public class Delegate implements Runnable, MessageListener {
 				}
 	          
 				String correlationID = responseMessage.getJMSCorrelationID();
-	
+				
 				if(!reqRespMap.containsKey(correlationID)) {
 					logger.error("correlationID " + correlationID + " for response not found, ignoring");
 					return;
@@ -123,22 +121,11 @@ public class Delegate implements Runnable, MessageListener {
 	 * incoming correlationID is not unique
 	 */
 	public void processInvalidRequest(TextMessage msg) throws Exception {
-		// Create a Session
-        Session jClientSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-  	  	Destination jClientQueueDestination = msg.getJMSReplyTo();
-       
-        // Create a MessageProducer from the Session to the Queue
-        MessageProducer producer = jClientSession.createProducer(jClientQueueDestination);
-        producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-        producer.setTimeToLive(30000);
-
-        // For now we always send back empty JSON for all error scenarios
-        Message message = jClientSession.createTextMessage("{}");
-        message.setJMSCorrelationID(msg.getJMSMessageID());
-        producer.send(message);
-
-        // Clean up
-        jClientSession.close();
+        Message message = jtaSession.createTextMessage("{}");
+        String correlationID = msg.getJMSCorrelationID();
+        if(correlationID == null) correlationID = msg.getJMSMessageID();
+		message.setJMSCorrelationID(correlationID);
+		producer.send(msg.getJMSReplyTo(),message);
 	}
 	
 	public void processRequests() {
@@ -209,8 +196,7 @@ public class Delegate implements Runnable, MessageListener {
 		                  Message message = jtaSession.createObjectMessage(req);
 		                  message.setJMSCorrelationID(correlationID);
 		                  message.setJMSReplyTo(delegateQ);
-		
-		      			  producer.send(jtaSession.createQueue(jtaUriMap.get(uri).get(0)), message);
+		  				  producer.send(jtaSession.createQueue(jtaUriMap.get(uri).get(0)), message);
 
 		        	  }
 		          }
