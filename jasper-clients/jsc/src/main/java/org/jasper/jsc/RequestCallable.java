@@ -155,7 +155,9 @@ public class RequestCallable implements Callable<TextMessage> {
 
 		try {
 			log.info("RequestCallable: shutdown the queueRequestor: ");
-			queueRequestor.close();
+			if(queueRequestor != null){
+				queueRequestor.close();
+			}
 		} catch (JMSException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
