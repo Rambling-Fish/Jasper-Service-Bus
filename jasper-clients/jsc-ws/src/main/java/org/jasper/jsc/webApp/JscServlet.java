@@ -49,38 +49,18 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 	private MessageProducer producer;
 	private Queue servletQueue;
 	private MessageConsumer responseConsumer;
-	private Map<String,TimeStampedHttpServletResponse> httpServletResponses;
+	private Map<String,Message> responses;
 
 	private ScheduledExecutorService mapAuditExecutor;
-
-	class TimeStampedHttpServletResponse{
-		HttpServletResponse httpServletResponse;
-		long timestamp;
-		
-		TimeStampedHttpServletResponse(HttpServletResponse resp){
-			httpServletResponse = resp;
-			timestamp = System.currentTimeMillis();
-		}
-		
-		HttpServletResponse getHttpServletResponse(){
-			return httpServletResponse;
-		}
-		
-		long getTimestamp(){
-			return timestamp;
-		}
-		
-	}
 
 	public JscServlet(){
 		super();
     }
     
 	public void init(){
-
     	Properties prop = getProperties();
-    	
-    	httpServletResponses = new ConcurrentHashMap<String, JscServlet.TimeStampedHttpServletResponse>();
+
+    	responses = new ConcurrentHashMap<String, Message>();
     	
     	String user = prop.getProperty("jsc.username");
     	String password = prop.getProperty("jsc.password");
@@ -156,7 +136,6 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
     private Properties getProperties() {
     	Properties prop = new Properties();
 		try {
-			
 			File file = new File(System.getProperty("catalina.base") + "/conf/jsc.properties");
 			if(file.exists()){
 				FileInputStream fileInputStream = new FileInputStream(file);
@@ -175,21 +154,16 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 	}
 	
 	private void auditMap() {
-		synchronized (httpServletResponses) {
+		synchronized (responses) {
 			long currentTime = System.currentTimeMillis();
-
-			for(String key:httpServletResponses.keySet()){
-				if((httpServletResponses.get(key).getTimestamp() + AUDIT_TIME_IN_MILLISECONDS) > currentTime){
-					log.warn("Map audit found response that has timed out, removing response from map and responding with empty set {} for JMSCorrelationID : " + key);
-					HttpServletResponse response = httpServletResponses.remove(key).getHttpServletResponse();
-					response.setContentType("application/json");
-			        response.setCharacterEncoding("UTF-8");
-					try {
-						response.getWriter().write("{}");
-						response.flushBuffer();
-					} catch (IOException e) {
-						log.error("Exception when trying to write to response",e);
+			for(String key:responses.keySet()){
+				try {
+					if((responses.get(key).getJMSTimestamp() + AUDIT_TIME_IN_MILLISECONDS) > currentTime){
+						log.warn("Map audit found response that has timed out and weren't forwarded to JSC, removing response from map and droping response for JMSCorrelationID : " + key);
+						responses.remove(key);
 					}
+				} catch (JMSException e) {
+					log.error("Exception caught when getting JMSExpiration",e);
 				}
 			}
 		}
@@ -215,14 +189,30 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 			message.setJMSCorrelationID(correlationID);
 			message.setJMSReplyTo(servletQueue);
 			
-			httpServletResponses.put(correlationID, new TimeStampedHttpServletResponse(response));
 			producer.send(message);
 			
-			//wait for response to be sent (including audit timeout error) or max of 2 minutes
 			int count = 0;
-			while(httpServletResponses.containsKey(correlationID) && count < 1200){
-				Thread.sleep(100);
-				count++;
+			synchronized(responses){
+				while(!responses.containsKey(correlationID) && count < 600){
+					responses.wait(1000);
+					count++;
+				}
+			}
+			
+			response.setContentType("application/json");
+	        response.setCharacterEncoding("UTF-8");
+	        		
+			if(responses.containsKey(correlationID)){
+				Message msg = responses.remove(correlationID);
+				if (msg instanceof TextMessage){
+					response.getWriter().write(((TextMessage) msg).getText());
+				}else{
+					response.getWriter().write("{}");
+					log.warn("Response was not a TextMessage for JMSCorrelationID : " + correlationID + " sending {} back to client");
+				}
+			}else{
+				log.warn("Response never recieved for JMSCorrelationID : " + correlationID + " sending {} back to client");
+				response.getWriter().write("{}");
 			}
 			
 		} catch (JMSException e) {
@@ -237,29 +227,18 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 
 	public void onMessage(Message msg) {
 		try{
-			if(!httpServletResponses.containsKey(msg.getJMSCorrelationID())){
-				log.warn("jms response message recieved with unknown JMSCorrelationID : " + msg.getJMSCorrelationID() + ", ignoring message. Orginal request may have timed out");
+			if(msg.getJMSCorrelationID() == null){
+				log.warn("jms response message recieved with null JMSCorrelationID, ignoring message.");
 				return;
 			}
-			HttpServletResponse response = httpServletResponses.remove(msg.getJMSCorrelationID()).getHttpServletResponse();
-			response.setContentType("application/json");
-	        response.setCharacterEncoding("UTF-8");
-	        
-		    try {
-				if(msg instanceof TextMessage){
-					response.getWriter().write(((TextMessage) msg).getText());
-					response.flushBuffer();
-				}else{
-					log.warn("jms response message recieved not TextMessage ignoring response, sending empty set {}.");
-					response.getWriter().write("{}");
-					response.flushBuffer();
-				}
-			} catch (IOException e) {
-				log.error("Exception when trying to write to response",e);
-			}
 			
+			msg.setJMSTimestamp(System.currentTimeMillis());
+			synchronized (responses) {
+				responses.put(msg.getJMSCorrelationID(), msg);
+				responses.notifyAll();
+			}
 		} catch (JMSException e) {
-			log.error("Exception when trying access jms response message",e);
+			log.error("Exception when storing response recieved in onMessage",e);
 		}		
 	}
 
