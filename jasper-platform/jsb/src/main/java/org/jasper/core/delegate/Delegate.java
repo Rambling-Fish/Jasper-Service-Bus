@@ -43,7 +43,7 @@ public class Delegate implements Runnable, MessageListener {
 	private Destination delegateQ;
 	private MessageConsumer responseConsumer;
 	
-	static Logger logger = Logger.getLogger("org.jasper");
+	static Logger logger = Logger.getLogger(Delegate.class.getName());
 	static private AtomicInteger count = new AtomicInteger(0);
 	
 	public Delegate(Connection connection, Map<String,List<String>> uriMap, Map<String,List<String>> queueMap) throws JMSException {

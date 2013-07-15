@@ -51,7 +51,7 @@ import com.hazelcast.core.HazelcastInstance;
 
 public class JECore {
 	
-	static Logger logger = Logger.getLogger("org.jasper");
+	static Logger logger = Logger.getLogger(JECore.class.getName());
 	
 	private static JECore core;
 	

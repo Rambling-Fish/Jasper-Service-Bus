@@ -68,7 +68,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
      */
     private ScheduledExecutorService jtaAuditExec;
      
-    static Logger logger = Logger.getLogger("org.jasper");
+    static Logger logger = Logger.getLogger(JasperBroker.class.getName());
      
      public JasperBroker(Broker next) {
         super(next);
