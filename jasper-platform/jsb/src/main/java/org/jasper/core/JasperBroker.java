@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -111,15 +112,15 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
         for(String licenseKey:jtaInfoMap.keySet()){
             JTALicense lic = core.getJTALicense(JAuthHelper.hexToBytes(licenseKey));
             if(core.willLicenseKeyExpireInDays(lic, 3)){
-                logger.error("JTA : " + jtaInfoMap.get(licenseKey).getJtaName() + " will expire on : " + core.getExpiryDate(lic));
+                logger.error("JTA : " + getJta(licenseKey).getJtaName() + " will expire on : " + core.getExpiryDate(lic));
             }else if(core.willLicenseKeyExpireInDays(lic, 7)){
-                logger.warn("JTA : " + jtaInfoMap.get(licenseKey).getJtaName() + " will expire on : " + core.getExpiryDate(lic));
+                logger.warn("JTA : " + getJta(licenseKey).getJtaName() + " will expire on : " + core.getExpiryDate(lic));
             }else if(core.willLicenseKeyExpireInDays(lic, 14)){
-                logger.info("JTA : " + jtaInfoMap.get(licenseKey).getJtaName() + " will expire on : " + core.getExpiryDate(lic));
+                logger.info("JTA : " + getJta(licenseKey).getJtaName() + " will expire on : " + core.getExpiryDate(lic));
             }else if(core.willLicenseKeyExpireInDays(lic, 21)){
-                logger.debug("JTA : " + jtaInfoMap.get(licenseKey).getJtaName() + " will expire on : " + core.getExpiryDate(lic));
+                logger.debug("JTA : " + getJta(licenseKey).getJtaName() + " will expire on : " + core.getExpiryDate(lic));
             }
-            if(!core.isJTAAuthenticationValid(jtaInfoMap.get(licenseKey).getJtaName(), licenseKey)) dropJTAConnection(licenseKey);
+            if(!core.isJTAAuthenticationValid(getJta(licenseKey).getJtaName(), licenseKey)) dropJTAConnection(licenseKey);
         }
     }
       
@@ -132,15 +133,43 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
             logger.error("Exception caught when trying to drop JTA connection",e);
         }
     }
+    
+    private JtaInfo getJta(String key){
+    	return jtaInfoMap.get(key);
+    }
+    
+    private JtaInfo removeJta(String key){
+    	if(jtaInfoMap instanceof IMap){
+    		try {
+				return (JtaInfo) ((IMap)jtaInfoMap).tryRemove(key, 30, TimeUnit.SECONDS);
+			} catch (TimeoutException e) {
+				logger.error("caught exception trying to remove key : " + key + " trying to remove without lock",e);
+				return jtaInfoMap.remove(key);
+			}
+    	}else{
+    		return jtaInfoMap.remove(key);
+    	}
+    }
+    
+    private boolean putJta(String key, JtaInfo info){
+    	if(jtaInfoMap instanceof IMap){
+			boolean success = ((IMap)jtaInfoMap).tryPut(key,info, 30, TimeUnit.SECONDS);
+			if(!success) logger.error("failed to put in jtaInfoMap JTA =" + info.getJtaName() + " with key = " + key);
+			return success;
+    	}else{
+    		jtaInfoMap.put(key,info);
+    		return true;
+    	}
+    }
  
     private void cleanRemoteJtaMap(String jsbInstance) {
     	if(logger.isInfoEnabled()) logger.info("removing all JTA license keys from remote map for jsb : " + jsbInstance);
         JtaInfo jtaInfo;
         for(String key:jtaInfoMap.keySet()){
-            jtaInfo = jtaInfoMap.get(key);
+            jtaInfo = getJta(key);
             if(jtaInfo.getJsbConnectedTo().equals(jsbInstance)){
             	if(logger.isInfoEnabled()) logger.info("removing : " + jtaInfo.getJtaName() + " from : " + jtaInfo.getJsbConnectedTo());
-                jtaInfoMap.remove(key);
+            	removeJta(key);
                 jtaConnectionContextMap.remove(key);
             }
         }
@@ -258,9 +287,9 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
              * We check that only one JTA per license key is ever registered at one time, both locally and
              * remotely, if a second JTA attempts to register we throw a security exception
              */
-            if(!(jtaInfoMap.containsKey(info.getPassword()))){         
+            if(!(jtaInfoMap.containsKey(info.getPassword()))){
                 super.addConnection(context, info); 
-            	jtaInfoMap.put(info.getPassword(), new JtaInfo(info.getUserName(), info.getPassword(), core.getJSBDeploymentAndInstance(),info.getClientId(), info.getClientIp()));
+            	putJta(info.getPassword(), new JtaInfo(info.getUserName(), info.getPassword(), core.getJSBDeploymentAndInstance(),info.getClientId(), info.getClientIp()));
                 jtaConnectionContextMap.put(info.getPassword(), context);
 
                 if(logger.isInfoEnabled()){
@@ -278,7 +307,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
                 notifyDelegate(Command.publish, jtaQueueName);
                 if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());                            
             }else{
-                JtaInfo registeredJtaInfo = jtaInfoMap.get(info.getPassword());
+                JtaInfo registeredJtaInfo = getJta(info.getPassword());
                 logger.error("JTA not registred since JTA with same license key registered on " + registeredJtaInfo.getJsbConnectedTo() + ", only one instance of a JTA can be registered with core at a time, JTA with with the following info already registered \n" +
                         "vendor:appName:version:deploymentId = " + registeredJtaInfo.getJtaName() + "\n" +
                         "clientId:clientIp = " + registeredJtaInfo.getClientId() + ":" + registeredJtaInfo.getClientIp());
@@ -291,7 +320,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
     }
      
     public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error)throws Exception{
-        if(jtaInfoMap.get(info.getPassword()) != null ){
+        if(getJta(info.getPassword()) != null ){
 
         	if(logger.isInfoEnabled()){
 	        	if(info.getUserName().contains("jsc")){
@@ -300,7 +329,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
 	                logger.info("JTA de-registered from JSB : " + info.getUserName());
 	        	}
         	}
-            jtaInfoMap.remove(info.getPassword());
+        	removeJta(info.getPassword());
             jtaConnectionContextMap.remove(info.getPassword());
             super.removeConnection(context, info, error);
             if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());
@@ -333,7 +362,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
  
         sb.append("\n-----  JTA dist map start ----\n");
         for(String key:jtaInfoMap.keySet()){
-            jtaInfo = jtaInfoMap.get(key);
+            jtaInfo = getJta(key);
             if(jtaInfo.getJtaName().contains("jsc")){
                 sb.append("jsc = " + jtaInfo.getJtaName() + " - connected to jsb = " + jtaInfo.getJsbConnectedTo() + "\n");
             }else{
