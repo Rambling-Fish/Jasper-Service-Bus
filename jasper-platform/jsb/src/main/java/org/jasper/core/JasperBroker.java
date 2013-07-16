@@ -354,7 +354,9 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
                 logger.info("Peer JSB deregistered from system : " + info.getUserName());
             }
             jsbConnectionInfoMap.remove(info.getPassword());
-            cleanRemoteJtaMap(core.getJSBDeploymentAndInstance(info.getPassword()));
+            if(this.getBrokerService() instanceof JasperBrokerService && !((JasperBrokerService)this.getBrokerService()).isStopping()){
+                cleanRemoteJtaMap(core.getJSBDeploymentAndInstance(info.getPassword()));
+            }
             super.removeConnection(context, info, error);
             logger.warn(getPrintableJtaAndJsbMap());
             return;
