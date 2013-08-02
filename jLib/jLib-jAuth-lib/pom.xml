@@ -8,11 +8,9 @@
         <artifactId>jLib-parent</artifactId>
         <version>2.0</version>
     </parent>
-	<groupId>org.jasper.jLib</groupId>
 	<artifactId>jLib-jAuth-lib</artifactId>
 	<packaging>jar</packaging>
 	<name>jLib-jAuth-lib</name>
-	<version>2.0</version>
 	<description></description>
 
 	<dependencies>

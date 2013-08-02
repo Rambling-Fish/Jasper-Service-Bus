@@ -8,11 +8,9 @@
         <artifactId>jLib-parent</artifactId>
         <version>2.0</version>
     </parent>
-	<groupId>org.jasper.jLib</groupId>
 	<artifactId>jLib-jCommons-lib</artifactId>
 	<packaging>jar</packaging>
 	<name>jLib-jCommons-lib</name>
-	<version>2.0</version>
 	<description></description>
 
 	<dependencies>

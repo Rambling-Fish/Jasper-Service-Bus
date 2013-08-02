@@ -99,7 +99,6 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
     private void setupJTALicenseKeyAudit(){
         jtaAuditExec = Executors.newSingleThreadScheduledExecutor();
         Runnable command = new Runnable() {
-            @Override
             public void run() {
                 auditRegisteredJTAs();
             }
@@ -443,33 +442,27 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
         }
     }
 
-	@Override
 	public void entryAdded(EntryEvent arg0) {
         logger.warn(getPrintableJtaMap());	
 	}
 
-	@Override
 	public void entryEvicted(EntryEvent arg0) {
         logger.warn(getPrintableJtaMap());	
 		
 	}
 
-	@Override
 	public void entryRemoved(EntryEvent arg0) {
         logger.warn(getPrintableJtaMap());	
 	}
 
-	@Override
 	public void entryUpdated(EntryEvent arg0) {
         logger.warn(getPrintableJtaMap());	
 	}
 
-	@Override
 	public void itemAdded(ItemEvent arg0) {
         logger.warn(getPrintableJtaMap());	
 	}
 
-	@Override
 	public void itemRemoved(ItemEvent arg0) {
         logger.warn(getPrintableJtaMap());	
 	}

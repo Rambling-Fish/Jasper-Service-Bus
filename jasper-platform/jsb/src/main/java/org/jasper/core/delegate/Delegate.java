@@ -76,12 +76,10 @@ public class Delegate implements Runnable, MessageListener {
 	    globalSession.close();
 	}
 	
-	@Override
 	public void run(){
 		processRequests();
 	}
 		
-	@Override
 	public void onMessage(Message msg) {
 		try{
 			if(logger.isDebugEnabled()){

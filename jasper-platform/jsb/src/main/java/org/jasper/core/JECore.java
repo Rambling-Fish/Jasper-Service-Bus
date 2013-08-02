@@ -186,7 +186,6 @@ public class JECore {
 	public void setupAudit(){
 		exec = Executors.newSingleThreadScheduledExecutor();
 		Runnable command = new Runnable() {
-			@Override
 			public void run() {
 				auditSystem();
 			}

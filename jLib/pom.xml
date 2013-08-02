@@ -10,7 +10,6 @@
     <artifactId>jLib-parent</artifactId>
     <packaging>pom</packaging>
     <name>jLib-parent</name>
-    <version>2.0</version>
     <description></description>
     
     <modules>
