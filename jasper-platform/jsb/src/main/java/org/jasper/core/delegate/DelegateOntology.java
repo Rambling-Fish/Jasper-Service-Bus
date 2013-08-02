@@ -1,5 +1,6 @@
 package org.jasper.core.delegate;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -13,6 +14,10 @@ import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.sparql.resultset.JSONOutput;
+import com.hp.hpl.jena.sparql.resultset.JSONOutputResultSet;
+import com.hp.hpl.jena.sparql.resultset.XMLOutput;
 
 public class DelegateOntology {
 
@@ -191,8 +196,7 @@ public class DelegateOntology {
 		return array;	
 	}
 
-	public boolean isSupportedRURI(String ruri) {
-		if(ruri == null) return false;
+	private boolean isSupportedRURI(String ruri) {
 		if(ruri.startsWith("http://")) ruri = "<" + ruri +">";
 		String queryString = 
 				 PREFIXS +
@@ -213,6 +217,54 @@ public class DelegateOntology {
 		Query query = QueryFactory.create(queryString) ;
 		QueryExecution qexec = QueryExecutionFactory.create(query, model);
 		return qexec.execAsk();
+	}
+	
+	public String queryModel_backup(String queryString,String output){
+
+		QueryExecution queryExecution = QueryExecutionFactory.create(queryString, model);
+		Model result = queryExecution.execDescribe();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		result.write(baos, output);
+		
+		System.out.println("######## queryModel Start");
+		System.out.println(baos.toString());
+		System.out.println("######## queryModel End");
+
+		return baos.toString();
+
+	}
+	
+	public String queryModel(String queryString,String output){
+
+//		String newQueryString = 
+//				 PREFIXS +
+//	             "SELECT ?jta ?jtaProvidedData ?params\n" + 
+//	             "WHERE\n" + 
+//	             "{\n" + 
+//	             "	{\n" + 
+//	             "		?jta :is       :jta .\n" + 
+//	             "		?jta :provides ?jtaProvidedData .\n" + 
+//	             "	}\n" + 
+//	             "	UNION\n" + 
+//	             "	{\n" + 
+//	             "		?jta :is       :jta .\n" + 
+//	             "		?jta :param    ?params .\n" + 
+//	             "	}	\n" + 
+//	             "}" ;
+		System.out.println("######## queryString = " + queryString);
+
+		QueryExecution queryExecution = QueryExecutionFactory.create(queryString, model);
+		
+		ResultSet resultSet = queryExecution.execSelect();
+		
+		JSONOutput jsonOutput = new JSONOutput();
+		String result = jsonOutput.asString(resultSet);
+		
+		System.out.println("######## queryModel Start");
+		System.out.println(result);
+		System.out.println("######## queryModel End");
+		
+		return result;
 	}
 
 	public Model getModel() {

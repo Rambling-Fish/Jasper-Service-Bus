@@ -440,7 +440,6 @@ public class JECore {
     	try {
             //load a properties file
     		prop.load(new FileInputStream(System.getProperty("jsb-property-file")));
-    		if(System.getProperty("jsb-log4j-xml") != null) DOMConfigurator.configure(System.getProperty("jsb-log4j-xml"));
     	} catch (IOException ex) {
     		ex.printStackTrace();
     	}

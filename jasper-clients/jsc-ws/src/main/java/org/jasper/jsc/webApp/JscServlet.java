@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.commons.httpclient.util.URIUtil;
 import org.apache.log4j.Logger;
 
 @WebServlet("/")
@@ -171,20 +172,26 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 	}
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
-        StringBuffer jasperQuery = new StringBuffer();
-        String path = request.getRequestURI().substring(request.getContextPath().length()+1);
-        jasperQuery.append(path);
-        if(request.getQueryString() != null)
-        {
-            jasperQuery.append("?");
-            jasperQuery.append(request.getQueryString());
-        }
+//        StringBuffer jasperQuery = new StringBuffer();
+//        String ruri = request.getRequestURI();
+//        String contextPath = request.getContextPath();
+//        String queryString = request.getQueryString();
+        
+//        String path = request.getRequestURI().substring(request.getContextPath().length()+1);
+//        jasperQuery.append(path);
+//        if(request.getQueryString() != null)
+//        {
+//            jasperQuery.append("?");
+//            jasperQuery.append(request.getQueryString());
+//        }
        
 		try {
 
 	        TextMessage message = session.createTextMessage();
 
-			message.setText(jasperQuery.toString());
+//			message.setText(jasperQuery.toString());
+			message.setText(request.getQueryString());
+
 			String correlationID = UUID.randomUUID().toString();
 			message.setJMSCorrelationID(correlationID);
 			message.setJMSReplyTo(servletQueue);
@@ -201,6 +208,7 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 			
 			response.setContentType("application/json");
 	        response.setCharacterEncoding("UTF-8");
+	        response.setHeader("Access-Control-Allow-Origin", "*");
 	        		
 			if(responses.containsKey(correlationID)){
 				Message msg = responses.remove(correlationID);
