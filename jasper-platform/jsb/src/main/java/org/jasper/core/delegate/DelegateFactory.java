@@ -1,28 +1,26 @@
 package org.jasper.core.delegate;
- 
+
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
- 
+
+import javax.jms.Connection;
 import javax.jms.JMSException;
-import javax.jms.QueueConnection;
- 
+
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.jasper.core.JECore;
- 
-import com.hazelcast.config.Config;
-import com.hazelcast.config.GroupConfig;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
+import org.jasper.core.constants.JasperConstants;
+
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
- 
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.vocabulary.RDFS;
+
 public class DelegateFactory{
- 
-    public static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
+
+	private Connection connection;
+    private Model model;
+    
     public static final Map<String, String> URI_MAPPER;
     static {
         Map<String, String> aMap = new HashMap<String, String>();
@@ -34,71 +32,24 @@ public class DelegateFactory{
         aMap.put("bpData"   , "http://coralcea.ca/jasper/medicalSensor/bloodPressure/data");
         URI_MAPPER = Collections.unmodifiableMap(aMap);
     }
-     
-    private static final String DELEGATE_DEFAULT_NAME = "jasperDelegate";
-    private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
-    private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
- 
-    private AtomicInteger count;
-    private QueueConnection queueConnection;
-     
-    private Model model;
-    
-    private Map<String,List<String>> jtaUriMap;
-    private Map<String, List<String>> jtaQueueMap;
-	private HazelcastInstance hazelcastInstance;
-    
-	public DelegateFactory() throws JMSException{
-		this(false,null,null);
-	}
+
 	
-    public DelegateFactory(boolean distributed, String clusterName, String clusterPassword) throws JMSException{
-      initializeModel();
-    	   	
-    	if(distributed){
-	        Config cfg = new Config();
-	        if(clusterName != null && clusterPassword != null && !"".equals(clusterName) && !"".equals(clusterPassword)){
-	        	GroupConfig groupConfig = new GroupConfig(clusterName, clusterPassword);
-		        cfg.setGroupConfig(groupConfig);
-	        }
-	        hazelcastInstance = Hazelcast.newHazelcastInstance(cfg);
-	        jtaUriMap = hazelcastInstance.getMap("jtaUriMap");
-	        jtaQueueMap = hazelcastInstance.getMap("jtaQueueMap");
-    	}else{
-    		jtaUriMap = new ConcurrentHashMap<String, List<String>>();
-    		jtaQueueMap = new ConcurrentHashMap<String, List<String>>();
-    		
-    	}         
-        count = new AtomicInteger();
-         
+    public DelegateFactory(boolean distributed, JECore core) throws JMSException{
+		
+    	initializeModel();   	
+		
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
         // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
-        queueConnection = connectionFactory.createQueueConnection();
-        queueConnection.start(); 
-    }
-    
-    public void shutdown(){
-    	if(hazelcastInstance != null){
-	    	hazelcastInstance.getLifecycleService().shutdown();
-	    	int count = 0;
-			try {
-		    	while(hazelcastInstance.getLifecycleService().isRunning()){
-					Thread.sleep(500);
-		    		count++;
-		    		if(count > 20){
-		    			hazelcastInstance.getLifecycleService().kill();
-		    			break;
-		    		}
-		    	}
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-    	}
-    }
- 
+        connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+        connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
+        connection = connectionFactory.createConnection();
+        connection.start(); 
+	}
+	
+	public Delegate createDelegate() throws JMSException{
+		return new Delegate(connection, model);
+	}
+	
     private void initializeModel() {
         model = ModelFactory.createDefaultModel();
          
@@ -123,16 +74,14 @@ public class DelegateFactory{
          
         model.createResource("http://coralcea.ca/jasper/medicalSensor/data");
         model.createResource("http://coralcea.ca/jasper/timeStamp");
-        model.createResource("http://coralcea.ca/jasper/medicalSensor/bloodPressure/sensorId");
-        model.createResource("http://coralcea.ca/jasper/medicalSensor/heartRate/sensorId");
+        
+        Resource bpSid = model.createResource("http://coralcea.ca/jasper/medicalSensor/bloodPressure/sensorId");
+        Resource hrSid = model.createResource("http://coralcea.ca/jasper/medicalSensor/heartRate/sensorId");
+        
+        bpSid.addProperty(RDFS.label, "Blood Pressure Sensor ID");
+        hrSid.addProperty(RDFS.label, "Heart Rate Sensor ID");
+
+        
          
     }
-     
-    public Delegate createDelegate(){
-        return createDelegate(DELEGATE_DEFAULT_NAME);
-    }
-     
-    public Delegate createDelegate(String name){
-        return new Delegate(name + "." + count.getAndIncrement(),queueConnection, jtaUriMap, jtaQueueMap, model);
-    }   
 }
