@@ -120,8 +120,8 @@ public class Delegate implements Runnable, MessageListener {
 	 * Currently this occurs if incoming URI cannot be mapped to a JTA or the
 	 * incoming correlationID is not unique
 	 */
-	public void processInvalidRequest(TextMessage msg) throws Exception {
-        Message message = jtaSession.createTextMessage("{}");
+	public void processInvalidRequest(TextMessage msg,String errorInfo) throws Exception {
+        Message message = jtaSession.createTextMessage(errorInfo);
         String correlationID = msg.getJMSCorrelationID();
         if(correlationID == null) correlationID = msg.getJMSMessageID();
 		message.setJMSCorrelationID(correlationID);
@@ -167,7 +167,7 @@ public class Delegate implements Runnable, MessageListener {
 		        	  
 		        	  if(!jtaUriMap.containsKey(uri)){
 			        	  logger.error("URI " + uri + " in incoming request not found");
-			        	  processInvalidRequest(txtMsg);
+			        	  processInvalidRequest(txtMsg,"{\"error\"=\"jtaUriMapDoesntContainUri\"}");
 		        	  }else{
 			        	  String correlationID = txtMsg.getJMSCorrelationID();
 		            	  Destination jClientQ = txtMsg.getJMSReplyTo();
@@ -186,7 +186,7 @@ public class Delegate implements Runnable, MessageListener {
 			        	  
 		            	  if(reqRespMap.containsKey(correlationID)) {
 		            		  logger.error("CorrelationID " + correlationID + " in incoming message not unique");
-		            		  processInvalidRequest(txtMsg);
+		            		  processInvalidRequest(txtMsg,"\"error\"=\"CorrelationID_"+correlationID+"_notUnique\"");
 		            	  }
 		            	  
 		            	  reqRespMap.put(correlationID, jClientQ);

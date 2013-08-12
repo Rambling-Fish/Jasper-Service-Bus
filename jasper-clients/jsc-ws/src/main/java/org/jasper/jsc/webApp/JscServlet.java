@@ -50,6 +50,7 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 	private Queue servletQueue;
 	private MessageConsumer responseConsumer;
 	private Map<String,Message> responses;
+	private Map<String,Object> locks;
 
 	private ScheduledExecutorService mapAuditExecutor;
 
@@ -61,6 +62,7 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
     	Properties prop = getProperties();
 
     	responses = new ConcurrentHashMap<String, Message>();
+    	locks = new ConcurrentHashMap<String, Object>();
     	
     	String user = prop.getProperty("jsc.username");
     	String password = prop.getProperty("jsc.password");
@@ -161,6 +163,7 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 					if((responses.get(key).getJMSTimestamp() + AUDIT_TIME_IN_MILLISECONDS) > currentTime){
 						log.warn("Map audit found response that has timed out and weren't forwarded to JSC, removing response from map and droping response for JMSCorrelationID : " + key);
 						responses.remove(key);
+						locks.remove(key).notifyAll();
 					}
 				} catch (JMSException e) {
 					log.error("Exception caught when getting JMSExpiration",e);
@@ -171,8 +174,8 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 	}
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
-        StringBuffer jasperQuery = new StringBuffer();
-        String path = request.getRequestURI().substring(request.getContextPath().length()+1);
+    	StringBuffer jasperQuery = new StringBuffer();
+        String path = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):"";
         jasperQuery.append(path);
         if(request.getQueryString() != null)
         {
@@ -189,36 +192,39 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 			message.setJMSCorrelationID(correlationID);
 			message.setJMSReplyTo(servletQueue);
 			
-			producer.send(message);
-			
-			int count = 0;
-			synchronized(responses){
-				while(!responses.containsKey(correlationID) && count < 600){
-					responses.wait(1000);
-					count++;
-				}
+			Message responseJmsMsg = null;
+			Object lock = new Object();
+			synchronized (lock) {
+				locks.put(correlationID, lock);
+				producer.send(message);
+			    int count = 0;
+			    while(!responses.containsKey(correlationID)){
+			    	try {
+						lock.wait(10000);
+					} catch (InterruptedException e) {
+						log.error("Interrupted while waiting for lock notification",e);
+					}
+			    	count++;
+			    	if(count >= 6)break;
+			    }
+			    responseJmsMsg = responses.remove(correlationID);
 			}
 			
 			response.setContentType("application/json");
 	        response.setCharacterEncoding("UTF-8");
-	        		
-			if(responses.containsKey(correlationID)){
-				Message msg = responses.remove(correlationID);
-				if (msg instanceof TextMessage){
-					response.getWriter().write(((TextMessage) msg).getText());
-				}else{
-					response.getWriter().write("{}");
-					log.warn("Response was not a TextMessage for JMSCorrelationID : " + correlationID + " sending {} back to client");
-				}
+			
+			if(responseJmsMsg == null){
+				response.getWriter().write("{\"error\"=\"jscTimedOutWaitingForJsbResponse\"}");
+				log.warn("No respone for JMSCorrelationID : " + correlationID + " sending {\"error\"=\"jscTimedOutWaitingForJsbResponse\"} back to client");			
+			}else if (responseJmsMsg instanceof TextMessage){
+				response.getWriter().write(((TextMessage) responseJmsMsg).getText());
 			}else{
-				log.warn("Response never recieved for JMSCorrelationID : " + correlationID + " sending {} back to client");
-				response.getWriter().write("{}");
+				response.getWriter().write("{\"error\"=\"responseWasNotJmsTextMessage\"}");
+				log.warn("Response was not a TextMessage for JMSCorrelationID : " + correlationID + " sending {} back to client");
 			}
 			
 		} catch (JMSException e) {
 			log.error("Exception when trying to send request to jasper",e);
-		} catch (InterruptedException e) {
-			log.error("Exception when waiting for response",e);
 		}
     }
 
@@ -231,12 +237,19 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 				log.warn("jms response message recieved with null JMSCorrelationID, ignoring message.");
 				return;
 			}
-			
+
 			msg.setJMSTimestamp(System.currentTimeMillis());
-			synchronized (responses) {
+			
+			if(locks.containsKey(msg.getJMSCorrelationID())){
 				responses.put(msg.getJMSCorrelationID(), msg);
-				responses.notifyAll();
+				Object lock = locks.remove(msg.getJMSCorrelationID());
+				synchronized (lock) {
+					lock.notifyAll();
+				}
+			}else{
+				log.error("response with correlationID = " + msg.getJMSCorrelationID() + " recieved however no record of sending message with this ID, ignoring");
 			}
+
 		} catch (JMSException e) {
 			log.error("Exception when storing response recieved in onMessage",e);
 		}		
