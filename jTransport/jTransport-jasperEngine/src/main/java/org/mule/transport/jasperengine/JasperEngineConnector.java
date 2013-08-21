@@ -50,7 +50,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     private static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
     private static final String JTA_QUEUE_SUFFIX = ".queue";
     private static final String JTA_QUEUE_PREFIX = "jms.";
-  
+    
     public JasperEngineConnector(MuleContext context){
         super(context);
         endpointUriMap = new ConcurrentHashMap<String, String>();
@@ -63,7 +63,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     
     public void doInitialise(){
     	try {
-			license = JAuthHelper.loadJTALicenseFromFile(muleContext.getRegistry().get(MuleProperties.APP_HOME_DIRECTORY_PROPERTY) + "/" + appName + JAuthHelper.JTA_LICENSE_FILE_SUFFIX);
+			license = JAuthHelper.loadJTALicenseFromFile(System.getProperty("jta-keystore") + "/" + vendor + "_" + appName + "_" + version + JAuthHelper.JTA_LICENSE_FILE_SUFFIX);
 			deploymentId = license.getDeploymentId();
 			if(!validJTALicense()){
 				throw new DefaultMuleException("Invalid JTA license key");

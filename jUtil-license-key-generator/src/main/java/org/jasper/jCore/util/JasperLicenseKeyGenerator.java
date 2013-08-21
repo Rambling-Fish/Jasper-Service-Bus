@@ -68,7 +68,7 @@ public class JasperLicenseKeyGenerator {
 	}
 	
 	public static void saveJTALicenseToFile(String path, JTALicense license) throws IOException {
-		FileOutputStream fio = new FileOutputStream(path + license.getAppName() + JAuthHelper.JTA_LICENSE_FILE_SUFFIX);
+		FileOutputStream fio = new FileOutputStream(path + license.getVendor() + "_" + license.getAppName() + "_" + license.getVersion() + JAuthHelper.JTA_LICENSE_FILE_SUFFIX);
 		ObjectOutputStream oout = new ObjectOutputStream(new BufferedOutputStream(fio));
 		try {
 			oout.writeObject(license);

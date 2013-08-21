@@ -44,6 +44,8 @@ if ! [ -d mule-standalone-3.3.0 ]; then
    tar xvfz default.tar.gz
    mv default mule-standalone-3.3.0/apps/
    rm default.tar.gz
+   cd mule-standalone-3.3.0
+   ln -s ../keystore/JTAs keystore
 fi
 }
 
@@ -60,6 +62,9 @@ if ! [ -d mule-standalone-3.3.0 ]; then
    tar xvfz default.tar.gz
    mv default mule-standalone-3.3.0/apps/
    rm default.tar.gz
+   cd mule-standalone-3.3.0
+   ln -s ../keystore/JTAs keystore
+   cd ..
    chmod 600 config/jsb.jmxremote.password
    mv wrapper.jar libs/
 fi

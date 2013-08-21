@@ -61,13 +61,16 @@ deploy()
             break
             ;;
         *)
-            checkLicense
-            if [[ $ValidLicense != 'y' ]]; then
-               echo ""
-               read -p "Cannot deploy $CHOICE - License key file is missing"
-               deploy
-               break
-            fi
+            #
+            #   TODO: New checkLicense function: Get Vendor + AppName + Version + Postfix
+            #
+            #checkLicense
+            #if [[ $ValidLicense != 'y' ]]; then
+            #   echo ""
+            #   read -p "Cannot deploy $CHOICE - License key file is missing"
+            #   deploy
+            #   break
+            #fi
             echo ""
             echo "$CHOICE is being deployed...please wait"
             sleep 10s
