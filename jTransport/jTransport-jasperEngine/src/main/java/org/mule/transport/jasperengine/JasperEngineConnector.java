@@ -1,8 +1,11 @@
 package org.mule.transport.jasperengine;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TimeZone;
@@ -11,6 +14,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
 
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -45,6 +53,9 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 	private ExecutorService adminHandler;
 	private Future adminTask;
 	
+	private Model model;
+	private Map<String, String[]> jtaOntology;
+	
     /* This constant defines the main transport protocol identifier */
     public static final String JASPERENGINE = "jasperengine";
     private static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
@@ -54,6 +65,8 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     public JasperEngineConnector(MuleContext context){
         super(context);
         endpointUriMap = new ConcurrentHashMap<String, String>();
+        model = ModelFactory.createDefaultModel();
+        jtaOntology = new HashMap<String, String[]>();
     }
 
     //TODO possibly remove
@@ -78,6 +91,30 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 		} catch (MuleException e) {
 			e.printStackTrace();
 		}
+    	// Loading Ontology information from ttl file
+    	try {
+    		
+    		logger.warn("############################################################");
+    		logger.warn("fileName: " + muleContext.getRegistry().get(MuleProperties.APP_HOME_DIRECTORY_PROPERTY) + "/" + appName + ".ttl");
+    		logger.warn("############################################################");
+    		File file = new File(muleContext.getRegistry().get(MuleProperties.APP_HOME_DIRECTORY_PROPERTY) + "/" + appName + ".ttl");
+    		FileInputStream fis = new FileInputStream(file);
+    		model.read(fis, null, "TTL");
+    		
+    		Integer ontologyKey = 0;
+    		// Encoded version of jtaName
+    		String jtaName = (vendor + "%3A" + appName + "%3A" + version + "%3A" + deploymentId);
+    		for(StmtIterator statements = model.listStatements(); statements.hasNext(); ) {
+    			  Statement statement = statements.next();
+    			  String[] triple = new String[]{jtaName, statement.getSubject().toString(),statement.getPredicate().toString(),statement.getObject().toString()};
+    			  jtaOntology.put(Integer.toString(ontologyKey),triple);
+    			  ++ontologyKey;
+      		}
+    		
+    	}catch (IOException e){
+    		e.printStackTrace();
+    	} 
+    	
     }
     
     public void connect() throws Exception{
@@ -211,6 +248,52 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     		// Create a MessageProducer from the Session to the Topic or Queue
     		MessageProducer producer = session.createProducer(destination);
     		producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+    		
+    		//
+    		// Display Content of jtaOntology Map in logs
+    		//
+//    		logger.warn("############################################################");
+//    		logger.warn("jtaOntology Size: " + jtaOntology.size());
+//    		Iterator iterator = jtaOntology.entrySet().iterator();
+//    		while (iterator.hasNext()){
+//    			Map.Entry pairs = (Map.Entry) iterator.next();
+//    			String[] sArray = (String[]) pairs.getValue();      
+//    			logger.warn("key: "+ pairs.getKey() + " values: ");
+//    			logger.warn("JTA Encoded Name: "+ sArray[0] + " ");
+//    			logger.warn("s: " + sArray[1] + " ");
+//    			logger.warn("p: " + sArray[2] + " ");
+//    			logger.warn("o: " + sArray[3] + " ");
+//    		}	
+//    		logger.warn("############################################################");
+    		
+    		// Method to substitute URI and replyToQueue for Map
+
+//    		if (jtaOntology.size() > 0){
+//    			JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, jtaOntology);
+//    			Message message = session.createObjectMessage(jam);
+//    			producer.send(message);
+//    		} else {
+//    			logger.error("Ontology Error: File Found with insufficient triples");
+//    		}
+    		//
+    		//                          _____________
+    		//                          |           |
+    		//                          |           | 
+    		//                          |           |
+    		//                      ____             ____
+    		//                      \                   /
+    		//                       \                 /
+    		//                        \               /
+    		//                         \             /
+    		//                          \           /
+    		//                           \         /
+    		//                            \       /
+    		//                             \     /
+    		//                              \   /
+    		//                               \ /
+    		
+    		
+    		
 	
     		// JasperAdmin message is created for every inbound endpoint with a
     		// URI defined. The JTA's URI and replyToQueue are registered with
@@ -233,6 +316,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     	}
     	
     }
+    
     
     public void registerInboundEndpointUri(String endpoint, String uri){
     	endpointUriMap.put(uri, endpoint);

@@ -199,6 +199,13 @@
             <artifactId>activemq-all</artifactId>
             <version>5.7.0</version>
         </dependency>
+        <!-- Jena Modules -->
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>apache-jena</artifactId>
+            <type>pom</type>
+            <version>2.10.1</version>
+        </dependency>
 
 
         <!-- for testing -->
