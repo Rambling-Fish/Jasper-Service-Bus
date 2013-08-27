@@ -233,9 +233,8 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 	} 	
     
     
-    private void publishURI() {
-    	try {
-    		
+    private void publishURI() {	
+    	try {  		
     		// Get the already established connection
     		Connection connection = getConnection();
 
@@ -252,29 +251,31 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     		//
     		// Display Content of jtaOntology Map in logs
     		//
-//    		logger.warn("############################################################");
-//    		logger.warn("jtaOntology Size: " + jtaOntology.size());
-//    		Iterator iterator = jtaOntology.entrySet().iterator();
-//    		while (iterator.hasNext()){
-//    			Map.Entry pairs = (Map.Entry) iterator.next();
-//    			String[] sArray = (String[]) pairs.getValue();      
-//    			logger.warn("key: "+ pairs.getKey() + " values: ");
-//    			logger.warn("JTA Encoded Name: "+ sArray[0] + " ");
-//    			logger.warn("s: " + sArray[1] + " ");
-//    			logger.warn("p: " + sArray[2] + " ");
-//    			logger.warn("o: " + sArray[3] + " ");
-//    		}	
-//    		logger.warn("############################################################");
+    		if(logger.isDebugEnabled()){
+    			logger.debug("############################################################");
+    			logger.debug("jtaOntology Size: " + jtaOntology.size());
+    			Iterator iterator = jtaOntology.entrySet().iterator();
+    			while (iterator.hasNext()){
+    				Map.Entry pairs = (Map.Entry) iterator.next();
+    				String[] sArray = (String[]) pairs.getValue();      
+    				logger.debug("key: "+ pairs.getKey() + " values: ");
+    				logger.debug("JTA Encoded Name: "+ sArray[0] + " ");
+    				logger.debug("s: " + sArray[1] + " ");
+    				logger.debug("p: " + sArray[2] + " ");
+    				logger.debug("o: " + sArray[3] + " ");
+    			}	
+    			logger.debug("############################################################");
+    		}
     		
     		// Method to substitute URI and replyToQueue for Map
 
-//    		if (jtaOntology.size() > 0){
-//    			JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, jtaOntology);
-//    			Message message = session.createObjectMessage(jam);
-//    			producer.send(message);
-//    		} else {
-//    			logger.error("Ontology Error: File Found with insufficient triples");
-//    		}
+    		if (jtaOntology.size() > 0){
+    			JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, jtaOntology);
+    			Message message = session.createObjectMessage(jam);
+    			producer.send(message);
+    		} else {
+    			logger.error("Ontology Error: File Found with insufficient triples");
+    		}
     		//
     		//                          _____________
     		//                          |           |
@@ -298,15 +299,15 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     		// JasperAdmin message is created for every inbound endpoint with a
     		// URI defined. The JTA's URI and replyToQueue are registered with
     		// the core
-    		Iterator<String> it = endpointUriMap.keySet().iterator();
-    		while(it.hasNext()) {
-    			String uri = (String)it.next();
-    			String queue = endpointUriMap.get(uri);
-    			String jtaName = (vendor + ":" + appName + ":" + version + ":" + deploymentId);
-    			JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, queue, jtaName,  uri);
-    			Message message = session.createObjectMessage(jam);
-    			producer.send(message);
-    		}
+//    		Iterator<String> it = endpointUriMap.keySet().iterator();
+//    		while(it.hasNext()) {
+//    			String uri = (String)it.next();
+//    			String queue = endpointUriMap.get(uri);
+//    			String jtaName = (vendor + ":" + appName + ":" + version + ":" + deploymentId);
+//    			JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, queue, jtaName,  uri);
+//    			Message message = session.createObjectMessage(jam);
+//    			producer.send(message);
+//    		}
 
     		// Clean up - no need to close connection as that will be done in JasperBroker
     		session.close();

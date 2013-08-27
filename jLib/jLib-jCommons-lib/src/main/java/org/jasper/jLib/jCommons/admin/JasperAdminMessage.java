@@ -1,6 +1,7 @@
 package org.jasper.jLib.jCommons.admin;
 
 import java.io.Serializable;
+import java.util.Map;
 
 public class JasperAdminMessage implements Serializable{
 
@@ -24,6 +25,7 @@ public class JasperAdminMessage implements Serializable{
 	private String src;
 	private String dst;
 	private String[] details;
+	private Map<String, String[]> map;
 
 	public JasperAdminMessage(Type type, Command command, String src, String dst, String... details) {
 		this.type = type;
@@ -31,6 +33,12 @@ public class JasperAdminMessage implements Serializable{
 		this.src = src;
 		this.dst = dst;
 		this.details = details;
+	}
+	
+	public JasperAdminMessage(Type type, Command command, Map<String, String[]> map){
+		this.type = type;
+		this.command = command;
+		this.map = map;
 	}
 
 	public Type getType() {
@@ -51,6 +59,10 @@ public class JasperAdminMessage implements Serializable{
 
 	public String[] getDetails() {
 		return details;
+	}
+	
+	public Map<String, String[]> getMap() {
+		return map;
 	}
 
 }

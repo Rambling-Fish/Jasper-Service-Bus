@@ -10,7 +10,11 @@ import javax.jms.JMSException;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.jasper.core.JECore;
 import org.jasper.core.constants.JasperConstants;
+import org.jasper.core.constants.JasperOntologyConstants;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -20,6 +24,8 @@ public class DelegateFactory{
 
 	private Connection connection;
     private Model model;
+    private HazelcastInstance hazelcastInstance;
+    private DelegateOntology jOntology;
     
     public static final Map<String, String> URI_MAPPER;
     static {
@@ -34,9 +40,12 @@ public class DelegateFactory{
     }
 
 	
-    public DelegateFactory(boolean distributed, JECore core) throws JMSException{
-		
+    public DelegateFactory(boolean distributed, JECore core) throws JMSException{ 	
     	initializeModel();   	
+    	
+    	Config cfg = new Config();
+		hazelcastInstance = Hazelcast.newHazelcastInstance(cfg);
+		jOntology = new DelegateOntology(this, model);
 		
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
         // Create a Connection
@@ -47,41 +56,30 @@ public class DelegateFactory{
 	}
 	
 	public Delegate createDelegate() throws JMSException{
-		return new Delegate(connection, model);
+		return new Delegate(connection, model, jOntology);
 	}
 	
     private void initializeModel() {
         model = ModelFactory.createDefaultModel();
-         
-        model.setNsPrefix("jasper", "http://coralcea.ca/jasper/");
-        model.setNsPrefix("patient","http://coralcea.ca/jasper/patient/");
- 
-        model.setNsPrefix("ms",     "http://coralcea.ca/jasper/medicalSensor/");
-        model.setNsPrefix("hr",     "http://coralcea.ca/jasper/medicalSensor/heartRate/");
-        model.setNsPrefix("hrData", "http://coralcea.ca/jasper/medicalSensor/heartRate/data/");
-        model.setNsPrefix("bp",     "http://coralcea.ca/jasper/medicalSensor/bloodPressure/");
-        model.setNsPrefix("bpData", "http://coralcea.ca/jasper/medicalSensor/bloodPressure/data/");
-        model.setNsPrefix("",       "http://coralcea.ca/jasper/vocabulary/");
-        model.setNsPrefix("jta",    "http://coralcea.ca/jasper/jta/");
-         
-        model.createResource("http://coralcea.ca/jasper/vocabulary/jta");
-        model.createProperty("http://coralcea.ca/jasper/vocabulary/provides");
-        model.createProperty("http://coralcea.ca/jasper/vocabulary/param");
-        model.createProperty("http://coralcea.ca/jasper/vocabulary/has");
-        model.createProperty("http://coralcea.ca/jasper/vocabulary/is");
-        model.createProperty("http://coralcea.ca/jasper/vocabulary/subClassOf");
-        model.createProperty("http://coralcea.ca/jasper/vocabulary/queue");
-         
-        model.createResource("http://coralcea.ca/jasper/medicalSensor/data");
-        model.createResource("http://coralcea.ca/jasper/timeStamp");
-        
-        Resource bpSid = model.createResource("http://coralcea.ca/jasper/medicalSensor/bloodPressure/sensorId");
-        Resource hrSid = model.createResource("http://coralcea.ca/jasper/medicalSensor/heartRate/sensorId");
-        
-        bpSid.addProperty(RDFS.label, "Blood Pressure Sensor ID");
-        hrSid.addProperty(RDFS.label, "Heart Rate Sensor ID");
+        Map<String,String> modelPrefixes = new HashMap<String,String>();
+        int length = JasperOntologyConstants.PREFIXLENGTH - 1;
+        String[] prefixes  = new String[length];
+        String key = new String();
+        String value = new String();
+        prefixes = JasperOntologyConstants.MAPPREFIXES.split("\n"); 
 
-        
+        for(int i=0; i<prefixes.length;i++) {
+        	key = prefixes[i].substring(0, prefixes[i].indexOf(","));
+        	value = prefixes[i].substring(prefixes[i].indexOf(",")+1, prefixes[i].length());
+        	modelPrefixes.put(key.trim(), value.trim());
+        	model.createResource(value.trim());
+        }
+      
+        model.setNsPrefixes(modelPrefixes);
          
     }
+
+	public HazelcastInstance getHazelcastInstance() {
+		return hazelcastInstance;
+	}
 }

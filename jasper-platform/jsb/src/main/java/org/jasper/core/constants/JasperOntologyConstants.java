@@ -1,0 +1,47 @@
+package org.jasper.core.constants;
+
+
+
+public class JasperOntologyConstants {
+	
+	// prefixLength has to be set to the number of rows in the MAPPREFIXES
+	public static final int PREFIXLENGTH = 11;
+	
+	// Prefixes that are pre-loaded into the model during initialization
+	public static final String MAPPREFIXES = 
+			" ,          http://coralcea.ca/jasper/vocabulary/" + "\n" +
+	        "jta ,       http://coralcea.ca/jasper/vocabulary/jta/" + "\n" +
+			"provides,   http://coralcea.ca/jasper/vocabulary/provides/" + "\n" +
+			"requires,   http://coralcea.ca/jasper/vocabulary/requires/" + "\n" +
+	        "param,      http://coralcea.ca/jasper/vocabulary/param/" + "\n" +
+			"queue,      http://coralcea.ca/jasper/vocabulary/queue/" + "\n" +
+	        "subClass,   http://coralcea.ca/jasper/vocabulary/subClassOf/" + "\n" +
+			"is,         http://coralcea.ca/jasper/vocabulary/is/" + "\n" +
+	        "has,        http://coralcea.ca/jasper/vocabulary/has/" + "\n" +
+			"timestamp,  http://coralcea.ca/jasper/vocabulary/timeStamp/" + "\n" +
+			"jasper,     http://coralcea.ca/jasper/>" + "\n" ;
+
+	// prefixes used in Sparql queries JSB ontology model
+	public static final String PREFIXS = 
+			"PREFIX :          <http://coralcea.ca/jasper/vocabulary/>" + "\n" +
+	        "PREFIX jta:       <http://coralcea.ca/jasper/vocabulary/jta/>" + "\n" +
+			"PREFIX provides:  <http://coralcea.ca/jasper/vocabulary/provides/>" + "\n" +
+	        "PREFIX param:     <http://coralcea.ca/jasper/vocabulary/param/>" + "\n" +
+			"PREFIX queue:     <http://coralcea.ca/jasper/vocabulary/queue/>" + "\n" +
+	        "PREFIX subClass:  <http://coralcea.ca/jasper/vocabulary/subClassOf/>" + "\n" +
+			"PREFIX is:        <http://coralcea.ca/jasper/vocabulary/is/>" + "\n" +
+	        "PREFIX has:       <http://coralcea.ca/jasper/vocabulary/has/>" + "\n" +
+	        "PREFIX timestamp: <http://coralcea.ca/jasper/vocabulary/timestamp/>" + "\n" +
+	        "PREFIX requires:  <http://coralcea.ca/jasper/vocabulary/requires/>" + "\n" +
+	 		"PREFIX jasper:    <http://coralcea.ca/jasper/>" + "\n" ;
+//	 "PREFIX hr:      <http://coralcea.ca/jasper/medicalSensor/heartRate/>" + "\n" +
+//     "PREFIX :        <http://coralcea.ca/jasper/vocabulary/>" + "\n" +
+//	 "PREFIX bp:      <http://coralcea.ca/jasper/medicalSensor/bloodPressure/>" + "\n" +
+//	 "PREFIX jta:     <http://coralcea.ca/jasper/jta/>" + "\n" +
+//	 "PREFIX patient: <http://coralcea.ca/jasper/patient/>" + "\n" +
+//	 "PREFIX ms:      <http://coralcea.ca/jasper/medicalSensor/>" + "\n" +
+//	 "PREFIX bpData:  <http://coralcea.ca/jasper/medicalSensor/bloodPressure/data/>" + "\n" +
+//	 "PREFIX hrData:  <http://coralcea.ca/jasper/medicalSensor/heartRate/data/>" + "\n" +
+//	 "PREFIX jasper:  <http://coralcea.ca/jasper/>" + "\n";
+	
+}

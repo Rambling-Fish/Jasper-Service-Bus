@@ -24,6 +24,11 @@ import javax.jms.TextMessage;
 import org.apache.log4j.Logger;
 import org.jasper.core.JECore;
 import org.jasper.core.constants.JasperConstants;
+import org.jasper.core.delegate.handlers.AdminHandler;
+import org.jasper.core.delegate.handlers.DataHandler;
+import org.jasper.core.delegate.handlers.SparqlHandler;
+import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
+import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
 
 import com.hp.hpl.jena.rdf.model.Model;
 
@@ -47,14 +52,14 @@ public class Delegate implements Runnable, MessageListener {
 	static Logger logger = Logger.getLogger(Delegate.class.getName());
 	static private AtomicInteger count = new AtomicInteger(0);
 	
-	public Delegate(Connection connection, Model model) throws JMSException {
+	public Delegate(Connection connection, Model model,DelegateOntology jOntology) throws JMSException {
 		this.isShutdown  = false;
 		
 		this.responseMessages = new ConcurrentHashMap<String, Message>();
 		this.locks = new ConcurrentHashMap<String, Object>();
 		
         delegateHandlers = Executors.newFixedThreadPool(2);
-        this.jOntology = new DelegateOntology(model);
+        this.jOntology = jOntology;
 
 		
 		globalSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -142,7 +147,27 @@ public class Delegate implements Runnable, MessageListener {
 		          }while(jmsRequest == null && !isShutdown);
 		          if(isShutdown) break;
 		          
-                  delegateHandlers.submit(new DelegateRequest(this, jOntology,jmsRequest,locks,responseMessages));                 
+		          if (jmsRequest instanceof ObjectMessage) {
+						ObjectMessage objMessage = (ObjectMessage) jmsRequest;
+			            Object obj = objMessage.getObject();
+			            if(obj instanceof JasperAdminMessage) {
+			            	JasperAdminMessage jam = ((JasperAdminMessage)obj);
+			            	if (jam.getType() == Type.jtaDataManagement){
+			            		delegateHandlers.submit(new AdminHandler(this, jOntology, jmsRequest, jam, null, null));
+			            	}	
+			            }
+		          } else if(jmsRequest instanceof TextMessage){
+		        	  String text = ((TextMessage) jmsRequest).getText();
+		        	  if(text != null && text.startsWith("?query=")){
+		        		  delegateHandlers.submit(new SparqlHandler(this, jOntology, jmsRequest, null, null));
+		        	  }else if(text != null){
+		        		  delegateHandlers.submit(new DataHandler(this, jOntology, jmsRequest, locks, responseMessages));
+		        	  }else{
+			        		logger.error("Incoming text message has null payload - ignoring " + jmsRequest);
+			        	}	
+			        }else{
+			        	logger.warn("JMS Message neither ObjectMessage nor TextMessage, ignoring request : " + jmsRequest);
+			        }             
 		          
 		      }while(!isShutdown);
 		     
