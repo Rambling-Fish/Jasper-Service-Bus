@@ -313,7 +313,8 @@ public class DataHandler implements Runnable {
 		String[] keyValue;
 		for(String s:keyValuePairs){
 			keyValue = s.split("=");
-			if(keyValue.length == 2 && DelegateFactory.URI_MAPPER.containsKey(keyValue[0])) result.put(DelegateFactory.URI_MAPPER.get(keyValue[0]), keyValue[1]);
+//			if(keyValue.length == 2 && DelegateFactory.URI_MAPPER.containsKey(keyValue[0])) result.put(DelegateFactory.URI_MAPPER.get(keyValue[0]), keyValue[1]);
+			if(keyValue.length == 2 ) result.put(keyValue[0], keyValue[1]);
 		}
 		return result;
 	}
