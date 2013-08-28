@@ -70,18 +70,21 @@ public class AdminHandler implements Runnable {
 
 	private void handleJasperAdminMessage(JasperAdminMessage jam) throws Exception {
 		// TODO change to switch statement
-		if(isPublishRequest(jam)){
-			handlePublishRequest(jam);
-		}else if(isNotifyRequest(jam)){
-			handleNotifyRequest(jam);
-		}else if(isDeleteRequest(jam)){
-			handleDeleteRequest(jam);
-		}else{
-			logger.warn("JasperAdminMessage neither a publish, notify, or delete, ignorning message : " + jam);
+		Command cmd = jam.getCommand();
+		switch (cmd) {
+		case jta_disconnect:  handleDeleteRequest(jam);
+        break;
+		case jta_connect: handleConnectRequest(jam);
+		break;
+		case get_ontology: handlePublishResponse(jam);
+		break;
+		default: logger.error("Invalid Jasper Admin Message received - ignoring " + jam.getCommand());
+		break;
 		}
+		
 	}
 	
-	private void handleNotifyRequest(JasperAdminMessage jam){
+	private void handlePublishResponse(JasperAdminMessage jam){
 		Map<String, String[]> map = new HashMap<String, String[]>();
 		map = jam.getMap();
 
@@ -136,9 +139,9 @@ public class AdminHandler implements Runnable {
 
 	// Send message to JTA to republish its ontology if it has one after JSB
 	// connection re-established
-	private void handlePublishRequest(JasperAdminMessage msg) {
+	private void handleConnectRequest(JasperAdminMessage msg) {
 		String jtaQueueName = msg.getDetails()[0];
-		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, "*",  "*", jtaQueueName);
+		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.get_ontology, "*",  "*", jtaQueueName);
 		try{
 			sendResponse(jmsRequest, jam);
 		}catch(JMSException e) {
@@ -153,34 +156,6 @@ public class AdminHandler implements Runnable {
 			System.out.println(singleArray[2]);
 		}
 		
-	}
-		
-
-	private boolean isPublishRequest(JasperAdminMessage jam) {
-		if(jam.getCommand() == Command.publish){
-			return true;
-		}
-		else{
-			return false;
-		}
-	}
-
-	private boolean isNotifyRequest(JasperAdminMessage jam) {
-		if(jam.getCommand() == Command.notify){
-			return true;
-		}
-		else{
-			return false;
-		}
-	}
-	
-	private boolean isDeleteRequest(JasperAdminMessage jam) {
-		if(jam.getCommand() == Command.delete){
-			return true;
-		}
-		else{
-			return false;
-		}
 	}
 	
 	private boolean isValidMap(Map<String, String[]> map) {
