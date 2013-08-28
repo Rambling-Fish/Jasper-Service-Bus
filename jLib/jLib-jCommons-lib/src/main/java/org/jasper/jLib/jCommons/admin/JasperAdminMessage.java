@@ -63,13 +63,11 @@ public class JasperAdminMessage implements Serializable{
 
 	private Type type;
 	private Command command;
-	private String jtaName;
 	private String[][] details;
 
-	public JasperAdminMessage(Type type, Command command, String jtaName, String[][] details) {
+	public JasperAdminMessage(Type type, Command command, String[][] details) {
 		this.type = type;
 		this.command = command;
-		this.jtaName = jtaName;
 		this.details = details;
 	}
 
@@ -79,10 +77,6 @@ public class JasperAdminMessage implements Serializable{
 
 	public Command getCommand() {
 		return command;
-	}
-
-	public String getJtaName() {
-		return jtaName;
 	}
 
 	public String[][] getDetails() {
