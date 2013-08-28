@@ -123,7 +123,6 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     				super.connect();
     		
     				if(endpointUriMap.size() > 0) {
-    					publishURI();
     					initializeAdminHandler();
     				}	
     			}
@@ -184,7 +183,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 						        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
 						        	Object obj = objMessage.getObject();
 						        	if(obj instanceof JasperAdminMessage){
-						        		if(((JasperAdminMessage) obj).getType() == Type.jtaDataManagement && ((JasperAdminMessage) obj).getCommand() == Command.notify)
+						        		if(((JasperAdminMessage) obj).getType() == Type.ontologyManagement && ((JasperAdminMessage) obj).getCommand() == Command.get_ontology)
 						        			publishURI();
 						                }
 						          }
@@ -270,7 +269,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     		// Method to substitute URI and replyToQueue for Map
 
     		if (jtaOntology.size() > 0){
-    			JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, jtaOntology);
+    			JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.get_ontology, jtaOntology);
     			Message message = session.createObjectMessage(jam);
     			producer.send(message);
     		} else {

@@ -313,7 +313,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
                 String appName = info.getUserName().split(":")[1];
                 String version = info.getUserName().split(":")[2];
                 String jtaQueueName = JasperConstants.JTA_QUEUE_PREFIX.concat(vendor).concat(".").concat(appName).concat(".").concat(version).concat(JasperConstants.DELEGATE_QUEUE_SUFFIX);
-                notifyDelegate(Command.publish, jtaQueueName);
+                notifyDelegate(Command.jta_connect, jtaQueueName);
                 if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());                            
             }else{
                 JtaInfo registeredJtaInfo = getJta(info.getPassword());
@@ -346,7 +346,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
             if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());
             // TODO right now we are just sending message to delegates so the jta
             // map can be cleaned up. This needs to change to listener pattern
-            notifyDelegate(Command.delete, info.getUserName());
+            notifyDelegate(Command.jta_disconnect, info.getUserName());
             return;
         }else if(jsbConnectionInfoMap.get(info.getPassword()) != null){
             if(logger.isInfoEnabled()){
@@ -428,7 +428,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
             producer.setTimeToLive(30000);
  
-            JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, command, msgDetails, "*",  msgDetails);
+            JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, command, msgDetails, "*",  msgDetails);
  
             Message message = session.createObjectMessage(jam);
             producer.send(message);
