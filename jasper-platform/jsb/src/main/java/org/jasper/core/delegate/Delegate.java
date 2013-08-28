@@ -153,13 +153,13 @@ public class Delegate implements Runnable, MessageListener {
 			            if(obj instanceof JasperAdminMessage) {
 			            	JasperAdminMessage jam = ((JasperAdminMessage)obj);
 			            	if (jam.getType() == Type.ontologyManagement){
-			            		delegateHandlers.submit(new AdminHandler(this, jOntology, jmsRequest, jam, null, null));
+			            		delegateHandlers.submit(new AdminHandler(this, jOntology, jmsRequest, jam, locks, responseMessages));
 			            	}	
 			            }
 		          } else if(jmsRequest instanceof TextMessage){
 		        	  String text = ((TextMessage) jmsRequest).getText();
 		        	  if(text != null && text.startsWith("?query=")){
-		        		  delegateHandlers.submit(new SparqlHandler(this, jOntology, jmsRequest, null, null));
+		        		  delegateHandlers.submit(new SparqlHandler(this, jOntology, jmsRequest));
 		        	  }else if(text != null){
 		        		  delegateHandlers.submit(new DataHandler(this, jOntology, jmsRequest, locks, responseMessages));
 		        	  }else{
