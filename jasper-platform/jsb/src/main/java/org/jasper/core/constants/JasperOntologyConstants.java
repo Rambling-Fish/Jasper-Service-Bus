@@ -12,8 +12,12 @@ public class JasperOntologyConstants {
     public static final Map<String, String> PREFIX_MAP;
     static {
         Map<String, String> aMap = new HashMap<String, String>();
-        aMap.put(""       , "http://coralcea.ca/jasper/vocabulary/");
-        aMap.put("jasper" , "http://coralcea.ca/jasper/");
+        aMap.put(""          , "http://coralcea.ca/jasper/vocabulary/");
+        aMap.put("jasper"    , "http://coralcea.ca/jasper/");
+        aMap.put("jta"       , "http://coralcea.ca/jasper/vocabulary/jta");
+        aMap.put("param"     , "http://coralcea.ca/jasper/vocabulary/param");
+        aMap.put("requires"  , "http://coralcea.ca/jasper/vocabulary/requires");
+        aMap.put("provides"  , "http://coralcea.ca/jasper/vocabulary/provides");
         PREFIX_MAP = Collections.unmodifiableMap(aMap);
     }
     
