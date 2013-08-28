@@ -308,8 +308,9 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
 	                    logger.info("JTA registered on JSB : " + info.getUserName());
 	                }
                 }
-                
-                notifyDelegate(Command.jta_connect, info.getUserName());
+                String[][] details = new String[1][1];
+                details[0][0] = info.getUserName();
+                notifyDelegate(Command.jta_connect, details);
                 if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());                            
             }else{
                 JtaInfo registeredJtaInfo = getJta(info.getPassword());
@@ -342,7 +343,9 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
             if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());
             // TODO right now we are just sending message to delegates so the jta
             // map can be cleaned up. This needs to change to listener pattern
-            notifyDelegate(Command.jta_disconnect, info.getUserName());
+            String[][] details = new String[1][1];
+            details[0][0] = info.getUserName();
+            notifyDelegate(Command.jta_disconnect, details);
             return;
         }else if(jsbConnectionInfoMap.get(info.getPassword()) != null){
             if(logger.isInfoEnabled()){
@@ -402,7 +405,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
     }
     
      
-    private void notifyDelegate(Command command, String jtaName) {
+    private void notifyDelegate(Command command, String[][] details) {
         try {
             // Create a ConnectionFactory
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
@@ -424,7 +427,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
             producer.setTimeToLive(30000);
  
-            JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, command, jtaName, null);
+            JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, command, details);
  
             Message message = session.createObjectMessage(jam);
             producer.send(message);
