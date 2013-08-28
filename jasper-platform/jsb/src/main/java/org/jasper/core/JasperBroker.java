@@ -1,5 +1,6 @@
 package org.jasper.core;
  
+import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -20,13 +21,13 @@ import org.apache.activemq.broker.BrokerFilter;
 import org.apache.activemq.broker.ConnectionContext;
 import org.apache.activemq.command.ConnectionInfo;
 import org.apache.log4j.Logger;
-import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JtaInfo;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
+
 
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
@@ -308,9 +309,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
 	                    logger.info("JTA registered on JSB : " + info.getUserName());
 	                }
                 }
-                String[][] details = new String[1][1];
-                details[0][0] = info.getUserName();
-                notifyDelegate(Command.jta_connect, details);
+                notifyDelegate(Command.jta_connect, info.getUserName());
                 if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());                            
             }else{
                 JtaInfo registeredJtaInfo = getJta(info.getPassword());
@@ -341,11 +340,8 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
             super.removeConnection(context, info, error);
             if(jtaInfoMap instanceof IMap)((IMap)jtaInfoMap).unlockMap();
             if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());
-            // TODO right now we are just sending message to delegates so the jta
-            // map can be cleaned up. This needs to change to listener pattern
-            String[][] details = new String[1][1];
-            details[0][0] = info.getUserName();
-            notifyDelegate(Command.jta_disconnect, details);
+           
+            notifyDelegate(Command.jta_disconnect, info.getUserName());
             return;
         }else if(jsbConnectionInfoMap.get(info.getPassword()) != null){
             if(logger.isInfoEnabled()){
@@ -405,7 +401,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
     }
     
      
-    private void notifyDelegate(Command command, String[][] details) {
+    private void notifyDelegate(Command command, String jtaName) {
         try {
             // Create a ConnectionFactory
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
@@ -427,7 +423,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
             producer.setTimeToLive(30000);
  
-            JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, command, details);
+            JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, command, jtaName);
  
             Message message = session.createObjectMessage(jam);
             producer.send(message);
