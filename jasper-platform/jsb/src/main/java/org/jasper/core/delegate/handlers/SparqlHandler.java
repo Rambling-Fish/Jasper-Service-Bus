@@ -1,7 +1,5 @@
 package org.jasper.core.delegate.handlers;
 
-import java.util.Map;
-
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
@@ -17,19 +15,15 @@ public class SparqlHandler implements Runnable {
 	private Delegate delegate;
 	private DelegateOntology jOntology;
 	private Message jmsRequest;
-//	private Map<String, Object> locks;
-//	private Map<String, Message> responses;
 	
 	private static Logger logger = Logger.getLogger(SparqlHandler.class.getName());
 
 
 
-	public SparqlHandler(Delegate delegate, DelegateOntology jOntology, Message jmsRequest, Map<String,Object> locks, Map<String,Message> responses) {
+	public SparqlHandler(Delegate delegate, DelegateOntology jOntology, Message jmsRequest) {
 		this.delegate = delegate;
 		this.jOntology = jOntology;
 		this.jmsRequest = jmsRequest;
-//		this.locks = locks;
-//		this.responses = responses;
 		
 	}
 
