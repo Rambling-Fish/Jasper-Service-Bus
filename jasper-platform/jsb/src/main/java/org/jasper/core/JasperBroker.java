@@ -309,11 +309,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
 	                }
                 }
                 
-                String vendor = info.getUserName().split(":")[0];
-                String appName = info.getUserName().split(":")[1];
-                String version = info.getUserName().split(":")[2];
-                String jtaQueueName = JasperConstants.JTA_QUEUE_PREFIX.concat(vendor).concat(".").concat(appName).concat(".").concat(version).concat(JasperConstants.DELEGATE_QUEUE_SUFFIX);
-                notifyDelegate(Command.jta_connect, jtaQueueName);
+                notifyDelegate(Command.jta_connect, info.getUserName());
                 if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());                            
             }else{
                 JtaInfo registeredJtaInfo = getJta(info.getPassword());
@@ -406,7 +402,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
     }
     
      
-    private void notifyDelegate(Command command, String msgDetails) {
+    private void notifyDelegate(Command command, String jtaName) {
         try {
             // Create a ConnectionFactory
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
@@ -428,7 +424,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
             producer.setTimeToLive(30000);
  
-            JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, command, msgDetails, "*",  msgDetails);
+            JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, command, jtaName, null);
  
             Message message = session.createObjectMessage(jam);
             producer.send(message);
