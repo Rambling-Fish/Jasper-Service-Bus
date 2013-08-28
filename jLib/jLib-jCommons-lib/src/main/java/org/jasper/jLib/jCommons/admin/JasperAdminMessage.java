@@ -19,7 +19,7 @@ public class JasperAdminMessage implements Serializable{
 //	 The following details how the message should be used and how it should
 //	 be populated.
 
-	private static final long serialVersionUID = -4465620192877833388L;
+	private static final long serialVersionUID = -4469320192877833388L;
 
 	public enum Type{
 		ontologyManagement
@@ -33,23 +33,14 @@ public class JasperAdminMessage implements Serializable{
 
 	private Type type;
 	private Command command;
-	private String src;
-	private String dst;
-	private String[] details;
-	private Map<String, String[]> map;
+	private String jtaName;
+	private String[][] details;
 
-	public JasperAdminMessage(Type type, Command command, String src, String dst, String... details) {
+	public JasperAdminMessage(Type type, Command command, String jtaName, String[][] details) {
 		this.type = type;
 		this.command = command;
-		this.src = src;
-		this.dst = dst;
+		this.jtaName = jtaName;
 		this.details = details;
-	}
-	
-	public JasperAdminMessage(Type type, Command command, Map<String, String[]> map){
-		this.type = type;
-		this.command = command;
-		this.map = map;
 	}
 
 	public Type getType() {
@@ -60,20 +51,12 @@ public class JasperAdminMessage implements Serializable{
 		return command;
 	}
 
-	public String getSrc() {
-		return src;
+	public String getJtaName() {
+		return jtaName;
 	}
 
-	public String getDst() {
-		return dst;
-	}
-
-	public String[] getDetails() {
+	public String[][] getDetails() {
 		return details;
 	}
 	
-	public Map<String, String[]> getMap() {
-		return map;
-	}
-
 }
