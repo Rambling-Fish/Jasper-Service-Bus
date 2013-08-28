@@ -61,7 +61,7 @@ public class DelegateOntology implements EntryListener{
 	
 	private String getProvides(String jta, String ruri) {
 		String queryString = 
-				 JasperOntologyConstants.PREFIXS +
+				 JasperOntologyConstants.PREFIXES +
 	             "SELECT ?provides  WHERE" +
 	             "   {<" + jta + "> :provides ?provides}" ;
 		
@@ -119,7 +119,7 @@ public class DelegateOntology implements EntryListener{
 
 	private String getQ(String jta) {
 		String queryString = 
-				 JasperOntologyConstants.PREFIXS +
+				 JasperOntologyConstants.PREFIXES +
 	             "SELECT ?q  WHERE " +
 	             "   {<" + jta + "> :queue ?q .}" ;
 		
@@ -142,7 +142,7 @@ public class DelegateOntology implements EntryListener{
 	
 	private ArrayList<String> getJtaParams(String jta) {
 		String queryString = 
-				 JasperOntologyConstants.PREFIXS +
+				 JasperOntologyConstants.PREFIXES +
 	             "SELECT ?params  WHERE " +
 	             "   {<" + jta + "> :param ?params .}" ;
 		
@@ -166,7 +166,7 @@ public class DelegateOntology implements EntryListener{
 	private ArrayList<String> getJTAs(String ruri) {
 		if(ruri.startsWith("http://")) ruri = "<" + ruri +">";
 		String queryString = 
-				 JasperOntologyConstants.PREFIXS +
+				 JasperOntologyConstants.PREFIXES +
 	             "SELECT ?jta  WHERE " +
 	             "   {" +
 	             "       {" +
@@ -201,7 +201,7 @@ public class DelegateOntology implements EntryListener{
 	private boolean isSupportedRURI(String ruri) {
 		if(ruri.startsWith("http://")) ruri = "<" + ruri +">";
 		String queryString = 
-				 JasperOntologyConstants.PREFIXS +
+				 JasperOntologyConstants.PREFIXES +
 	             "ASK  WHERE " +
 	             "   {" +
 	             "       {" +
@@ -222,6 +222,7 @@ public class DelegateOntology implements EntryListener{
 	}
 	
 	public String queryModel(String queryString,String output){
+		// TODO validate the query - ensure that it is a SELECT
 
 //		String newQueryString = 
 //				 JasperOntologyConstants.PREFIXS +
@@ -245,6 +246,7 @@ public class DelegateOntology implements EntryListener{
 		
 		ResultSet resultSet = queryExecution.execSelect();
 		
+		// TODO check output for json or xml
 		JSONOutput jsonOutput = new JSONOutput();
 		String result = jsonOutput.asString(resultSet);
 		

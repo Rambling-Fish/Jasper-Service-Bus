@@ -69,6 +69,7 @@ public class AdminHandler implements Runnable {
 	}
 
 	private void handleJasperAdminMessage(JasperAdminMessage jam) throws Exception {
+		// TODO change to switch statement
 		if(isPublishRequest(jam)){
 			handlePublishRequest(jam);
 		}else if(isNotifyRequest(jam)){
@@ -143,6 +144,15 @@ public class AdminHandler implements Runnable {
 		}catch(JMSException e) {
 			logger.error("Exception sending notify message to delegate: " + e);
 		}
+		
+		String[][] arrayOfArrays = {{"","",""},{"","",""}};
+		for(String[] singleArray:arrayOfArrays){
+			if(singleArray.length == 3) logger.error("BAD");
+			System.out.println(singleArray[0]);
+			System.out.println(singleArray[1]);
+			System.out.println(singleArray[2]);
+		}
+		
 	}
 		
 

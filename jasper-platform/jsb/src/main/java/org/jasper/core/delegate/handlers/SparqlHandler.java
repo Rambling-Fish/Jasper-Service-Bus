@@ -39,7 +39,7 @@ public class SparqlHandler implements Runnable {
 			if(parsedSparqlRequest != null){
         		String queryString = parsedSparqlRequest[0];
 				String output;
-				output = (parsedSparqlRequest.length > 1) ? parsedSparqlRequest[1]:"TTL";
+				output = (parsedSparqlRequest.length > 1) ? parsedSparqlRequest[1]:"TTL"; // TODO change TTL to json or xml
 				sendResponse((TextMessage)jmsRequest, jOntology.queryModel(queryString, output));	
 			}
 			else{
@@ -58,7 +58,7 @@ public class SparqlHandler implements Runnable {
 			return null;
 		}
 		
-		text = text.substring(7, text.length());
+		text = text.substring("?query=".length(), text.length());
 		result = text.split("&");
 		
 		if(result.length != 2) return null;

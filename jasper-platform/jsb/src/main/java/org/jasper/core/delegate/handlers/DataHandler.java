@@ -42,7 +42,7 @@ public class DataHandler implements Runnable {
 
 	public void run() {
 		try{
-			if(isOntologyRequest( (TextMessage) jmsRequest)){
+			if(isOntologyRequest( (TextMessage) jmsRequest)){ // TODO remove cause always a ontology req
 				handleOntologyRequest( (TextMessage) jmsRequest);
 			}
 			else{	
