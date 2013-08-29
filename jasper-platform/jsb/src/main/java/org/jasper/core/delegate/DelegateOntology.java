@@ -223,13 +223,11 @@ public class DelegateOntology implements EntryListener{
 	}
 	
 	public String queryModel(String queryString,String output){
-		// TODO validate the query - ensure that it is a SELECT
 		QueryExecution queryExecution = QueryExecutionFactory.create(queryString, model);
 		
 		ResultSet resultSet = queryExecution.execSelect();
 		String result;
 		
-		// TODO check output for json or xml
 		if(output.equalsIgnoreCase("json")){
 			JSONOutput jsonOutput = new JSONOutput();
 			result = jsonOutput.asString(resultSet);
@@ -264,7 +262,6 @@ public class DelegateOntology implements EntryListener{
 		RDFNode o = model.getResource(sArray[2]);
 		Statement statements = model.createStatement(s, p, o);
 		model.add(statements);
-		model.write(System.out, "TTL");
 		
 	}
 
