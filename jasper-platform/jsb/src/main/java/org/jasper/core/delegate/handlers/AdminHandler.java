@@ -69,9 +69,9 @@ public class AdminHandler implements Runnable {
 	private void handleDisconnect(){
 		if(jam.getDetails()[0] !=null && jam.getDetails()[0] instanceof String && ((String) jam.getDetails()[0]).length() > 0){
 			jOntology.remove((String)jam.getDetails()[0]);
-			if(logger.isDebugEnabled()) logger.debug("recieved disconnect for jta : " + (String)jam.getDetails()[0]);
+			if(logger.isDebugEnabled()) logger.debug("received disconnect for jta : " + (String)jam.getDetails()[0]);
 		}else{
-			logger.warn("recieved invalid disconnect command, details[0] != string, unknown disconnection request");
+			logger.warn("received invalid disconnect command, details[0] != string, unknown disconnection request");
 		}
 	}
 	
@@ -80,9 +80,9 @@ public class AdminHandler implements Runnable {
 		
 		if(jam.getDetails()[0] !=null && jam.getDetails()[0] instanceof String && ((String) jam.getDetails()[0]).length() > 0){
 			jtaId = (String)jam.getDetails()[0];
-			if(logger.isDebugEnabled()) logger.debug("recieved connect for jta : " + (String)jam.getDetails()[0]);
+			if(logger.isDebugEnabled()) logger.debug("received connect for jta : " + (String)jam.getDetails()[0]);
 		}else{
-			logger.warn("recieved invalid connect command, details[0] != string, unknown connection request, ignoring");
+			logger.warn("received invalid connect command, details[0] != string, unknown connection request, ignoring");
 			return;
 		}
 		
@@ -110,20 +110,20 @@ public class AdminHandler implements Runnable {
 		    	if(count >= 6)break;
 		    }
 		    response = responses.remove(correlationID);
-			if(logger.isDebugEnabled()) logger.debug("recieved response : " + response);
+			if(logger.isDebugEnabled()) logger.debug("received response : " + response);
 		}
 
 		String[][] triples = null;
 		if(response instanceof ObjectMessage && ((ObjectMessage)response).getObject() instanceof String[][]){
 			triples = (String[][]) ((ObjectMessage)response).getObject();
 		}else{
-			logger.warn("Ignoring invalid response, expected ObjectMessage carrying String[][] but instead recieved " + response);
+			logger.warn("Ignoring invalid response, expected ObjectMessage carrying String[][] but instead received " + response);
 			return;
 		}
 		
 		for(String[] triple:triples){
 			if(triple.length != 3){
-				logger.error("String[] recieved that is not a triple, ignoring");
+				logger.error("String[] received that is not a triple, ignoring");
 				continue;
 			}
 			jOntology.add(jtaId, triple);
