@@ -19,6 +19,7 @@ import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
@@ -223,36 +224,19 @@ public class DelegateOntology implements EntryListener{
 	
 	public String queryModel(String queryString,String output){
 		// TODO validate the query - ensure that it is a SELECT
-
-//		String newQueryString = 
-//				 JasperOntologyConstants.PREFIXS +
-//	             "SELECT ?jta ?jtaProvidedData ?params\n" + 
-//	             "WHERE\n" + 
-//	             "{\n" + 
-//	             "	{\n" + 
-//	             "		?jta :is       :jta .\n" + 
-//	             "		?jta :provides ?jtaProvidedData .\n" + 
-//	             "	}\n" + 
-//	             "	UNION\n" + 
-//	             "	{\n" + 
-//	             "		?jta :is       :jta .\n" + 
-//	             "		?jta :param    ?params .\n" + 
-//	             "	}	\n" + 
-//	             "}" ;
-//		System.out.println("######## queryString = " + queryString);
-
 		QueryExecution queryExecution = QueryExecutionFactory.create(queryString, model);
-//		QueryExecution queryExecution = QueryExecutionFactory.create(newQueryString, model);
 		
 		ResultSet resultSet = queryExecution.execSelect();
+		String result;
 		
 		// TODO check output for json or xml
-		JSONOutput jsonOutput = new JSONOutput();
-		String result = jsonOutput.asString(resultSet);
-		
-//		System.out.println("######## queryModel Start");
-//		System.out.println(result);
-//		System.out.println("######## queryModel End");
+		if(output.equalsIgnoreCase("json")){
+			JSONOutput jsonOutput = new JSONOutput();
+			result = jsonOutput.asString(resultSet);
+		}
+		else{
+			result = ResultSetFormatter.asXMLString(resultSet);
+		}
 		
 		return result;
 	}
