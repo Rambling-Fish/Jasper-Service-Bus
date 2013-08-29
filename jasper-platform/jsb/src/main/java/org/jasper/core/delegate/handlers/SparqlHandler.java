@@ -38,7 +38,7 @@ public class SparqlHandler implements Runnable {
 				if(output.isEmpty()){
 					output = "json";
 				}
-				// We only support json or xml replies. Default to json if neither one present in query
+				// We only support json or xml as output formats
 				if(!output.equalsIgnoreCase("json") && (!output.equalsIgnoreCase("xml"))){
 					errorMsg="Output must be set to json or xml";
 					processInvalidRequest((TextMessage) jmsRequest, errorMsg);
