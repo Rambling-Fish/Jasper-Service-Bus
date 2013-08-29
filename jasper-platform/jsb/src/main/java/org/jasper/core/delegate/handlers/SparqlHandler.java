@@ -30,25 +30,35 @@ public class SparqlHandler implements Runnable {
 	public void run() {
 		try{
 			String[] parsedSparqlRequest = parseSparqlRequest(((TextMessage)jmsRequest).getText());
+			String errorMsg;
 			if(parsedSparqlRequest != null){
         		String queryString = parsedSparqlRequest[0];
 				String output;
-				output = (parsedSparqlRequest.length > 1) ? parsedSparqlRequest[1]:"TTL"; // TODO change TTL to json or xml
-				sendResponse((TextMessage)jmsRequest, jOntology.queryModel(queryString, output));	
+				output = (parsedSparqlRequest.length > 1) ? parsedSparqlRequest[1]:"json";
+				if(output.isEmpty()){
+					output = "json";
+				}
+				// We only support json or xml replies. Default to json if neither one present in query
+				if(!output.equalsIgnoreCase("json") && (!output.equalsIgnoreCase("xml"))){
+					errorMsg="Output must be set to json or xml";
+					processInvalidRequest((TextMessage) jmsRequest, errorMsg);
+					return;
+				}
+				sendResponse((TextMessage)jmsRequest, jOntology.queryModel(queryString, output));
 			}
 			else{
-				String errorMsg = "Invalid SPARQL query received";
+				errorMsg = "Invalid SPARQL query received";
 				processInvalidRequest((TextMessage) jmsRequest, errorMsg);
 			}
 		}catch (Exception e){
-			logger.error("Exception caught processing SParQL request " ,e);
+			logger.error("Exception caught processing SPARQL request " ,e);
 		}
 	}
 	
 	private String[] parseSparqlRequest(String text) {
 		if(text==null)return null;
 		String[] result = null;
-		if(!text.startsWith("?query=")){
+		if(!text.startsWith("?query=") || (!text.contains("SELECT")) && (!text.contains("select"))){
 			return null;
 		}
 		
