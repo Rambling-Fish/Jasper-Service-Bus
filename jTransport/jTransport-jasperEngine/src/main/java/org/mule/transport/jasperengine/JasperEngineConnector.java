@@ -62,11 +62,6 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
         endpointUriMap = new ConcurrentHashMap<String, String>();
         model = ModelFactory.createDefaultModel();
     }
-
-    //TODO possibly remove
-    public String getProtocol(){
-        return JASPERENGINE;
-    }
     
     public void doInitialise(){
     	try {
@@ -140,8 +135,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     		try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("Exception occured while shutting down admin hanlder ", e);
 			}
 			count--;
     	}
@@ -150,8 +144,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     	try {
 			adminHandler.awaitTermination(10, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Exception occured while shutting down admin handler ", e);
 		}
     	if(!adminHandler.isTerminated()) adminHandler.shutdownNow();
 	}
@@ -198,16 +191,16 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 										}
 										sb.append("\n\t");
 									};
-									logger.info("Sent to " + adminRequest.getJMSReplyTo() + " the following tripples :" + sb);
+									logger.info("Sent to " + adminRequest.getJMSReplyTo() + " the following triples :" + sb);
 								}
 							}else{
-			                	logger.warn("Recieved JasperAdminMessage that isn't supported, ignoring : " + obj);
+			                	logger.warn("Received JasperAdminMessage that isn't supported, ignoring : " + obj);
 			                }
 		                }else{
-		                	logger.warn("Recieved ObjectMessage that wasn't a JasperAdminMessage, ignoring : " + obj);
+		                	logger.warn("Received ObjectMessage that wasn't a JasperAdminMessage, ignoring : " + obj);
 		                }
 			          }else{
-		                	logger.warn("Recieved JMSMessage that wasn't an ObjectMessage, ignoring : " + adminRequest);
+		                	logger.warn("Received JMSMessage that wasn't an ObjectMessage, ignoring : " + adminRequest);
 			          }
 			          
 			      }while(!isAdminHandlerStopped);
