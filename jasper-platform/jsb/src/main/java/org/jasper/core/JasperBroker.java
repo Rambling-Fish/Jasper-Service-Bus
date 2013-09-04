@@ -140,16 +140,12 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
     
     private JtaInfo removeJta(String key){
     	if(jtaInfoMap instanceof IMap){
-    		try {
-				JtaInfo info = (JtaInfo) ((IMap)jtaInfoMap).tryRemove(key, 30, TimeUnit.SECONDS);
-				if(logger.isInfoEnabled()){
-					logger.info("tryRemove returned = " + info.getJtaName() + " for key = " + key);
-				}
-				return info;
-			} catch (TimeoutException e) {
-				logger.error("caught exception trying to remove key : " + key + " trying to remove without lock",e);
-				return jtaInfoMap.remove(key);
+    		JtaInfo info = (JtaInfo) ((IMap)jtaInfoMap).get(key);
+			boolean removed = ((IMap)jtaInfoMap).tryRemove(key, 30, TimeUnit.SECONDS);
+			if(logger.isInfoEnabled()){
+				logger.info("tryRemove successful = " + removed + " for key = " + key);
 			}
+			return (removed)?info:null;
     	}else{
     		return jtaInfoMap.remove(key);
     	}
@@ -295,10 +291,8 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
              * remotely, if a second JTA attempts to register we throw a security exception
              */
             if(!(jtaInfoMap.containsKey(info.getPassword()))){
-                if(jtaInfoMap instanceof IMap)((IMap)jtaInfoMap).lockMap(30, TimeUnit.SECONDS);
                 super.addConnection(context, info); 
             	putJta(info.getPassword(), new JtaInfo(info.getUserName(), info.getPassword(), core.getJSBDeploymentAndInstance(),info.getClientId(), info.getClientIp()));
-                if(jtaInfoMap instanceof IMap)((IMap)jtaInfoMap).unlockMap();
 
                 jtaConnectionContextMap.put(info.getPassword(), context);
 
@@ -309,7 +303,7 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
 	                    logger.info("JTA registered on JSB : " + info.getUserName());
 	                }
                 }
-                notifyDelegate(Command.jta_connect, info.getUserName());
+                if(!info.getUserName().contains("jsc")) notifyDelegate(Command.jta_connect, info.getUserName());
                 if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());                            
             }else{
                 JtaInfo registeredJtaInfo = getJta(info.getPassword());
@@ -334,14 +328,12 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
 	                logger.info("JTA de-registered from JSB : " + info.getUserName());
 	        	}
         	}
-            if(jtaInfoMap instanceof IMap)((IMap)jtaInfoMap).lockMap(30, TimeUnit.SECONDS);
         	removeJta(info.getPassword());
             jtaConnectionContextMap.remove(info.getPassword());
             super.removeConnection(context, info, error);
-            if(jtaInfoMap instanceof IMap)((IMap)jtaInfoMap).unlockMap();
             if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());
            
-            notifyDelegate(Command.jta_disconnect, info.getUserName());
+            if(!info.getUserName().contains("jsc")) notifyDelegate(Command.jta_disconnect, info.getUserName());
             return;
         }else if(jsbConnectionInfoMap.get(info.getPassword()) != null){
             if(logger.isInfoEnabled()){
@@ -363,7 +355,6 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
     }
      
     private String getPrintableJtaMap() {
-        if(jtaInfoMap instanceof IMap)((IMap)jtaInfoMap).lockMap(30, TimeUnit.SECONDS);
         JtaInfo jtaInfo;
         StringBuilder sb = new StringBuilder();
  
@@ -376,7 +367,6 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
             	sb.append("jta = " + jtaInfo.getJtaName() + " - connected to jsb = " + jtaInfo.getJsbConnectedTo() + "\n");
             }
         }
-        if(jtaInfoMap instanceof IMap)((IMap)jtaInfoMap).unlockMap();
         sb.append("-----  JTA dist map  end  ----");
         return sb.toString();
     }
@@ -443,7 +433,6 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
 
 	public void entryEvicted(EntryEvent arg0) {
         logger.warn(getPrintableJtaMap());	
-		
 	}
 
 	public void entryRemoved(EntryEvent arg0) {

@@ -289,7 +289,7 @@ public class JECore {
 					Thread.sleep(500);
 		    		count++;
 		    		if(count > 20){
-		    			hazelcastInstance.getLifecycleService().kill();
+		    			hazelcastInstance.getLifecycleService().terminate();
 		    			break;
 		    		}
 		    	}

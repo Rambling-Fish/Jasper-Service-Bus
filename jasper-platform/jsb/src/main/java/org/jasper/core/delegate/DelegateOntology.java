@@ -1,7 +1,6 @@
 package org.jasper.core.delegate;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.jena.atlas.json.JsonArray;
@@ -12,7 +11,6 @@ import org.jasper.core.constants.JasperOntologyConstants;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.MultiMap;
-import com.hazelcast.impl.base.Values;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -27,13 +25,17 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.sparql.resultset.JSONOutput;
 
-public class DelegateOntology implements EntryListener{
+public class DelegateOntology implements EntryListener<String, String[]>{
 	
 	private Model model;
 	private MultiMap<String, String[]> jtaStatements;
 	
 	static Logger logger = Logger.getLogger(DelegateOntology.class.getName());
 
+	public static final String JTA = "jta";
+	public static final String QUEUE = "queue";
+	public static final String PARAMS = "params";
+	public static final String PROVIDES = "provides";
 	
 	public DelegateOntology(DelegateFactory factory, Model model){
 		this.model = model;
@@ -51,10 +53,10 @@ public class DelegateOntology implements EntryListener{
 		JsonArray jsonArray = new JsonArray();
 		for(String jta:jtaList){
 			JsonObject qAndParams = new JsonObject();
-			qAndParams.put("jta", jta);
-			qAndParams.put("queue",getQ(jta));
-			qAndParams.put("params", getParams(jta,ruri,params));
-			qAndParams.put("provides", getProvides(jta,ruri));
+			qAndParams.put(JTA, jta);
+			qAndParams.put(QUEUE,getQ(jta));
+			qAndParams.put(PARAMS, getParams(jta,ruri,params));
+			qAndParams.put(PROVIDES, getProvides(jta,ruri));
 			jsonArray.add(qAndParams);
 		}
 		return jsonArray;
@@ -141,7 +143,7 @@ public class DelegateOntology implements EntryListener{
 		return (array.size()==1)?array.get(0):null;
 	}
 	
-	private ArrayList<String> getJtaParams(String jta) {
+	public ArrayList<String> getJtaParams(String jta) {
 		String queryString = 
 				 JasperOntologyConstants.PREFIXES +
 	             "SELECT ?params  WHERE " +
@@ -165,8 +167,11 @@ public class DelegateOntology implements EntryListener{
 	}
 
 	private ArrayList<String> getJTAs(String ruri) {
-		if(ruri.startsWith("http://")) ruri = "<" + ruri +">";
-		String queryString = 
+		if(ruri.startsWith("http://")){
+			ruri = "<" + ruri +">";
+		}else{
+			ruri = "\"" + ruri +"\"";
+		}		String queryString = 
 				 JasperOntologyConstants.PREFIXES +
 	             "SELECT ?jta  WHERE " +
 	             "   {" +
@@ -200,7 +205,11 @@ public class DelegateOntology implements EntryListener{
 	}
 
 	private boolean isSupportedRURI(String ruri) {
-		if(ruri.startsWith("http://")) ruri = "<" + ruri +">";
+		if(ruri.startsWith("http://")){
+			ruri = "<" + ruri +">";
+		}else{
+			ruri = "\"" + ruri +"\"";
+		}
 		String queryString = 
 				 JasperOntologyConstants.PREFIXES +
 	             "ASK  WHERE " +
@@ -255,8 +264,8 @@ public class DelegateOntology implements EntryListener{
 		}
 	}
 
-	public void entryAdded(EntryEvent entryEvent) {
-		String[] sArray = (String[]) entryEvent.getValue();      
+	public void entryAdded(EntryEvent<String, String[]> entryEvent) {
+		String[] sArray = entryEvent.getValue();      
         Resource s = model.getResource(sArray[0]);
     	Property p = model.getProperty(sArray[1]);
 		RDFNode o = model.getResource(sArray[2]);
@@ -265,43 +274,45 @@ public class DelegateOntology implements EntryListener{
 		
 	}
 
-	public void entryEvicted(EntryEvent arg0) {
-		// TODO Auto-generated method stub
-		
+	public void entryEvicted(EntryEvent<String, String[]> event) {
+		logger.warn("entry Evicted" + event);;
 	}
 
-	public void entryRemoved(EntryEvent entryEvent){
-		if(!(entryEvent.getValue() instanceof Values)){
-			logger.warn("entryRemoved value is not of the type Values, ignoring event and not updating model");
+	public void entryRemoved(EntryEvent<String, String[]> entryEvent){
+		if(!(entryEvent.getValue() instanceof String[])){
+			logger.warn("entryRemoved value is not of the type String[], ignoring event and not updating model");
+			return;
 		}
+		
+		if(entryEvent.getValue().length != 3){
+			logger.warn("entryRemoved value String[] is not a triple, ignoring event and not updating model");
+			return;
+		}
+		
+		String[]val = entryEvent.getValue();
 		
 		if(logger.isInfoEnabled()){
-			logger.info("removing all entries for key : " + entryEvent.getKey());
+			logger.info("removing entry " + val[0] + " " + val[1] + " " + val[2] + " for key : " + entryEvent.getKey());
 		}
 		
-		Values val = (Values) entryEvent.getValue();
-		Iterator<String[]> it = val.iterator();
-		for(String[] sArray = it.next();it.hasNext();){
-			Resource s = model.getResource(sArray[0]);
-			Property p = model.getProperty(sArray[1]);
-			RDFNode o = model.getResource(sArray[2]);
+		if(!jtaStatements.containsValue(val)){
+			Resource s = model.getResource(val[0]);
+			Property p = model.getProperty(val[1]);
+			RDFNode o = model.getResource(val[2]);
 			Statement statements = model.createStatement(s, p, o);
-			if(!jtaStatements.containsValue(sArray)){
-				model.remove(statements);
-				if(logger.isDebugEnabled()){
-					logger.debug("removing entry from model: " + statements);
-				}
-			}else{
-				if(logger.isDebugEnabled()){
-					logger.debug("duplicate entry in model belonging to another JTA, ignoring the removal of entry : " + statements);
-				}
+			model.remove(statements);
+			if(logger.isDebugEnabled()){
+				logger.debug("removing entry from model: " + statements);
 			}
-			sArray = it.next();
-		}		
+		}else{
+			if(logger.isDebugEnabled()){
+				logger.debug("duplicate entry in model belonging to another JTA, ignoring the removal from the model for triple : " +  val[0] + " " + val[1] + " " + val[2]);
+			}
+		}
+					
 	}
 
-	public void entryUpdated(EntryEvent arg0) {
-		// TODO Auto-generated method stub
-		
+	public void entryUpdated(EntryEvent<String, String[]> event) {
+		if(logger.isInfoEnabled())logger.info("entry uptdated - event = " + event);
 	}
 }

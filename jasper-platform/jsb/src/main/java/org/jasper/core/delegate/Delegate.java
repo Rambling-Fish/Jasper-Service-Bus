@@ -42,137 +42,134 @@ public class Delegate implements Runnable, MessageListener {
 	private MessageProducer producer;
 	private Destination delegateQ;
 	private MessageConsumer responseConsumer;
-    private ExecutorService delegateHandlers;
-	
-	private Map<String,Message> responseMessages;
-	private Map<String,Object> locks;
+	private ExecutorService delegateHandlers;
+
+	private Map<String, Message> responseMessages;
+	private Map<String, Object> locks;
 	private DelegateOntology jOntology;
 
-	
 	static Logger logger = Logger.getLogger(Delegate.class.getName());
 	static private AtomicInteger count = new AtomicInteger(0);
-	
-	public Delegate(Connection connection, Model model,DelegateOntology jOntology) throws JMSException {
-		this.isShutdown  = false;
-		
+
+	public Delegate(Connection connection, Model model,DelegateOntology jOntology) throws JMSException{
+		this.isShutdown = false;
+
 		this.responseMessages = new ConcurrentHashMap<String, Message>();
 		this.locks = new ConcurrentHashMap<String, Object>();
-		
-        delegateHandlers = Executors.newFixedThreadPool(2);
-        this.jOntology = jOntology;
 
-		
-		globalSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-	    globalQueue = globalSession.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
-	    globalDelegateConsumer = globalSession.createConsumer(globalQueue);
-	    
-        jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        producer = jtaSession.createProducer(null);
-        producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-        producer.setTimeToLive(30000);
-        
-        delegateQ = jtaSession.createQueue("jms.delegate." + JECore.getInstance().getBrokerTransportIp() + "." + count.getAndIncrement() + ".queue");
-        responseConsumer = jtaSession.createConsumer(delegateQ);
-        responseConsumer.setMessageListener(this);     
+		delegateHandlers = Executors.newFixedThreadPool(2);
+		this.jOntology = jOntology;
+
+		globalSession = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
+		globalQueue = globalSession.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
+		globalDelegateConsumer = globalSession.createConsumer(globalQueue);
+
+		jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		producer = jtaSession.createProducer(null);
+		producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+		producer.setTimeToLive(30000);
+
+		delegateQ = jtaSession.createQueue("jms.delegate." + JECore.getInstance().getBrokerTransportIp() + "." + count.getAndIncrement() + ".queue");
+		responseConsumer = jtaSession.createConsumer(delegateQ);
+		responseConsumer.setMessageListener(this);
 	}
-	
-	public void shutdown() throws JMSException{
+
+	public void shutdown() throws JMSException {
 		isShutdown = true;
 		producer.close();
 		responseConsumer.close();
-        jtaSession.close();
-        globalDelegateConsumer.close();
-	    globalSession.close();
+		jtaSession.close();
+		globalDelegateConsumer.close();
+		globalSession.close();
 	}
-	
-	public void run(){
+
+	public void run() {
 		processRequests();
 	}
-		
+
 	public void onMessage(Message msg) {
-		try{
-			if(logger.isDebugEnabled()){
+		try {
+			if (logger.isDebugEnabled()) {
 				logger.debug("Message response received = " + msg);
-	  	  	}
-			
-			if(locks.containsKey(msg.getJMSCorrelationID())){
+			}
+
+			if (locks.containsKey(msg.getJMSCorrelationID())) {
 				responseMessages.put(msg.getJMSCorrelationID(), msg);
 				Object lock = locks.remove(msg.getJMSCorrelationID());
 				synchronized (lock) {
 					lock.notifyAll();
 				}
-			}else{
-				logger.error("response with correlationID = " + msg.getJMSCorrelationID() + " recieved however no record of sending message with this ID, ignoring");
+			} else {
+				logger.error("response with correlationID = " + msg.getJMSCorrelationID()
+						+ " recieved however no record of sending message with this ID, ignoring");
 			}
-	
-		}catch (JMSException jmse){
-			logger.error("error occured in onMessage",jmse);
+
+		} catch (JMSException jmse) {
+			logger.error("error occured in onMessage", jmse);
 		}
 	}
-	
-	public void sendMessage(Destination destination, Message message) throws JMSException{
+
+	public void sendMessage(Destination destination, Message message) throws JMSException {
 		message.setJMSReplyTo(delegateQ);
-		producer.send(destination,message);
+		producer.send(destination, message);
 	}
-	
-	public void sendMessage(String destination, Message message) throws JMSException{
-		this.sendMessage(jtaSession.createQueue(destination),message);
+
+	public void sendMessage(String destination, Message message) throws JMSException {
+		this.sendMessage(jtaSession.createQueue(destination), message);
 	}
-	
-	public TextMessage createTextMessage(String txt) throws JMSException{
+
+	public TextMessage createTextMessage(String txt) throws JMSException {
 		return jtaSession.createTextMessage(txt);
 	}
-	
-	public ObjectMessage createObjectMessage(Serializable obj) throws JMSException{
+
+	public ObjectMessage createObjectMessage(Serializable obj)
+			throws JMSException {
 		return jtaSession.createObjectMessage(obj);
 	}
-	
-	public MapMessage createMapMessage(Map<String,?> map) throws JMSException{
+
+	public MapMessage createMapMessage(Map<String, Serializable> map) throws JMSException {
 		MapMessage mapMsg = jtaSession.createMapMessage();
-		for(String key:map.keySet()){
+		for (String key : map.keySet()) {
 			mapMsg.setObject(key, map.get(key));
 		}
 		return mapMsg;
 	}
-	
-	public void processRequests() {
-		  try {
 
-		      // Wait for a message
-		      Message jmsRequest;
-		      	      
-		      do{
-		          do{
-		          	jmsRequest = globalDelegateConsumer.receive(500);
-		          }while(jmsRequest == null && !isShutdown);
-		          if(isShutdown) break;
-		          
-		          if (jmsRequest instanceof ObjectMessage) {
-						ObjectMessage objMessage = (ObjectMessage) jmsRequest;
-			            Object obj = objMessage.getObject();
-			            if(obj instanceof JasperAdminMessage) {
-			            	JasperAdminMessage jam = ((JasperAdminMessage)obj);
-			            	if (jam.getType() == Type.ontologyManagement){
-			            		delegateHandlers.submit(new AdminHandler(this, jOntology, jmsRequest, locks, responseMessages));
-			            	}	
-			            }
-		          } else if(jmsRequest instanceof TextMessage){
-		        	  String text = ((TextMessage) jmsRequest).getText();
-		        	  if(text != null && text.startsWith("?query=")){
-		        		  delegateHandlers.submit(new SparqlHandler(this, jOntology, jmsRequest));
-		        	  }else if(text != null){
-		        		  delegateHandlers.submit(new DataHandler(this, jOntology, jmsRequest, locks, responseMessages));
-		        	  }else{
-			        		logger.error("Incoming text message has null payload - ignoring " + jmsRequest);
-			        	}	
-			        }else{
-			        	logger.warn("JMS Message neither ObjectMessage nor TextMessage, ignoring request : " + jmsRequest);
-			        }             
-		          
-		      }while(!isShutdown);
-		     
-		  } catch (Exception e) {
-		      logger.error("Exception caught while listening for request in delegate : ",e);
-		  }
+	public void processRequests() {
+		do {
+			try {
+				Message jmsRequest;
+				do {
+					jmsRequest = globalDelegateConsumer.receive(500);
+				} while (jmsRequest == null && !isShutdown);
+				
+				if (isShutdown)	break;
+
+				if (jmsRequest instanceof ObjectMessage) {
+					ObjectMessage objMessage = (ObjectMessage) jmsRequest;
+					Object obj = objMessage.getObject();
+					if (obj instanceof JasperAdminMessage) {
+						JasperAdminMessage jam = ((JasperAdminMessage) obj);
+						if (jam.getType() == Type.ontologyManagement) {
+							delegateHandlers.submit(new AdminHandler(this,jOntology, jmsRequest, locks,responseMessages));
+						}
+					}
+				} else if (jmsRequest instanceof TextMessage) {
+					String text = ((TextMessage) jmsRequest).getText();
+					if (text != null && text.startsWith("?query=")) {
+						delegateHandlers.submit(new SparqlHandler(this,jOntology, jmsRequest));
+					} else if (text != null) {
+						delegateHandlers.submit(new DataHandler(this, jOntology,jmsRequest, locks, responseMessages));
+					} else {
+						logger.error("Incoming text message has null payload - ignoring " + jmsRequest);
+					}
+				} else {
+					logger.warn("JMS Message neither ObjectMessage nor TextMessage, ignoring request : " + jmsRequest);
+				}
+			} catch (Exception e) {
+				logger.error("Exception caught while listening for request in delegate : ",e);
+			}
+		} while (!isShutdown);
+
 	}
 }
