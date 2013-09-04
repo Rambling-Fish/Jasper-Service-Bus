@@ -37,6 +37,7 @@ public class TestDelegate  extends TestCase {
 	private static final String ADMIN_QUEUE = "jms.TestJTA.admin.queue";
 	private static final String TEST_JTA_NAME = "TestJTA";
 	private static final String EMPTY_JTA_RESPONSE = "{}";
+	private static final String SPARQL_QUERY = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=json";
 	private Connection connection;
 	private DelegateFactory delegateFactory;
 	private ActiveMQConnectionFactory connectionFactory;
@@ -134,8 +135,6 @@ public class TestDelegate  extends TestCase {
 	@Test
 	public void testJTAConnect() throws Exception {
 		setUpConnection(2);
-		
-		DelegateFactory factory = new DelegateFactory(false, null);
 
 		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_NAME);
         
@@ -169,6 +168,34 @@ public class TestDelegate  extends TestCase {
 	}
 	
 	/*
+	 * This test simulates a valid sparql query coming in from the JSC.
+	 */
+	@Test
+	public void testSparqlHandlerSuccess() throws Exception {
+		setUpConnection(2);
+		
+		message = session.createTextMessage(SPARQL_QUERY);
+		producer.send(message);
+		
+		Thread.sleep(2000);
+		tearDown();
+	}
+	
+	/*
+	 * This test simulates an invalid sparql query coming in from the JSC.
+	 */
+	@Test
+	public void testSparqlHandlerFail() throws Exception {
+		setUpConnection(2);
+		
+		message = session.createTextMessage("?query=not a valid query");
+		producer.send(message);
+		
+		Thread.sleep(2000);
+		tearDown();
+	}
+	
+	/*
 	 * This test simulates the broker sending a disconnect message to the delegate.
 	 * The admin handler then removes the statements of this JTA from the model.
 	 */
@@ -176,8 +203,6 @@ public class TestDelegate  extends TestCase {
 	public void testJTADisconnect() throws Exception {
 		setUpConnection(2);
 		
-		DelegateFactory factory = new DelegateFactory(false, null);
-
 		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_disconnect, TEST_JTA_NAME);
 		message = session.createObjectMessage(jam);
 		producer.send(message);
@@ -185,6 +210,7 @@ public class TestDelegate  extends TestCase {
 		Thread.sleep(2000);
 		tearDown();
 	}
+	
 //	
 //	/*
 //	 * This test checks to see that the core removes all leading and trailing whitespace
