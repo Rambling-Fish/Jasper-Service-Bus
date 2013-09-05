@@ -63,6 +63,10 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
         model = ModelFactory.createDefaultModel();
     }
     
+    public String getProtocol(){
+        return JASPERENGINE;
+    }
+    
     public void doInitialise(){
     	try {
 			license = JAuthHelper.loadJTALicenseFromFile(System.getProperty("jta-keystore") + "/" + vendor + "_" + appName + "_" + version + JAuthHelper.JTA_LICENSE_FILE_SUFFIX);
