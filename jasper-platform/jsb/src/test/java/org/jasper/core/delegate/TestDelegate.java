@@ -44,6 +44,7 @@ public class TestDelegate  extends TestCase {
 	private static final String SPARQL_QUERY3 = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=";
 	private static final String SPARQL_QUERY2 = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=jj";
 	private static final String SPARQL_QUERY = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=json";
+	private static final String DATA_QUERY = "http://coralcea.ca/jasper/vocabulary/hrData";//?http://coralcea.ca/jasper/vocabulary/hrSRId=12";
 	private Connection connection;
 	private DelegateFactory delegateFactory;
 	private ActiveMQConnectionFactory connectionFactory;
@@ -120,16 +121,28 @@ public class TestDelegate  extends TestCase {
 		
 		message = session.createTextMessage("?query=not a valid query");
 		producer.send(message);
-//		Thread.sleep(2000);
 		
 		message = session.createTextMessage(SPARQL_QUERY2);
 		producer.send(message);
 		
 		message = session.createTextMessage(SPARQL_QUERY3);
 		producer.send(message);
+		
 		Thread.sleep(2000);
+		tearDown();
+	}
+	
+	/*
+	 * This tests the DataHandler class.
+	 */
+	@Test
+	public void testDataHandler() throws Exception {
+		setUpConnection(2);
 		
+		message = session.createTextMessage(DATA_QUERY);
+		producer.send(message);
 		
+		Thread.sleep(2000);
 		tearDown();
 	}
 	
@@ -181,6 +194,28 @@ public class TestDelegate  extends TestCase {
 		Thread.sleep(2000);
 		tearDown();
 	}
+	
+	/*
+	 * This tests AdminHandler error paths
+	 */
+	@Test
+	public void testAdminHandlerError() throws Exception {
+		setUpConnection(2);
+
+		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, null);
+		message = session.createObjectMessage(jam);
+		producer.send(message);
+		
+		JasperAdminMessage jam2 = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, "");    
+		message = session.createObjectMessage(jam2);
+		producer.send(message);
+		
+		JasperAdminMessage jam3 = new JasperAdminMessage(Type.ontologyManagement, Command.jta_disconnect, "");
+		message = session.createObjectMessage(jam3);
+		producer.send(message);
+		
+		Thread.sleep(2000);
+	}
 
 	private void setUpConnection(int numDelegates) throws Exception {
 		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
@@ -231,10 +266,12 @@ public class TestDelegate  extends TestCase {
 	
 	private String[][] loadOntology(){
 		ArrayList<String[]> triples = new ArrayList<String[]>();
-		triples.add(new String[]{"jtaA","is","jta"});
-		triples.add(new String[]{"jtaA","provides","hrData"});
-		triples.add(new String[]{"jtaA","param","hrSRId"});
-		triples.add(new String[]{"jtaA","requires","patientId"});
+		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/is","http://coralcea.ca/jasper/vocabulary/jta"});
+		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/provides","http://coralcea.ca/jasper/vocabulary/hrData"});
+		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/param","http://coralcea.ca/jasper/vocabulary/hrSRId"});
+		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/requires","http://coralcea.ca/jasper/vocabulary/patientId"});
+		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/queue","http://coralcea.ca/jasper/vocabulary/jms.TestJTA.admin.queue"});
+		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/requires"});
 		
 		return triples.toArray(new String[][]{});
 		
