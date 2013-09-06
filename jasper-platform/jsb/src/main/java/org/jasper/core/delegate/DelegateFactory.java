@@ -1,9 +1,5 @@
 package org.jasper.core.delegate;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.jms.Connection;
 import javax.jms.JMSException;
 
@@ -17,8 +13,6 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.vocabulary.RDFS;
 
 public class DelegateFactory{
 
