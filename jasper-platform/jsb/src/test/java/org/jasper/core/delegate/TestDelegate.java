@@ -40,13 +40,13 @@ import org.junit.Test;
 //
 public class TestDelegate  extends TestCase {
 
-	private static final String ADMIN_QUEUE    = "jms.TestJTA.admin.queue";
-	private static final String TEST_JTA_NAME  = "TestJTA";
-	private static final String SPARQL_QUERY3  = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=";
-	private static final String SPARQL_QUERY2  = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=jj";
-	private static final String SPARQL_QUERY   = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=json";
-	private static final String DATA_QUERY     = "http://coralcea.ca/jasper/vocabulary/hrData?http://coralcea.ca/jasper/vocabulary/hrSRId=12";
-	private static final String BAD_DATA_QUERY = "http://coralcea.ca/jasper/vocabulary/invalidURI";
+	private static final String ADMIN_QUEUE     = "jms.TestJTA.admin.queue";
+	private static final String TEST_JTA_NAME   = "TestJTA";
+	private static final String SPARQL_QUERY3   = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=";
+	private static final String SPARQL_QUERY2   = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=jj";
+	private static final String SPARQL_QUERY    = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=json";
+	private static final String GOOD_DATA_QUERY = "http://coralcea.ca/jasper/vocabulary/hrData?http://coralcea.ca/jasper/vocabulary/hrSRId=12";
+	private static final String BAD_DATA_QUERY  = "http://coralcea.ca/jasper/vocabulary/invalidURI";
 	private Connection connection;
 	private DelegateFactory delegateFactory;
 	private ActiveMQConnectionFactory connectionFactory;
@@ -78,9 +78,12 @@ public class TestDelegate  extends TestCase {
 		
 		// Wait for a message
 	    Message adminRequest;
+	    int count = 0;
 	    
 	    do{
     		adminRequest = adminConsumer.receive(3000);
+    		count++;
+    		if(count >= 3) break;
     	}while(adminRequest == null);
 	    
 	    if (adminRequest instanceof ObjectMessage) {
@@ -135,7 +138,7 @@ public class TestDelegate  extends TestCase {
 	public void testDataHandler() throws Exception {
 		setUpConnection(2);
 		
-		message = session.createTextMessage(DATA_QUERY);
+		message = session.createTextMessage(GOOD_DATA_QUERY);
 		producer.send(message);
 		
 		Thread.sleep(2000);
