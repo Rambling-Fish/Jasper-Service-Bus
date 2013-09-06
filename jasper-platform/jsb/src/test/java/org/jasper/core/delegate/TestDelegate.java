@@ -57,6 +57,48 @@ public class TestDelegate  extends TestCase {
 	private ExecutorService executorService;
 	private Delegate[] delegates = new Delegate[2];
 
+	/*
+	 * This test sends an invalid response to the delegate in response to a get_ontology 
+	 * request.
+	 */
+	@Test
+	public void testJTAConnectInvalidResponse() throws Exception {
+		setUpConnection(2);
+
+		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_NAME);
+        
+		message = session.createObjectMessage(jam);
+		Destination adminQueue = session.createQueue(ADMIN_QUEUE);
+		MessageConsumer adminConsumer = session.createConsumer(adminQueue);
+		MessageProducer adminProducer = session.createProducer(null);
+		producer.send(message);
+		
+		// Wait for a message
+	    Message adminRequest;
+	    int count = 0;
+	    
+	    do{
+    		adminRequest = adminConsumer.receive(3000);
+    		count++;
+    		if(count >= 2) break;
+    	}while(adminRequest == null);
+	    
+	    if (adminRequest instanceof ObjectMessage) {
+        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
+        	Object obj = objMessage.getObject();
+        	if(obj instanceof JasperAdminMessage){
+				if(((JasperAdminMessage) obj).getType() == Type.ontologyManagement && ((JasperAdminMessage) obj).getCommand() == Command.get_ontology){
+        			Message response = session.createObjectMessage("INVALID");
+        			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
+					adminProducer.send(adminRequest.getJMSReplyTo(), response );
+				}
+        	}
+	    }
+	    	    
+		tearDownConnection();
+
+	}
+
 	
 	/*
 	 * This test simulates the broker sending a connect message to the delegate.
@@ -230,48 +272,6 @@ public class TestDelegate  extends TestCase {
 		
 		Thread.sleep(1000);
 		tearDownConnection();
-	}
-	
-	/*
-	 * This test sends an invalid response to the delegate in response to a get_ontology 
-	 * request.
-	 */
-	@Test
-	public void testJTAConnectInvalidResponse() throws Exception {
-		setUpConnection(2);
-
-		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_NAME);
-        
-		message = session.createObjectMessage(jam);
-		Destination adminQueue = session.createQueue(ADMIN_QUEUE);
-		MessageConsumer adminConsumer = session.createConsumer(adminQueue);
-		MessageProducer adminProducer = session.createProducer(null);
-		producer.send(message);
-		
-		// Wait for a message
-	    Message adminRequest;
-	    int count = 0;
-	    
-	    do{
-    		adminRequest = adminConsumer.receive(3000);
-    		count++;
-    		if(count >= 2) break;
-    	}while(adminRequest == null);
-	    
-	    if (adminRequest instanceof ObjectMessage) {
-        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
-        	Object obj = objMessage.getObject();
-        	if(obj instanceof JasperAdminMessage){
-				if(((JasperAdminMessage) obj).getType() == Type.ontologyManagement && ((JasperAdminMessage) obj).getCommand() == Command.get_ontology){
-        			Message response = session.createObjectMessage("INVALID");
-        			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
-					adminProducer.send(adminRequest.getJMSReplyTo(), response );
-				}
-        	}
-	    }
-	    	    
-		tearDownConnection();
-
 	}
 
 	private void setUpConnection(int numDelegates) throws Exception {
