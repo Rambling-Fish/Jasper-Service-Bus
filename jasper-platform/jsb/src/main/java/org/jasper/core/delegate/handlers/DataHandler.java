@@ -52,6 +52,7 @@ public class DataHandler implements Runnable {
 	}
 	
 	private void processInvalidRequest(TextMessage msg, String errorMsg) throws Exception {
+		if(logger.isInfoEnabled())logger.info("processingInvalidReqeust, errorMsg = " + errorMsg + " for request " + msg.getText() + " from " + msg.getJMSReplyTo());
 		String msgText = "{".concat(errorMsg).concat("}");
         Message message = delegate.createTextMessage(msgText);
         
