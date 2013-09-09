@@ -1,12 +1,8 @@
 package org.jasper.core.delegate;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,21 +16,19 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
-import javax.jms.TextMessage;
+
+import junit.framework.Assert;
+import junit.framework.TestCase;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.broker.Broker;
-import org.apache.activemq.broker.BrokerFilter;
-import org.apache.activemq.broker.BrokerPlugin;
-import org.apache.activemq.broker.BrokerService;
-import org.jasper.core.JECore;
-import org.jasper.core.JasperBrokerService;
-import org.jasper.core.auth.JasperAuthenticationPlugin;
+import org.apache.jena.atlas.json.JsonObject;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JtaInfo;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
+import org.junit.After;
+import org.junit.Before;
 //
 import org.junit.Test;
 //
@@ -63,8 +57,6 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testJTAConnectInvalidResponse() throws Exception {
-		setUpConnection(2);
-
 		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_NAME);
         
 		message = session.createObjectMessage(jam);
@@ -94,9 +86,6 @@ public class TestDelegate  extends TestCase {
 				}
         	}
 	    }
-	    	    
-		tearDownConnection();
-
 	}
 
 	
@@ -105,11 +94,12 @@ public class TestDelegate  extends TestCase {
 	 * The admin handler then sends a JAM message to tell the JTA to publish it's
 	 * ontology. This test case receives the get_ontology JAM message and creates
 	 * an object message composed of triples and sends it back to the delegate.
+	 * Since the model is transient with the TC it also sends valid and invalid
+	 * sparql queries and sends a data request (ie as the JSC) and formats and
+	 * sends a reply (as a JTA) to test end to end data handler processing
 	 */
 	@Test
 	public void testJTAConnect() throws Exception {
-		setUpConnection(2);
-
 		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_NAME);
         
 		message = session.createObjectMessage(jam);
@@ -140,28 +130,12 @@ public class TestDelegate  extends TestCase {
 				}
         	}
 	    }
-
-	}
-	
-	/*
-	 * This test simulates a valid sparql query coming in from the JSC.
-	 */
-	@Test
-	public void testSparqlHandlerSuccess() throws Exception {
-		setUpConnection(2);
-		
-		message = session.createTextMessage(SPARQL_QUERY);
+	    
+	    // Successful SPARQL Query to in-memory Jena model
+	    message = session.createTextMessage(SPARQL_QUERY);
 		producer.send(message);
 		
-	}
-	
-	/*
-	 * This test simulates an invalid sparql query coming in from the JSC.
-	 */
-	@Test
-	public void testSparqlHandlerFail() throws Exception {
-		setUpConnection(2);
-		
+		//Fail Sparql queries
 		message = session.createTextMessage("?query=not a valid query");
 		producer.send(message);
 		
@@ -170,40 +144,39 @@ public class TestDelegate  extends TestCase {
 		
 		message = session.createTextMessage(SPARQL_QUERY3);
 		producer.send(message);
-
-	}
-	
-	/*
-	 * This tests the DataHandler class.
-	 */
-	@Test
-	public void testDataHandler() throws Exception {
-		setUpConnection(2);
 		
+		// Send data request
 		message = session.createTextMessage(GOOD_DATA_QUERY);
 		producer.send(message);
 		
-		Thread.sleep(2000);
-		tearDownConnection();
-	}
-	
-	/*
-	 * This test simulates the broker sending a disconnect message to the delegate.
-	 * The admin handler then removes the statements of this JTA from the model.
-	 */
-	@Test
-	public void testJTADisconnect() throws Exception {
-		setUpConnection(2);
+		count = 0;
+  
+		    do{
+	    		adminRequest = adminConsumer.receive(3000);
+	    		count++;
+	    		if(count >= 3) break;
+	    	}while(adminRequest == null);
+		    
+        if(adminRequest != null){    
+		    JsonObject jasonObj = new JsonObject();
+			jasonObj.put("HR", "76");
+			jasonObj.put("timestamp", "09042013:7:00");
+		    
+		    Message response = session.createTextMessage(jasonObj.toString());
+			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
+			adminProducer.send(adminRequest.getJMSReplyTo(), response );
+        }
+		    
+		Thread.sleep(1000);
 		
-		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_disconnect, TEST_JTA_NAME);
-		message = session.createObjectMessage(jam);
+		// Send jta disconnect message
+		JasperAdminMessage jam2 = new JasperAdminMessage(Type.ontologyManagement, Command.jta_disconnect, TEST_JTA_NAME);
+		message = session.createObjectMessage(jam2);
 		producer.send(message);
 		
 		Thread.sleep(2000);
-		tearDownConnection();
 	}
-
-	
+		
 	/*
 	 * This test exercises JTAInfo class.
 	 */
@@ -224,7 +197,6 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testDelegate() throws Exception {
-		setUpConnection(1);
 		message = delegates[0].createTextMessage(null);
 		producer.send(message);
 		
@@ -232,9 +204,6 @@ public class TestDelegate  extends TestCase {
 		map.put("key", "value");
 		MapMessage mapMsg = delegates[0].createMapMessage(map);
 		Assert.assertNotNull(mapMsg);
-		
-//		Thread.sleep(2000);
-		tearDownConnection();
 	}
 	
 	/*
@@ -242,8 +211,6 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testAdminHandlerError() throws Exception {
-		setUpConnection(2);
-
 		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, (Serializable)null);
 		message = session.createObjectMessage(jam);
 		producer.send(message);
@@ -257,7 +224,6 @@ public class TestDelegate  extends TestCase {
 		producer.send(message);
 		
 		Thread.sleep(1000);
-		tearDownConnection();
 	}
 	
 	/*
@@ -265,16 +231,14 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testDataHandlerError() throws Exception {
-		setUpConnection(2);
-
 		message = session.createTextMessage(BAD_DATA_QUERY);
 		producer.send(message);
 		
 		Thread.sleep(1000);
-		tearDownConnection();
 	}
 
-	private void setUpConnection(int numDelegates) throws Exception {
+	@Before
+	public void setUp() throws Exception {
 		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 		 delegateFactory = new DelegateFactory(false, null);
 
@@ -286,7 +250,7 @@ public class TestDelegate  extends TestCase {
 		
 		
 		executorService = Executors.newCachedThreadPool();
-		delegates = new Delegate[numDelegates];
+		delegates = new Delegate[2];
 		
 		for(int i=0;i<delegates.length;i++){
 			delegates[i] = delegateFactory.createDelegate();
@@ -300,7 +264,8 @@ public class TestDelegate  extends TestCase {
 		producer.setTimeToLive(30000);
 	}
 
-	private void tearDownConnection() throws Exception {
+	@After
+	public void tearDown() throws Exception {
 		// Clean up - no need to close connection as that will be done in JasperBroker
 		session.close();
 		connection.close();
@@ -308,7 +273,11 @@ public class TestDelegate  extends TestCase {
 		for(int i = 0; i< delegates.length; i++) {
 			delegates[i].shutdown();
 		}
-		
+		delegateFactory.getHazelcastInstance().getLifecycleService().shutdown();
+		Thread.sleep(500);
+		if(delegateFactory.getHazelcastInstance().getLifecycleService().isRunning()){
+			delegateFactory.getHazelcastInstance().getLifecycleService().shutdown();
+		}
 		session           = null;
 		connection        = null;
 		producer          = null;
@@ -328,7 +297,7 @@ public class TestDelegate  extends TestCase {
 		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/provides","http://coralcea.ca/jasper/vocabulary/hrData"});
 		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/param","http://coralcea.ca/jasper/vocabulary/hrSRId"});
 		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/requires","http://coralcea.ca/jasper/vocabulary/patientId"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/queue","http://coralcea.ca/jasper/vocabulary/jms.TestJTA.admin.queue"});
+		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/queue","jms.TestJTA.admin.queue"});
 		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/requires"}); // invalid row on purpose!
 		
 		return triples.toArray(new String[][]{});
