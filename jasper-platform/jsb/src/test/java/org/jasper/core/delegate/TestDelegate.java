@@ -169,6 +169,30 @@ public class TestDelegate  extends TestCase {
 		    
 		Thread.sleep(1000);
 		
+		// Send data request but change correlationId in response
+		message = session.createTextMessage(GOOD_DATA_QUERY);
+		producer.send(message);
+				
+		count = 0;
+		  
+			do{
+				adminRequest = adminConsumer.receive(3000);
+			    count++;
+			   	if(count >= 3) break;
+			    	}while(adminRequest == null);
+				    
+		    if(adminRequest != null){    
+		    	JsonObject jasonObj = new JsonObject();
+		    	jasonObj.put("HR", "76");
+		    	jasonObj.put("timestamp", "09042013:7:00");
+				    
+		    	Message response = session.createTextMessage(jasonObj.toString());
+		    	response.setJMSCorrelationID("55");
+		    	adminProducer.send(adminRequest.getJMSReplyTo(), response );
+		    }
+				    
+		    Thread.sleep(1000);
+		
 		// Send jta disconnect message
 		JasperAdminMessage jam2 = new JasperAdminMessage(Type.ontologyManagement, Command.jta_disconnect, TEST_JTA_NAME);
 		message = session.createObjectMessage(jam2);
@@ -232,6 +256,13 @@ public class TestDelegate  extends TestCase {
 	@Test
 	public void testDataHandlerError() throws Exception {
 		message = session.createTextMessage(BAD_DATA_QUERY);
+		producer.send(message);
+		
+		message = session.createTextMessage(BAD_DATA_QUERY);
+		message.setJMSCorrelationID("12345");
+		producer.send(message);
+		
+		message = session.createMapMessage();
 		producer.send(message);
 		
 		Thread.sleep(1000);
