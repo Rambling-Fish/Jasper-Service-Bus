@@ -34,12 +34,15 @@ import org.junit.Test;
 //
 public class TestDelegate  extends TestCase {
 
-	private static final String ADMIN_QUEUE     = "jms.TestJTA.admin.queue";
-	private static final String TEST_JTA_NAME   = "TestJTA";
+	private static final String TEST_JTA_A_ADMIN_QUEUE = "jms.TestJTA-A.admin.queue";
+	private static final String TEST_JTA_B_ADMIN_QUEUE = "jms.TestJTA-B.admin.queue";
+	private static final String TEST_JTA_A_NAME = "TestJTA-A";
+	private static final String TEST_JTA_B_NAME = "TestJTA-B";
 	private static final String SPARQL_QUERY3   = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=";
 	private static final String SPARQL_QUERY2   = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=jj";
 	private static final String SPARQL_QUERY    = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=json";
 	private static final String GOOD_DATA_QUERY = "http://coralcea.ca/jasper/vocabulary/hrData?http://coralcea.ca/jasper/vocabulary/hrSRId=12";
+	private static final String INDIRECT_DATA_QUERY = "http://coralcea.ca/jasper/vocabulary/hrData?http://coralcea.ca/jasper/vocabulary/patientId=0012";
 	private static final String BAD_DATA_QUERY  = "http://coralcea.ca/jasper/vocabulary/invalidURI";
 	private Connection connection;
 	private DelegateFactory delegateFactory;
@@ -57,10 +60,10 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testJTAConnectInvalidResponse() throws Exception {
-		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_NAME);
+		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_A_NAME);
         
 		message = session.createObjectMessage(jam);
-		Destination adminQueue = session.createQueue(ADMIN_QUEUE);
+		Destination adminQueue = session.createQueue(TEST_JTA_A_ADMIN_QUEUE);
 		MessageConsumer adminConsumer = session.createConsumer(adminQueue);
 		MessageProducer adminProducer = session.createProducer(null);
 		producer.send(message);
@@ -100,10 +103,10 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testJTAConnect() throws Exception {
-		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_NAME);
+		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_A_NAME);
         
 		message = session.createObjectMessage(jam);
-		Destination adminQueue = session.createQueue(ADMIN_QUEUE);
+		Destination adminQueue = session.createQueue(TEST_JTA_A_ADMIN_QUEUE);
 		MessageConsumer adminConsumer = session.createConsumer(adminQueue);
 		MessageProducer adminProducer = session.createProducer(null);
 		producer.send(message);
@@ -123,7 +126,7 @@ public class TestDelegate  extends TestCase {
         	Object obj = objMessage.getObject();
         	if(obj instanceof JasperAdminMessage){
 				if(((JasperAdminMessage) obj).getType() == Type.ontologyManagement && ((JasperAdminMessage) obj).getCommand() == Command.get_ontology){
-        			String[][] triples = loadOntology();
+        			String[][] triples = loadOntology(1);
         			Message response = session.createObjectMessage(triples);
         			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
 					adminProducer.send(adminRequest.getJMSReplyTo(), response );
@@ -194,7 +197,7 @@ public class TestDelegate  extends TestCase {
 		    Thread.sleep(1000);
 		
 		// Send jta disconnect message
-		JasperAdminMessage jam2 = new JasperAdminMessage(Type.ontologyManagement, Command.jta_disconnect, TEST_JTA_NAME);
+		JasperAdminMessage jam2 = new JasperAdminMessage(Type.ontologyManagement, Command.jta_disconnect, this.TEST_JTA_A_NAME);
 		message = session.createObjectMessage(jam2);
 		producer.send(message);
 		
@@ -206,7 +209,7 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testJTAInfo() throws Exception {
-		JtaInfo info = new JtaInfo(TEST_JTA_NAME,"00093837","jsb0","myClientId","0.0.0.0");
+		JtaInfo info = new JtaInfo(TEST_JTA_A_NAME,"00093837","jsb0","myClientId","0.0.0.0");
 		info.getClientId();
 		info.getClientIp();
 		info.getJsbConnectedTo();
@@ -267,6 +270,84 @@ public class TestDelegate  extends TestCase {
 		
 		Thread.sleep(1000);
 	}
+	
+	/*
+	 * This test simulates having 2 JTAs connected to the core. It allows for
+	 * testing some of the success paths in the DataHandler namely when the
+	 * param is a JsonArray
+	 */
+	@Test
+	public void testMultipleJTAs() throws Exception {
+		// Register first test JTA
+		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_A_NAME);
+		message = session.createObjectMessage(jam);
+		Destination adminQueue = session.createQueue(TEST_JTA_A_ADMIN_QUEUE);
+		MessageConsumer adminConsumer = session.createConsumer(adminQueue);
+		MessageProducer adminProducer = session.createProducer(null);
+		producer.send(message);
+		
+		// Wait for a get ontology message for JTA-A
+	    Message adminRequest;
+	    int count = 0;
+	    
+	    do{
+    		adminRequest = adminConsumer.receive(3000);
+    		count++;
+    		if(count >= 3) break;
+    	}while(adminRequest == null);
+	    
+	    if (adminRequest instanceof ObjectMessage) {
+        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
+        	Object obj = objMessage.getObject();
+        	if(obj instanceof JasperAdminMessage){
+				if(((JasperAdminMessage) obj).getType() == Type.ontologyManagement && ((JasperAdminMessage) obj).getCommand() == Command.get_ontology){
+        			String[][] triples = loadOntology(1);
+        			Message response = session.createObjectMessage(triples);
+        			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
+					adminProducer.send(adminRequest.getJMSReplyTo(), response );
+				}
+        	}
+	    }
+	    
+	    // Register 2nd test JTA
+	    jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_B_NAME);
+        
+		message = session.createObjectMessage(jam);
+		Destination adminQueue2 = session.createQueue(TEST_JTA_B_ADMIN_QUEUE);
+		MessageConsumer adminConsumer2 = session.createConsumer(adminQueue2);
+		producer.send(message);
+		
+		// Wait for a get ontology message for JTA-B
+	    count = 0;
+	    
+	    do{
+    		adminRequest = adminConsumer2.receive(3000);
+    		count++;
+    		if(count >= 3) break;
+    	}while(adminRequest == null);
+	    
+	    if (adminRequest instanceof ObjectMessage) {
+        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
+        	Object obj = objMessage.getObject();
+        	if(obj instanceof JasperAdminMessage){
+				if(((JasperAdminMessage) obj).getType() == Type.ontologyManagement && ((JasperAdminMessage) obj).getCommand() == Command.get_ontology){
+        			String[][] triples = loadOntology(2);
+        			Message response = session.createObjectMessage(triples);
+        			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
+					adminProducer.send(adminRequest.getJMSReplyTo(), response );
+				}
+        	}
+	    }
+		
+		// Send indirect data request. That is a request for HRData but
+	    // provides PatientId as a param. HR JTA-A requires heart rate
+	    // sensorId so this forces more introspection of the model to discover
+	    // JTA that requires PatientId and that provides HR SensorId which
+	    // in this TC is JTA-B
+		message = session.createTextMessage(INDIRECT_DATA_QUERY);
+		producer.send(message);
+		Thread.sleep(1000);
+	}
 
 	@Before
 	public void setUp() throws Exception {
@@ -322,14 +403,23 @@ public class TestDelegate  extends TestCase {
 		
 	}
 	
-	private String[][] loadOntology(){
+	private String[][] loadOntology(int ontology){
 		ArrayList<String[]> triples = new ArrayList<String[]>();
-		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/is","http://coralcea.ca/jasper/vocabulary/jta"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/provides","http://coralcea.ca/jasper/vocabulary/hrData"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/param","http://coralcea.ca/jasper/vocabulary/hrSRId"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/requires","http://coralcea.ca/jasper/vocabulary/patientId"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/queue","jms.TestJTA.admin.queue"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/requires"}); // invalid row on purpose!
+		if(ontology == 1){
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/is","http://coralcea.ca/jasper/vocabulary/jta"});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/provides","http://coralcea.ca/jasper/vocabulary/hrData"});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/param","http://coralcea.ca/jasper/vocabulary/hrSRId"});
+//			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/requires","http://coralcea.ca/jasper/vocabulary/hrSRId"});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/queue",TEST_JTA_A_ADMIN_QUEUE});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/requires"}); // invalid row on purpose!
+		}
+		else{
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/is","http://coralcea.ca/jasper/vocabulary/jta"});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/provides","http://coralcea.ca/jasper/vocabulary/hrSRId"});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/param","http://coralcea.ca/jasper/vocabulary/patientId"});
+//			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/requires","http://coralcea.ca/jasper/vocabulary/patientId"});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/queue",TEST_JTA_B_ADMIN_QUEUE});
+		}
 		
 		return triples.toArray(new String[][]{});
 		
