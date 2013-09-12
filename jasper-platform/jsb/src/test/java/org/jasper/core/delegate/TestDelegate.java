@@ -346,6 +346,23 @@ public class TestDelegate  extends TestCase {
 	    // in this TC is JTA-B
 		message = session.createTextMessage(INDIRECT_DATA_QUERY);
 		producer.send(message);
+		
+		// wait for message from core
+		count = 0;
+		  
+		do{
+			adminRequest = adminConsumer2.receive(3000);
+		    count++;
+		   	if(count >= 3) break;
+		    	}while(adminRequest == null);
+			    
+	    if(adminRequest != null){    
+	    	JsonObject jasonObj = new JsonObject();
+	    	jasonObj.put("http://coralcea.ca/jasper/vocabulary/hrSRId", "1234");
+	    	Message response = session.createTextMessage(jasonObj.toString());
+	    	adminProducer.send(adminRequest.getJMSReplyTo(), response );
+	    }
+	    
 		Thread.sleep(1000);
 	}
 
@@ -409,7 +426,6 @@ public class TestDelegate  extends TestCase {
 			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/is","http://coralcea.ca/jasper/vocabulary/jta"});
 			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/provides","http://coralcea.ca/jasper/vocabulary/hrData"});
 			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/param","http://coralcea.ca/jasper/vocabulary/hrSRId"});
-//			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/requires","http://coralcea.ca/jasper/vocabulary/hrSRId"});
 			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/queue",TEST_JTA_A_ADMIN_QUEUE});
 			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/requires"}); // invalid row on purpose!
 		}
@@ -417,7 +433,6 @@ public class TestDelegate  extends TestCase {
 			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/is","http://coralcea.ca/jasper/vocabulary/jta"});
 			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/provides","http://coralcea.ca/jasper/vocabulary/hrSRId"});
 			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/param","http://coralcea.ca/jasper/vocabulary/patientId"});
-//			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/requires","http://coralcea.ca/jasper/vocabulary/patientId"});
 			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/queue",TEST_JTA_B_ADMIN_QUEUE});
 		}
 		
