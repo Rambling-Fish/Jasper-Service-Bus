@@ -577,4 +577,8 @@ public class JECore {
 		return hazelcastInstance;
 	}
 	
+	public void setHazelcastInstance(HazelcastInstance hz) {
+		hazelcastInstance = hz;
+	}
+	
 }
