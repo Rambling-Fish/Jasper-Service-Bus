@@ -22,6 +22,7 @@ import junit.framework.TestCase;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.jena.atlas.json.JsonObject;
+import org.jasper.core.JECore;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JtaInfo;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
@@ -31,6 +32,12 @@ import org.junit.After;
 import org.junit.Before;
 //
 import org.junit.Test;
+import org.mule.transport.jasperengine.JasperEngineConnector;
+
+import com.hazelcast.config.Config;
+import com.hazelcast.config.GroupConfig;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 //
 public class TestDelegate  extends TestCase {
 
@@ -369,7 +376,16 @@ public class TestDelegate  extends TestCase {
 	@Before
 	public void setUp() throws Exception {
 		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
-		 delegateFactory = new DelegateFactory(false, null);
+		 
+		 JECore core = JECore.getInstance();
+		 
+		 Config cfg = new Config();
+		 GroupConfig groupConfig = new GroupConfig("testDelegateJunitTestingSuite", "testDelegateJunitTestingSuite_" + System.currentTimeMillis());
+		 cfg.setGroupConfig(groupConfig);
+		 HazelcastInstance hz = Hazelcast.newHazelcastInstance(cfg);
+		 core.setHazelcastInstance(hz);
+		 
+		 delegateFactory = new DelegateFactory(false, core);
 
         // Create a Connection
         connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
