@@ -299,10 +299,11 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
             	}else{
             		//TODO Consider overwriting old entry or removing it here
             		if(jtaInfoMap.get(info.getPassword()).getClientId().equals(info.getClientId())){
-            			logger.warn("jta trying to register with same clientID, may be rebalencing reqeust:\n"
+            			logger.warn("jta trying to register with same clientID, may be rebalencing request:\n"
             					+ "\t jtaName = " + jtaInfoMap.get(info.getPassword()).getJtaName()
-            					+ "\t clientID = " + jtaInfoMap.get(info.getPassword()).getClientId()
-            					+ "\t JsbConnectedTo" + jtaInfoMap.get(info.getPassword()).getJsbConnectedTo());
+            					+ "\t old clientID = " + jtaInfoMap.get(info.getPassword()).getClientId()
+            					+ "\t JsbConnectedTo" + jtaInfoMap.get(info.getPassword()).getJsbConnectedTo()
+            					+ "\t new clientID = " + info.getClientId());
             		}
             		Thread.sleep(250);
             	}
