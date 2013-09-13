@@ -101,7 +101,7 @@ public class Delegate implements Runnable, MessageListener {
 				}
 			} else {
 				logger.error("response with correlationID = " + msg.getJMSCorrelationID()
-						+ " recieved however no record of sending message with this ID, ignoring");
+						+ " received however no record of sending message with this ID, ignoring");
 			}
 
 		} catch (JMSException jmse) {
