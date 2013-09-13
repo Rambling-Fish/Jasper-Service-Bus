@@ -30,16 +30,14 @@ import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerRegistry;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.JsbTransportConnector;
-import org.apache.activemq.broker.TransportConnector;
 import org.apache.activemq.network.NetworkConnector;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
-import org.jasper.core.JasperBrokerService;
+import org.jasper.core.auth.JasperAuthenticationPlugin;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateFactory;
-import org.jasper.core.auth.JasperAuthenticationPlugin;
 import org.jasper.jLib.jAuth.JSBLicense;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
@@ -459,6 +457,11 @@ public class JECore {
     			BrokerRegistry.getInstance().bind("localhost", core.broker);
     			core.broker.setPersistent(false);
     			
+				Config cfg = new Config();
+				GroupConfig groupConfig = new GroupConfig(core.getDeploymentID(), core.getDeploymentID() + "_password_july_10_2013_0725");
+				cfg.setGroupConfig(groupConfig);
+				core.hazelcastInstance=Hazelcast.newHazelcastInstance(cfg);
+    			
     			try{
     				core.broker.getSystemUsage().getMemoryUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("memoryLimit","64")));
     				core.broker.getSystemUsage().getStoreUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("storeLimit","10000")));
@@ -505,6 +508,9 @@ public class JECore {
     				    }
 				    } 
 				}
+						
+    			//clusteredEnable is by default false, only set to false if false 
+    			core.clusterEnabled = prop.getProperty("jsbClusterEnabled", "false").equalsIgnoreCase("true");			
     			
     			JsbTransportConnector connector;
     			if(prop.getProperty("jsbLocalURL") != null){
@@ -515,10 +521,7 @@ public class JECore {
     				connector = new JsbTransportConnector(prop.getProperty("jsbLocalURL"));	
     			}else{
     				connector = new JsbTransportConnector("tcp://"+ brokerTransportIp + ":61616??wireFormat.maxInactivityDurationInitalDelay=30000&maximumConnections=1000&wireformat.maxFrameSize=104857600");	
-    			}
-    			
-    			//clusteredEnable is by default false, only set to false if false 
-    			core.clusterEnabled = prop.getProperty("jsbClusterEnabled", "false").equalsIgnoreCase("true");
+    			}   			
     			
     			if(core.clusterEnabled){
     				NetworkConnector networkConnector = core.broker.addNetworkConnector("multicast://224.1.2.3:6255?group=" + core.getJSBLicense().getDeploymentId());
@@ -529,10 +532,6 @@ public class JECore {
     				connector.setUpdateClusterClients(true);
     				connector.setUpdateClusterClientsOnRemove(true);
     				connector.setRebalanceClusterClients(true);
-					Config cfg = new Config();
-					GroupConfig groupConfig = new GroupConfig(core.getDeploymentID(), core.getDeploymentID() + "_password_july_10_2013_0725");
-					cfg.setGroupConfig(groupConfig);
-					core.hazelcastInstance=Hazelcast.newHazelcastInstance(cfg);
     			}
     			    			
     			core.broker.addConnector(connector);

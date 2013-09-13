@@ -24,8 +24,7 @@ public class DelegateFactory{
     public DelegateFactory(boolean distributed, JECore core) throws JMSException{ 	
     	initializeModel();   	
     	
-    	Config cfg = new Config();
-		hazelcastInstance = Hazelcast.newHazelcastInstance(cfg);
+		hazelcastInstance = core.getHazelcastInstance();
 		jOntology = new DelegateOntology(this, model);
 		
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");

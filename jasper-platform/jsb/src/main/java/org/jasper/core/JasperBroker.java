@@ -287,10 +287,28 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
             }
              
             /*
-             * We check that only one JTA per license key is ever registered at one time, both locally and
-             * remotely, if a second JTA attempts to register we throw a security exception
+             * check if license key is available, if not it may be due to a race condition
+             * in which chase we wait 250 ms and retry, if all attempts fail we conclude
+             * the license key is already in use and we fail the registration.
              */
-            if(!(jtaInfoMap.containsKey(info.getPassword()))){
+            boolean isLicenseKeyAvailable = false;
+            for(int count = 0; count < 5; count++){
+            	if(!(jtaInfoMap.containsKey(info.getPassword()))){
+            		isLicenseKeyAvailable = true;
+            		break;
+            	}else{
+            		//TODO Consider overwriting old entry or removing it here
+            		if(jtaInfoMap.get(info.getPassword()).getClientId().equals(info.getClientId())){
+            			logger.warn("jta trying to register with same clientID, may be rebalencing reqeust:\n"
+            					+ "\t jtaName = " + jtaInfoMap.get(info.getPassword()).getJtaName()
+            					+ "\t clientID = " + jtaInfoMap.get(info.getPassword()).getClientId()
+            					+ "\t JsbConnectedTo" + jtaInfoMap.get(info.getPassword()).getJsbConnectedTo());
+            		}
+            		Thread.sleep(250);
+            	}
+            }
+            
+            if(isLicenseKeyAvailable){
                 super.addConnection(context, info); 
             	putJta(info.getPassword(), new JtaInfo(info.getUserName(), info.getPassword(), core.getJSBDeploymentAndInstance(),info.getClientId(), info.getClientIp()));
 
@@ -428,27 +446,27 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
     }
 
 	public void entryAdded(EntryEvent arg0) {
-        logger.warn(getPrintableJtaMap());	
+        logger.warn("entryAdded" + getPrintableJtaMap());	
 	}
 
 	public void entryEvicted(EntryEvent arg0) {
-        logger.warn(getPrintableJtaMap());	
+        logger.warn("entryEvicted" + getPrintableJtaMap());	
 	}
 
 	public void entryRemoved(EntryEvent arg0) {
-        logger.warn(getPrintableJtaMap());	
+        logger.warn("entryRemoved" + getPrintableJtaMap());	
 	}
 
 	public void entryUpdated(EntryEvent arg0) {
-        logger.warn(getPrintableJtaMap());	
+        logger.warn("entryUpdated" + getPrintableJtaMap());	
 	}
 
 	public void itemAdded(ItemEvent arg0) {
-        logger.warn(getPrintableJtaMap());	
+        logger.warn("itemAdded" + getPrintableJtaMap());	
 	}
 
 	public void itemRemoved(ItemEvent arg0) {
-        logger.warn(getPrintableJtaMap());	
+        logger.warn("itemRemoved" + getPrintableJtaMap());	
 	}
      
      
