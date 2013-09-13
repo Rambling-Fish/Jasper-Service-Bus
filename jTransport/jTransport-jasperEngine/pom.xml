@@ -9,11 +9,9 @@
         <artifactId>jTransport-parent</artifactId>
         <version>2.0</version>    
     </parent>
-    <groupId>org.jasper.jTransport</groupId>
     <artifactId>jTransport-jasperEngine</artifactId>
     <packaging>jar</packaging>
     <name>jTransport-jasperEngine</name>
-    <version>2.0</version>
     <description>This transport will be used for communication to and from the Jasper Engine.</description>
 
     <properties>
@@ -200,6 +198,13 @@
             <groupId>org.apache.activemq</groupId>
             <artifactId>activemq-all</artifactId>
             <version>5.7.0</version>
+        </dependency>
+        <!-- Jena Modules -->
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>apache-jena</artifactId>
+            <type>pom</type>
+            <version>2.10.1</version>
         </dependency>
 
 

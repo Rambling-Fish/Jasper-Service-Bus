@@ -1,9 +1,11 @@
 package org.mule.transport.jasperengine;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,25 +14,28 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
-import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
-import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
-import org.jasper.jLib.jAuth.JTALicense;
-import org.jasper.jLib.jAuth.util.JAuthHelper;
-import org.mule.api.DefaultMuleException;
-import org.mule.api.MuleContext;
-import org.mule.api.MuleException;
-import org.mule.api.config.MuleProperties;
-import org.mule.transport.jms.activemq.ActiveMQJmsConnector;
-
-import javax.jms.Connection;
-import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
+
+import org.jasper.jLib.jAuth.JTALicense;
+import org.jasper.jLib.jAuth.util.JAuthHelper;
+import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
+import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
+import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
+import org.mule.api.DefaultMuleException;
+import org.mule.api.MuleContext;
+import org.mule.api.MuleException;
+import org.mule.api.config.MuleProperties;
+import org.mule.transport.jms.activemq.ActiveMQJmsConnector;
+
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
 
 public class JasperEngineConnector extends ActiveMQJmsConnector{
 	
@@ -45,25 +50,26 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 	private ExecutorService adminHandler;
 	private Future adminTask;
 	
+	private Model model;
+	
     /* This constant defines the main transport protocol identifier */
     public static final String JASPERENGINE = "jasperengine";
-    private static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
-    private static final String JTA_QUEUE_SUFFIX = ".queue";
+    private static final String JTA_QUEUE_SUFFIX = ".admin.queue";
     private static final String JTA_QUEUE_PREFIX = "jms.";
-  
+    
     public JasperEngineConnector(MuleContext context){
         super(context);
         endpointUriMap = new ConcurrentHashMap<String, String>();
+        model = ModelFactory.createDefaultModel();
     }
-
-    //TODO possibly remove
+    
     public String getProtocol(){
         return JASPERENGINE;
     }
     
     public void doInitialise(){
     	try {
-			license = JAuthHelper.loadJTALicenseFromFile(muleContext.getRegistry().get(MuleProperties.APP_HOME_DIRECTORY_PROPERTY) + "/" + appName + JAuthHelper.JTA_LICENSE_FILE_SUFFIX);
+			license = JAuthHelper.loadJTALicenseFromFile(System.getProperty("jta-keystore") + "/" + vendor + "_" + appName + "_" + version + JAuthHelper.JTA_LICENSE_FILE_SUFFIX);
 			deploymentId = license.getDeploymentId();
 			if(!validJTALicense()){
 				throw new DefaultMuleException("Invalid JTA license key");
@@ -86,7 +92,6 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     				super.connect();
     		
     				if(endpointUriMap.size() > 0) {
-    					publishURI();
     					initializeAdminHandler();
     				}	
     			}
@@ -120,52 +125,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
 
 			@Override
 			public void run() {
-				try {
-					
-					while(!isAdminHandlerStopped){
-						try {
-					  	     	
-							Session adminSession = getConnection().createSession(false, Session.AUTO_ACKNOWLEDGE);
-						      
-						    // Create Queue
-						    String queueName = JTA_QUEUE_PREFIX.concat(getVendor()).concat(".").concat(getAppName()).concat(".").concat(getVersion()).concat(JTA_QUEUE_SUFFIX);
-						    Destination adminQueue = adminSession.createQueue(queueName);
-						                  
-						    // Create a MessageConsumer from the Session to the Queue
-						    MessageConsumer adminConsumer = adminSession.createConsumer(adminQueue);
-
-						    // Wait for a message
-						    Message adminRequest;
-						      
-						    do{
-						    	do{
-						    		adminRequest = adminConsumer.receive(3000);
-						    	}while(adminRequest == null && !isAdminHandlerStopped);
-						    	if(isAdminHandlerStopped) break;
-						          
-						        if (adminRequest instanceof ObjectMessage) {
-						        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
-						        	Object obj = objMessage.getObject();
-						        	if(obj instanceof JasperAdminMessage){
-						        		if(((JasperAdminMessage) obj).getType() == Type.jtaDataManagement && ((JasperAdminMessage) obj).getCommand() == Command.notify)
-						        			publishURI();
-						                }
-						          }
-						          
-						      }while(!isAdminHandlerStopped);
-						      
-						      adminConsumer.close();
-						      adminSession.close();
-						     
-						  } catch (Exception e) {
-							  logger.error("Exception received while listening for admin message",e);
-						      isAdminHandlerStopped = true;
-						  }
-					}
-					
-		    	}catch (Exception e) {
-		    		e.printStackTrace();
-		    	}
+				processAdminRequests();
 			}
 		};;;
 		adminTask = adminHandler.submit(task);
@@ -179,8 +139,7 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     		try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("Exception occured while shutting down admin hanlder ", e);
 			}
 			count--;
     	}
@@ -189,50 +148,101 @@ public class JasperEngineConnector extends ActiveMQJmsConnector{
     	try {
 			adminHandler.awaitTermination(10, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Exception occured while shutting down admin handler ", e);
 		}
     	if(!adminHandler.isTerminated()) adminHandler.shutdownNow();
-	} 	
+	}
+    
+    private void processAdminRequests(){
+		while(!isAdminHandlerStopped){
+			try {
+		  	     	
+				Session adminSession = getConnection().createSession(false, Session.AUTO_ACKNOWLEDGE);
+			      
+			    // Create Queue
+			    String queueName = JTA_QUEUE_PREFIX + vendor + "." + appName + "." + version + "." + deploymentId + JTA_QUEUE_SUFFIX;
+			    Destination adminQueue = adminSession.createQueue(queueName);
+			                  
+			    // Create a MessageConsumer from the Session to the Queue
+			    MessageConsumer adminConsumer = adminSession.createConsumer(adminQueue);
+    			MessageProducer adminProducer = adminSession.createProducer(null);
+
+			    // Wait for a message
+			    Message adminRequest;
+			      
+			    do{
+			    	do{
+			    		adminRequest = adminConsumer.receive(3000);
+			    	}while(adminRequest == null && !isAdminHandlerStopped);
+			    	if(isAdminHandlerStopped) break;
+			          
+			        if (adminRequest instanceof ObjectMessage) {
+			        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
+			        	Object obj = objMessage.getObject();
+			        	if(obj instanceof JasperAdminMessage){
+							if(((JasperAdminMessage) obj).getType() == Type.ontologyManagement && ((JasperAdminMessage) obj).getCommand() == Command.get_ontology){
+			        			String[][] triples = getOntologyFromFile();
+			        			Message response = adminSession.createObjectMessage(triples);
+			        			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
+								adminProducer.send(adminRequest.getJMSReplyTo(), response );
+								if(logger.isInfoEnabled()){
+									StringBuffer sb = new StringBuffer();
+									sb.append("\n\t");
+									for(String[] a:triples){
+										for(String b:a){
+											sb.append(b);
+											sb.append(" ");
+										}
+										sb.append("\n\t");
+									};
+									logger.info("Sent to " + adminRequest.getJMSReplyTo() + " the following triples :" + sb);
+								}
+							}else{
+			                	logger.warn("Received JasperAdminMessage that isn't supported, ignoring : " + obj);
+			                }
+		                }else{
+		                	logger.warn("Received ObjectMessage that wasn't a JasperAdminMessage, ignoring : " + obj);
+		                }
+			          }else{
+		                	logger.warn("Received JMSMessage that wasn't an ObjectMessage, ignoring : " + adminRequest);
+			          }
+			          
+			      }while(!isAdminHandlerStopped);
+			      
+			      adminProducer.close();
+			      adminConsumer.close();
+			      adminSession.close();
+			     
+			  } catch (Exception e) {
+				  logger.error("Exception received while listening for admin message, will continue",e);
+			  }
+		}
+    }
     
     
-    private void publishURI() {
+    private String[][] getOntologyFromFile() {	
+    	
+		ArrayList<String[]> triples = new ArrayList<String[]>();
     	try {
     		
-    		// Get the already established connection
-    		Connection connection = getConnection();
-
-    		// Create a Session
-    		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
-    		// Create the destination (delegate global queue)
-    		Destination destination = session.createQueue(DELEGATE_GLOBAL_QUEUE);
-        
-    		// Create a MessageProducer from the Session to the Topic or Queue
-    		MessageProducer producer = session.createProducer(destination);
-    		producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-	
-    		// JasperAdmin message is created for every inbound endpoint with a
-    		// URI defined. The JTA's URI and replyToQueue are registered with
-    		// the core
-    		Iterator<String> it = endpointUriMap.keySet().iterator();
-    		while(it.hasNext()) {
-    			String uri = (String)it.next();
-    			String queue = endpointUriMap.get(uri);
-    			String jtaName = (vendor + ":" + appName + ":" + version + ":" + deploymentId);
-    			JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, queue, jtaName,  uri);
-    			Message message = session.createObjectMessage(jam);
-    			producer.send(message);
+    		if(logger.isInfoEnabled()){
+    			logger.info("loading ttl fileName: " + muleContext.getRegistry().get(MuleProperties.APP_HOME_DIRECTORY_PROPERTY) + "/" + appName + ".ttl");
     		}
-
-    		// Clean up - no need to close connection as that will be done in JasperBroker
-    		session.close();
-    	}
-    	catch (Exception e) {
-    		e.printStackTrace();
+    		File file = new File(muleContext.getRegistry().get(MuleProperties.APP_HOME_DIRECTORY_PROPERTY) + "/" + appName + ".ttl");
+    		FileInputStream fis = new FileInputStream(file);
+    		model.read(fis, null, "TTL");
+    		
+    		for(StmtIterator statements = model.listStatements(); statements.hasNext(); ) {
+    			  Statement statement = statements.next();
+    			  triples.add(new String[]{statement.getSubject().toString(),statement.getPredicate().toString(),statement.getObject().toString()});
+    		}    		
+    	}catch (IOException e){
+    		logger.error("exception loading ontology from ttl file",e);
     	}
     	
+		return triples.toArray(new String[][]{});    	
     }
+    
     
     public void registerInboundEndpointUri(String endpoint, String uri){
     	endpointUriMap.put(uri, endpoint);

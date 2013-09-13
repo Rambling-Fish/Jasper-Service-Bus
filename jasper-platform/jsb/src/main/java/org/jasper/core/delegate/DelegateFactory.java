@@ -1,35 +1,31 @@
 package org.jasper.core.delegate;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import javax.jms.Connection;
 import javax.jms.JMSException;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.jasper.core.JECore;
 import org.jasper.core.constants.JasperConstants;
+import org.jasper.core.constants.JasperOntologyConstants;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 
 public class DelegateFactory{
 
-	protected Map<String, List<String>> jtaUriMap;
-	protected Map<String, List<String>> jtaQueueMap;
 	private Connection connection;
-	private HazelcastInstance hazelcastInstance;
-	
-    public DelegateFactory(boolean distributed, JECore core) throws JMSException{
-		
-		if(distributed && core != null){
-	        hazelcastInstance = core.getHazelcastInstance();
-	        jtaUriMap = hazelcastInstance.getMap("jtaUriMap");
-	        jtaQueueMap = hazelcastInstance.getMap("jtaQueueMap");
-    	}else{
-    		jtaUriMap = new ConcurrentHashMap<String, List<String>>();
-    		jtaQueueMap = new ConcurrentHashMap<String, List<String>>();
-    	}         
+    private Model model;
+    private HazelcastInstance hazelcastInstance;
+    private DelegateOntology jOntology;
+
+    public DelegateFactory(boolean distributed, JECore core) throws JMSException{ 	
+    	initializeModel();   	
+    	
+		hazelcastInstance = core.getHazelcastInstance();
+		jOntology = new DelegateOntology(this, model);
 		
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
         // Create a Connection
@@ -40,6 +36,17 @@ public class DelegateFactory{
 	}
 	
 	public Delegate createDelegate() throws JMSException{
-		return new Delegate(connection, jtaUriMap, jtaQueueMap);
+		return new Delegate(connection, model, jOntology);
+	}
+	
+    private void initializeModel() {
+        model = ModelFactory.createDefaultModel();
+        for(String prefix:JasperOntologyConstants.PREFIX_MAP.keySet()){
+        	model.setNsPrefix(prefix, JasperOntologyConstants.PREFIX_MAP.get(prefix));
+        }
+    }
+
+	public HazelcastInstance getHazelcastInstance() {
+		return hazelcastInstance;
 	}
 }

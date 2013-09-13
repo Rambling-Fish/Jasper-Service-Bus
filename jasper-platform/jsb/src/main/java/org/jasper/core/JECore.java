@@ -30,16 +30,14 @@ import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerRegistry;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.JsbTransportConnector;
-import org.apache.activemq.broker.TransportConnector;
 import org.apache.activemq.network.NetworkConnector;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
-import org.jasper.core.JasperBrokerService;
+import org.jasper.core.auth.JasperAuthenticationPlugin;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateFactory;
-import org.jasper.core.auth.JasperAuthenticationPlugin;
 import org.jasper.jLib.jAuth.JSBLicense;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
@@ -186,7 +184,6 @@ public class JECore {
 	public void setupAudit(){
 		exec = Executors.newSingleThreadScheduledExecutor();
 		Runnable command = new Runnable() {
-			@Override
 			public void run() {
 				auditSystem();
 			}
@@ -290,7 +287,7 @@ public class JECore {
 					Thread.sleep(500);
 		    		count++;
 		    		if(count > 20){
-		    			hazelcastInstance.getLifecycleService().kill();
+		    			hazelcastInstance.getLifecycleService().terminate();
 		    			break;
 		    		}
 		    	}
@@ -441,7 +438,7 @@ public class JECore {
     	try {
             //load a properties file
     		prop.load(new FileInputStream(System.getProperty("jsb-property-file")));
-    		if(System.getProperty("jsb-log4j-xml") != null) DOMConfigurator.configure(System.getProperty("jsb-log4j-xml"));
+            if(System.getProperty("jsb-log4j-xml") != null) DOMConfigurator.configure(System.getProperty("jsb-log4j-xml"));
     	} catch (IOException ex) {
     		ex.printStackTrace();
     	}
@@ -459,6 +456,11 @@ public class JECore {
     			BrokerRegistry.getInstance().bind(brokerName, core.broker);
     			BrokerRegistry.getInstance().bind("localhost", core.broker);
     			core.broker.setPersistent(false);
+    			
+				Config cfg = new Config();
+				GroupConfig groupConfig = new GroupConfig(core.getDeploymentID(), core.getDeploymentID() + "_password_july_10_2013_0725");
+				cfg.setGroupConfig(groupConfig);
+				core.hazelcastInstance=Hazelcast.newHazelcastInstance(cfg);
     			
     			try{
     				core.broker.getSystemUsage().getMemoryUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("memoryLimit","64")));
@@ -506,6 +508,9 @@ public class JECore {
     				    }
 				    } 
 				}
+						
+    			//clusteredEnable is by default false, only set to false if false 
+    			core.clusterEnabled = prop.getProperty("jsbClusterEnabled", "false").equalsIgnoreCase("true");			
     			
     			JsbTransportConnector connector;
     			if(prop.getProperty("jsbLocalURL") != null){
@@ -516,10 +521,7 @@ public class JECore {
     				connector = new JsbTransportConnector(prop.getProperty("jsbLocalURL"));	
     			}else{
     				connector = new JsbTransportConnector("tcp://"+ brokerTransportIp + ":61616??wireFormat.maxInactivityDurationInitalDelay=30000&maximumConnections=1000&wireformat.maxFrameSize=104857600");	
-    			}
-    			
-    			//clusteredEnable is by default false, only set to false if false 
-    			core.clusterEnabled = prop.getProperty("jsbClusterEnabled", "false").equalsIgnoreCase("true");
+    			}   			
     			
     			if(core.clusterEnabled){
     				NetworkConnector networkConnector = core.broker.addNetworkConnector("multicast://224.1.2.3:6255?group=" + core.getJSBLicense().getDeploymentId());
@@ -530,10 +532,6 @@ public class JECore {
     				connector.setUpdateClusterClients(true);
     				connector.setUpdateClusterClientsOnRemove(true);
     				connector.setRebalanceClusterClients(true);
-					Config cfg = new Config();
-					GroupConfig groupConfig = new GroupConfig(core.getDeploymentID(), core.getDeploymentID() + "_password_july_10_2013_0725");
-					cfg.setGroupConfig(groupConfig);
-					core.hazelcastInstance=Hazelcast.newHazelcastInstance(cfg);
     			}
     			    			
     			core.broker.addConnector(connector);
@@ -577,6 +575,10 @@ public class JECore {
 
 	public HazelcastInstance getHazelcastInstance() {
 		return hazelcastInstance;
+	}
+	
+	public void setHazelcastInstance(HazelcastInstance hz) {
+		hazelcastInstance = hz;
 	}
 	
 }

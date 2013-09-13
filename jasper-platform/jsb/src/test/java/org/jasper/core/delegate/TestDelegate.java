@@ -1,42 +1,56 @@
 package org.jasper.core.delegate;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
+import javax.jms.MapMessage;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
-import javax.jms.TextMessage;
+
+import junit.framework.Assert;
+import junit.framework.TestCase;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.broker.BrokerPlugin;
-import org.apache.activemq.broker.BrokerService;
-
-import org.jasper.core.auth.JasperAuthenticationPlugin;
+import org.apache.jena.atlas.json.JsonObject;
+import org.jasper.core.JECore;
 import org.jasper.core.constants.JasperConstants;
+import org.jasper.core.constants.JtaInfo;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
-
+import org.junit.After;
+import org.junit.Before;
+//
 import org.junit.Test;
+import org.mule.transport.jasperengine.JasperEngineConnector;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.config.GroupConfig;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+//
 public class TestDelegate  extends TestCase {
 
-	private static final String TEST_URI = "http://coralcea.com/1.0/testURI";
-	private static final String WHITESPACE_URI = "    http://coralcea.com/1.0/testURI   ";
-	private static final String TEST_QUEUE = "jms.jta.testJTA.replyToQueue";
-	private static final String TEST_JTA_NAME = "TestJTA";
-	private static final String EMPTY_JTA_RESPONSE = "{}";
+	private static final String TEST_JTA_A_ADMIN_QUEUE = "jms.TestJTA-A.admin.queue";
+	private static final String TEST_JTA_B_ADMIN_QUEUE = "jms.TestJTA-B.admin.queue";
+	private static final String TEST_JTA_A_NAME = "TestJTA-A";
+	private static final String TEST_JTA_B_NAME = "TestJTA-B";
+	private static final String SPARQL_QUERY3   = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=";
+	private static final String SPARQL_QUERY2   = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=jj";
+	private static final String SPARQL_QUERY    = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=json";
+	private static final String GOOD_DATA_QUERY = "http://coralcea.ca/jasper/vocabulary/hrData?http://coralcea.ca/jasper/vocabulary/hrSRId=12";
+	private static final String INDIRECT_DATA_QUERY = "http://coralcea.ca/jasper/vocabulary/hrData?http://coralcea.ca/jasper/vocabulary/patientId=0012";
+	private static final String BAD_DATA_QUERY  = "http://coralcea.ca/jasper/vocabulary/invalidURI";
 	private Connection connection;
 	private DelegateFactory delegateFactory;
 	private ActiveMQConnectionFactory connectionFactory;
@@ -46,356 +60,332 @@ public class TestDelegate  extends TestCase {
 	private Message message;
 	private ExecutorService executorService;
 	private Delegate[] delegates = new Delegate[2];
-	
-	
-	/*
-	 * This test creates a pool of 3 delegates using the delegate factory
-	 */
-	@Test
-	public void testDelegateFactoryAndPool() throws Exception {
-		// Instantiate the delegate pool
-		ExecutorService executorService = Executors.newCachedThreadPool();
-		delegateFactory = new DelegateFactory(false, null);
-		Delegate[] delegates = new Delegate[3];
-		
-		for(int i=0;i<delegates.length;i++) {
-			delegates[i] = delegateFactory.createDelegate();
-			executorService.execute(delegates[i]);
-		} 
-		
-			Assert.assertEquals(delegates.length, 3);
-			Assert.assertNotNull(delegateFactory);
-			for(int i=0;i<delegates.length;i++) {
-				delegates[i].shutdown();
-			}
-			
-			Thread.sleep(3000);
-	}
-		
-	/*
-	 * This test simulates adding/removing URIs to the delegate's internal JTA
-	 * hash maps (URI and JTA Name). It also tries to put a null key which
-	 * should result in NPE
-	 */
-	@Test
-	public void testDelegateMaps() throws Exception {
-		delegateFactory = new DelegateFactory(false, null);
-		delegateFactory.jtaUriMap.clear();
-		for(int i = 0; i < 5; i++) {
-			List<String> l = new ArrayList<String>();
-			l.add(TEST_QUEUE+i);
-			delegateFactory.jtaUriMap.put(TEST_URI+i, l);
-			delegateFactory.jtaQueueMap.put(TEST_JTA_NAME+i, l);
-		}
-		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 5);
-		Assert.assertEquals(delegateFactory.jtaQueueMap.size(), 5);
-		
-		delegateFactory.jtaUriMap.remove(TEST_URI+3);
-		delegateFactory.jtaQueueMap.remove(TEST_JTA_NAME+0);
-		Assert.assertEquals(delegateFactory.jtaUriMap.size(), 4);
-		Assert.assertEquals(delegateFactory.jtaQueueMap.size(), 4);
-		
-		// test NPE exception with null map key
-		try {
-			delegateFactory.jtaUriMap.put(null, null);
-		} catch(Exception ex) {
-			Assert.assertNotNull(ex);
-		}
-	}
-	
-	/*
-	 * This test simulates adding multiple queues for the same JTA and URI
-	 */
-	@Test
-	public void testJTAMap() throws Exception {
-		setUpConnection(2);
-		DelegateFactory factory = new DelegateFactory(false, null);
-		factory.jtaQueueMap.clear();
-		factory.jtaUriMap.clear();
 
-		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE+"1", TEST_JTA_NAME, TEST_URI);
-		JasperAdminMessage jam2 = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE+"2", TEST_JTA_NAME, TEST_URI);
+	/*
+	 * This test sends an invalid response to the delegate in response to a get_ontology 
+	 * request.
+	 */
+	@Test
+	public void testJTAConnectInvalidResponse() throws Exception {
+		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_A_NAME);
         
 		message = session.createObjectMessage(jam);
+		Destination adminQueue = session.createQueue(TEST_JTA_A_ADMIN_QUEUE);
+		MessageConsumer adminConsumer = session.createConsumer(adminQueue);
+		MessageProducer adminProducer = session.createProducer(null);
 		producer.send(message);
+		
+		// Wait for a message
+	    Message adminRequest;
+	    int count = 0;
+	    
+	    do{
+    		adminRequest = adminConsumer.receive(3000);
+    		count++;
+    		if(count >= 2) break;
+    	}while(adminRequest == null);
+	    
+	    if (adminRequest instanceof ObjectMessage) {
+        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
+        	Object obj = objMessage.getObject();
+        	if(obj instanceof JasperAdminMessage){
+				if(((JasperAdminMessage) obj).getType() == Type.ontologyManagement && ((JasperAdminMessage) obj).getCommand() == Command.get_ontology){
+        			Message response = session.createObjectMessage("INVALID");
+        			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
+					adminProducer.send(adminRequest.getJMSReplyTo(), response );
+				}
+        	}
+	    }
+	}
+
+	
+	/*
+	 * This test simulates the broker sending a connect message to the delegate.
+	 * The admin handler then sends a JAM message to tell the JTA to publish it's
+	 * ontology. This test case receives the get_ontology JAM message and creates
+	 * an object message composed of triples and sends it back to the delegate.
+	 * Since the model is transient with the TC it also sends valid and invalid
+	 * sparql queries and sends a data request (ie as the JSC) and formats and
+	 * sends a reply (as a JTA) to test end to end data handler processing
+	 */
+	@Test
+	public void testJTAConnect() throws Exception {
+		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_A_NAME);
+        
+		message = session.createObjectMessage(jam);
+		Destination adminQueue = session.createQueue(TEST_JTA_A_ADMIN_QUEUE);
+		MessageConsumer adminConsumer = session.createConsumer(adminQueue);
+		MessageProducer adminProducer = session.createProducer(null);
+		producer.send(message);
+		
+		// Wait for a message
+	    Message adminRequest;
+	    int count = 0;
+	    
+	    do{
+    		adminRequest = adminConsumer.receive(3000);
+    		count++;
+    		if(count >= 3) break;
+    	}while(adminRequest == null);
+	    
+	    if (adminRequest instanceof ObjectMessage) {
+        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
+        	Object obj = objMessage.getObject();
+        	if(obj instanceof JasperAdminMessage){
+				if(((JasperAdminMessage) obj).getType() == Type.ontologyManagement && ((JasperAdminMessage) obj).getCommand() == Command.get_ontology){
+        			String[][] triples = loadOntology(1);
+        			Message response = session.createObjectMessage(triples);
+        			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
+					adminProducer.send(adminRequest.getJMSReplyTo(), response );
+				}
+        	}
+	    }
+	    
+	    // Successful SPARQL Query to in-memory Jena model
+	    message = session.createTextMessage(SPARQL_QUERY);
+		producer.send(message);
+		
+		//Fail Sparql queries
+		message = session.createTextMessage("?query=not a valid query");
+		producer.send(message);
+		
+		message = session.createTextMessage(SPARQL_QUERY2);
+		producer.send(message);
+		
+		message = session.createTextMessage(SPARQL_QUERY3);
+		producer.send(message);
+		
+		// Send data request
+		message = session.createTextMessage(GOOD_DATA_QUERY);
+		producer.send(message);
+		
+		count = 0;
+  
+		    do{
+	    		adminRequest = adminConsumer.receive(3000);
+	    		count++;
+	    		if(count >= 3) break;
+	    	}while(adminRequest == null);
+		    
+        if(adminRequest != null){    
+		    JsonObject jasonObj = new JsonObject();
+			jasonObj.put("HR", "76");
+			jasonObj.put("timestamp", "09042013:7:00");
+		    
+		    Message response = session.createTextMessage(jasonObj.toString());
+			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
+			adminProducer.send(adminRequest.getJMSReplyTo(), response );
+        }
+		    
 		Thread.sleep(1000);
 		
+		// Send data request but change correlationId in response
+		message = session.createTextMessage(GOOD_DATA_QUERY);
+		producer.send(message);
+				
+		count = 0;
+		  
+			do{
+				adminRequest = adminConsumer.receive(3000);
+			    count++;
+			   	if(count >= 3) break;
+			    	}while(adminRequest == null);
+				    
+		    if(adminRequest != null){    
+		    	JsonObject jasonObj = new JsonObject();
+		    	jasonObj.put("HR", "76");
+		    	jasonObj.put("timestamp", "09042013:7:00");
+				    
+		    	Message response = session.createTextMessage(jasonObj.toString());
+		    	response.setJMSCorrelationID("55");
+		    	adminProducer.send(adminRequest.getJMSReplyTo(), response );
+		    }
+				    
+		    Thread.sleep(1000);
+		
+		// Send jta disconnect message
+		JasperAdminMessage jam2 = new JasperAdminMessage(Type.ontologyManagement, Command.jta_disconnect, this.TEST_JTA_A_NAME);
 		message = session.createObjectMessage(jam2);
 		producer.send(message);
-		Thread.sleep(1000);
-		
-		Assert.assertEquals(delegateFactory.jtaQueueMap.size(), 1);
-		
-	}
-	
-	/*
-	 * This test simulates the JasperEngineConnector sending a JTA's URI to the
-	 * delegate via a notify admin message.
-	 */
-	@Test
-	public void testPublishURI() throws Exception {
-		setUpConnection(2);
-		
-		DelegateFactory factory = new DelegateFactory(false, null);
-		factory.jtaUriMap.clear();
-
-		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE, JasperConstants.DELEGATE_GLOBAL_QUEUE, TEST_URI);
-        
-		message = session.createObjectMessage(jam);
-		producer.send(message);
-		Thread.sleep(1000);
-		tearDownConnection();
-
-	}
-	
-	/*
-	 * This test checks to see that the core removes all leading and trailing whitespace
-	 * in incoming URI before storing in internal map.
-	 */
-	@Test
-	public void testWhitespaceURI() throws Exception {
-		setUpConnection(1);
-		
-		DelegateFactory factory = new DelegateFactory(false, null);
-		Destination jtaQueue = session.createQueue(TEST_QUEUE);
-		factory.jtaUriMap.clear();
-
-		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.notify, TEST_QUEUE, JasperConstants.DELEGATE_GLOBAL_QUEUE, WHITESPACE_URI);
-     
-		// send admin message to delegate to store URI. Leading/trailing whitespace should be removed by delegate
-		message = session.createObjectMessage(jam);
-		producer.send(message);
-		Thread.sleep(1000);
-		
-		//Send message with URI with no leading/trailing whitespace. Should be found by delegate
-		Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-	    MessageConsumer jtaConsumer = jtaSession.createConsumer(jtaQueue);
-	    Message jClientRequest;
-	    Message jtaResponse;
-		
-		message = session.createTextMessage(TEST_URI);
-		message.setJMSCorrelationID(null);
-		message.setJMSReplyTo(jtaQueue);
-		
-		// Send message to delegate
-		producer.send(message);
 		
 		Thread.sleep(2000);
+	}
 		
-		// simulate jClient timeout
-		int maxCount = 10;
-	
-		do{
-          	jClientRequest = jtaConsumer.receive(1000);
-          	maxCount--;
-          }while(jClientRequest == null && maxCount > 0);
-
-		 if (jClientRequest!= null && jClientRequest instanceof TextMessage) {
-			 TextMessage txtMsg = (TextMessage) jClientRequest;
-			 Assert.assertNotNull(txtMsg.getText());
-		 }
-
-		 // reply back to delegate with empty response from JTA if valid reply
-		 if(jClientRequest != null && jClientRequest instanceof ObjectMessage) {
-			ObjectMessage objMessage = (ObjectMessage) jClientRequest;
-            Object obj = objMessage.getObject();
-            String[] uri = (String[])obj;
-            
-            // URI in response message should have length of 31 which is URI without leading/trailing whitespace
-            Assert.assertEquals(31, uri[0].length());		 
-		 }
+	/*
+	 * This test exercises JTAInfo class.
+	 */
+	@Test
+	public void testJTAInfo() throws Exception {
+		JtaInfo info = new JtaInfo(TEST_JTA_A_NAME,"00093837","jsb0","myClientId","0.0.0.0");
+		info.getClientId();
+		info.getClientIp();
+		info.getJsbConnectedTo();
+		info.getJtaName();
+		info.getLicenseKey();
+		info = null;
 		
-		tearDownConnection();
-
 	}
 	
 	/*
-	 * TODO The jClient (JSC) doesn't use correlationID in the request message,
-	 * it uses dynamic queues and a messageID, need to change this test to simulate
-	 * that behaviour
-	 */
-	
-	/*
-	 * This test simulates a message sent from jClient to a delegate which is
-	 * then sent to the JTA.  The delegate forwards the request to the JTA 
-	 * using the JMS replyToQueue in the incoming request. The JTA then
-	 * responds back to the delegate.
+	 * This test exercises Delegate class.
 	 */
 	@Test
-	public void testEndToEndMessaging() throws Exception {
-		setUpConnection(2);
-		
-		// Setup so delegate will forward request back here (JTA)
-		Destination jtaQueue = session.createQueue(TEST_QUEUE);
-		List<String> l = new ArrayList<String>();
-		l.add(TEST_QUEUE);
-		delegateFactory.jtaUriMap.put(TEST_URI, l);
-		
-		// Setup consumer to receive message from delegate (i.e. pretend to be a JTA)
-		Session jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-	    MessageConsumer jtaConsumer = jtaSession.createConsumer(jtaQueue);
-	    Message jClientRequest;
-	    Message jtaResponse;
-		
-		message = session.createTextMessage(TEST_URI);
-		message.setJMSCorrelationID(null);
-		message.setJMSReplyTo(jtaQueue);
-		
-		// Send message to delegate
+	public void testDelegate() throws Exception {
+		message = delegates[0].createTextMessage(null);
 		producer.send(message);
 		
-		Thread.sleep(2000);
-		
-		// simulate jClient timeout
-		int maxCount = 10;
-	
-		do{
-          	jClientRequest = jtaConsumer.receive(1000);
-          	maxCount--;
-          }while(jClientRequest == null && maxCount > 0);
-
-		 if (jClientRequest!= null && jClientRequest instanceof TextMessage) {
-			 TextMessage txtMsg = (TextMessage) jClientRequest;
-			 Assert.assertNotNull(txtMsg.getText());
-		 }
-
-		 // reply back to delegate with empty response from JTA if valid reply
-		 if(jClientRequest != null && jClientRequest instanceof ObjectMessage) {
-			 session  = null;
-			 producer = null;
-		 
-			 Destination delegateUniqueQueue = jClientRequest.getJMSReplyTo();
-			 session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			 producer = session.createProducer(delegateUniqueQueue);
-		 
-			 jtaResponse = session.createTextMessage(EMPTY_JTA_RESPONSE);
-			 jtaResponse.setJMSDestination(jClientRequest.getJMSReplyTo());
-			 jtaResponse.setJMSCorrelationID(jClientRequest.getJMSCorrelationID());
-
-			 producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-			 producer.setTimeToLive(30000);
-			 session.createQueue(delegateUniqueQueue.toString());
-			 producer.send(jtaResponse);
-			 Thread.sleep(1000);
-		 } 
-			
-		tearDownConnection();
+		Map<String, Serializable> map = new HashMap<String,Serializable>();
+		map.put("key", "value");
+		MapMessage mapMsg = delegates[0].createMapMessage(map);
+		Assert.assertNotNull(mapMsg);
 	}
 	
 	/*
-	 * This test sends an admin message with the publish command to test new
-	 * functionality of having delegate request JTA to republish URI for cases
-	 * when JSB goes down and comes back up
+	 * This tests AdminHandler error paths
 	 */
 	@Test
-	public void testNotifyAdminMessage() throws Exception {
-		setUpConnection(2);
-		
-		DelegateFactory factory = new DelegateFactory(false, null);
-		factory.jtaUriMap.clear();
-
-		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.publish, TEST_QUEUE, JasperConstants.DELEGATE_GLOBAL_QUEUE, TEST_URI);
-        
+	public void testAdminHandlerError() throws Exception {
+		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, (Serializable)null);
 		message = session.createObjectMessage(jam);
 		producer.send(message);
-		Thread.sleep(1000);
-		tearDownConnection();
-
-	}
-	
-	/*
-	 * This test sends two request to the delegate with the same correlation Id
-	 * Exception should be thrown indicating non-unique correlation Id
-	 */
-	@Test
-	public void testDuplicateCorrelationId() throws Exception {
-		setUpConnection(1);
 		
-		// Setup so delegate will forward request back here (JTA)
-		Destination jtaQueue = session.createQueue(TEST_QUEUE);
-		List<String> l = new ArrayList<String>();
-		l.add(TEST_QUEUE);
-		delegateFactory.jtaUriMap.put(TEST_URI, l);
-		
-		message = session.createTextMessage(TEST_URI);
-		String corrId = "1234";
-		message.setJMSCorrelationID(corrId);
-		message.setJMSReplyTo(jtaQueue);
-		
-		// Send duplicate messages to delegate with same correlationIDs
-		try {
-			producer.send(message);
-			Thread.sleep(1000);
-			producer.send(message);
-		} catch(Exception ex) {
-			Assert.assertNotNull(ex);
-		}		
-		
-	}
-	
-	/*
-	 * This test sends a message with an invalid URI from the client to a 
-	 * delegate. The delegate should reject the message since it will not find
-	 * the URI in the internal hash map
-	 */
-	@Test
-	public void testMissingURI() throws Exception {
-		setUpConnection(1);
-		
-		// Setup so delegate will forward request back here (JTA)
-		Destination jtaQueue = session.createQueue(TEST_QUEUE);
-
-		message = session.createTextMessage(TEST_URI);
-		String corrId = "1234";
-		message.setJMSCorrelationID(corrId);
-		message.setJMSReplyTo(jtaQueue);
-		
+		JasperAdminMessage jam2 = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, "");    
+		message = session.createObjectMessage(jam2);
 		producer.send(message);
-		Thread.sleep(1000);
 		
-		tearDownConnection();
-	
+		JasperAdminMessage jam3 = new JasperAdminMessage(Type.ontologyManagement, Command.jta_disconnect, "");
+		message = session.createObjectMessage(jam3);
+		producer.send(message);
+		
+		Thread.sleep(1000);
 	}
 	
-	@Test
-	public void testJasperBrokerPlugin() throws Exception {
-        BrokerService service = new BrokerService();
-        service.setPlugins(new BrokerPlugin[]{new JasperAuthenticationPlugin()});
-        assertEquals( 1024 * 1024 * 64, service.getSystemUsage().getMemoryUsage().getLimit() );
-        assertEquals( 1024L * 1024 * 1024 * 50, service.getSystemUsage().getTempUsage().getLimit() );
-        assertEquals( 1024L * 1024 * 1024 * 100, service.getSystemUsage().getStoreUsage().getLimit() );
-
-    }
-	
 	/*
-	 * This test simulates the Broker sending an admin message to the delegate
-	 * once a connection to JTA islost. This should remove the JTA's URI.  
+	 * This tests DataHandler error paths
 	 */
 	@Test
-	public void testRemoveURI() throws Exception {
-		setUpConnection(2);
+	public void testDataHandlerError() throws Exception {
+		message = session.createTextMessage(BAD_DATA_QUERY);
+		producer.send(message);
 		
-		// manually add uri to internal hashmap
-		delegateFactory = new DelegateFactory(false, null);
-		List<String> l = new ArrayList<String>();
-		l.add(TEST_QUEUE);
-		delegateFactory.jtaUriMap.put(TEST_URI, l);
-		delegateFactory.jtaQueueMap.put(TEST_JTA_NAME, l);
-
-		JasperAdminMessage jam = new JasperAdminMessage(Type.jtaDataManagement, Command.delete, TEST_JTA_NAME, JasperConstants.DELEGATE_GLOBAL_QUEUE, TEST_URI);
+		message = session.createTextMessage(BAD_DATA_QUERY);
+		message.setJMSCorrelationID("12345");
+		producer.send(message);
+		
+		message = session.createMapMessage();
+		producer.send(message);
+		
+		Thread.sleep(1000);
+	}
+	
+	/*
+	 * This test simulates having 2 JTAs connected to the core. It allows for
+	 * testing some of the success paths in the DataHandler namely when the
+	 * param is a JsonArray
+	 */
+	@Test
+	public void testMultipleJTAs() throws Exception {
+		// Register first test JTA
+		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_A_NAME);
+		message = session.createObjectMessage(jam);
+		Destination adminQueue = session.createQueue(TEST_JTA_A_ADMIN_QUEUE);
+		MessageConsumer adminConsumer = session.createConsumer(adminQueue);
+		MessageProducer adminProducer = session.createProducer(null);
+		producer.send(message);
+		
+		// Wait for a get ontology message for JTA-A
+	    Message adminRequest;
+	    int count = 0;
+	    
+	    do{
+    		adminRequest = adminConsumer.receive(3000);
+    		count++;
+    		if(count >= 3) break;
+    	}while(adminRequest == null);
+	    
+	    if (adminRequest instanceof ObjectMessage) {
+        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
+        	Object obj = objMessage.getObject();
+        	if(obj instanceof JasperAdminMessage){
+				if(((JasperAdminMessage) obj).getType() == Type.ontologyManagement && ((JasperAdminMessage) obj).getCommand() == Command.get_ontology){
+        			String[][] triples = loadOntology(1);
+        			Message response = session.createObjectMessage(triples);
+        			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
+					adminProducer.send(adminRequest.getJMSReplyTo(), response );
+				}
+        	}
+	    }
+	    
+	    // Register 2nd test JTA
+	    jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_B_NAME);
         
 		message = session.createObjectMessage(jam);
+		Destination adminQueue2 = session.createQueue(TEST_JTA_B_ADMIN_QUEUE);
+		MessageConsumer adminConsumer2 = session.createConsumer(adminQueue2);
 		producer.send(message);
+		
+		// Wait for a get ontology message for JTA-B
+	    count = 0;
+	    
+	    do{
+    		adminRequest = adminConsumer2.receive(3000);
+    		count++;
+    		if(count >= 3) break;
+    	}while(adminRequest == null);
+	    
+	    if (adminRequest instanceof ObjectMessage) {
+        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
+        	Object obj = objMessage.getObject();
+        	if(obj instanceof JasperAdminMessage){
+				if(((JasperAdminMessage) obj).getType() == Type.ontologyManagement && ((JasperAdminMessage) obj).getCommand() == Command.get_ontology){
+        			String[][] triples = loadOntology(2);
+        			Message response = session.createObjectMessage(triples);
+        			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
+					adminProducer.send(adminRequest.getJMSReplyTo(), response );
+				}
+        	}
+	    }
+		
+		// Send indirect data request. That is a request for HRData but
+	    // provides PatientId as a param. HR JTA-A requires heart rate
+	    // sensorId so this forces more introspection of the model to discover
+	    // JTA that requires PatientId and that provides HR SensorId which
+	    // in this TC is JTA-B
+		message = session.createTextMessage(INDIRECT_DATA_QUERY);
+		producer.send(message);
+		
+		// wait for message from core
+		count = 0;
+		  
+		do{
+			adminRequest = adminConsumer2.receive(3000);
+		    count++;
+		   	if(count >= 3) break;
+		    	}while(adminRequest == null);
+			    
+	    if(adminRequest != null){    
+	    	JsonObject jasonObj = new JsonObject();
+	    	jasonObj.put("http://coralcea.ca/jasper/vocabulary/hrSRId", "1234");
+	    	Message response = session.createTextMessage(jasonObj.toString());
+	    	adminProducer.send(adminRequest.getJMSReplyTo(), response );
+	    }
+	    
 		Thread.sleep(1000);
-		
-		tearDownConnection();
-		
-	}	
-	
-	private void setUpConnection(int numDelegates) throws Exception {
+	}
+
+	@Before
+	public void setUp() throws Exception {
 		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
-		 delegateFactory = new DelegateFactory(false, null);
-		 delegateFactory.jtaUriMap.clear();
+		 
+		 JECore core = JECore.getInstance();
+		 
+		 Config cfg = new Config();
+		 GroupConfig groupConfig = new GroupConfig("testDelegateJunitTestingSuite", "testDelegateJunitTestingSuite_" + System.currentTimeMillis());
+		 cfg.setGroupConfig(groupConfig);
+		 HazelcastInstance hz = Hazelcast.newHazelcastInstance(cfg);
+		 core.setHazelcastInstance(hz);
+		 
+		 delegateFactory = new DelegateFactory(false, core);
 
         // Create a Connection
         connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
@@ -405,7 +395,7 @@ public class TestDelegate  extends TestCase {
 		
 		
 		executorService = Executors.newCachedThreadPool();
-		delegates = new Delegate[numDelegates];
+		delegates = new Delegate[2];
 		
 		for(int i=0;i<delegates.length;i++){
 			delegates[i] = delegateFactory.createDelegate();
@@ -418,15 +408,21 @@ public class TestDelegate  extends TestCase {
 		producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 		producer.setTimeToLive(30000);
 	}
-	
-	private void tearDownConnection() throws Exception {
+
+	@After
+	public void tearDown() throws Exception {
 		// Clean up - no need to close connection as that will be done in JasperBroker
 		session.close();
 		connection.close();
+
 		for(int i = 0; i< delegates.length; i++) {
 			delegates[i].shutdown();
 		}
-		
+		delegateFactory.getHazelcastInstance().getLifecycleService().shutdown();
+		Thread.sleep(500);
+		if(delegateFactory.getHazelcastInstance().getLifecycleService().isRunning()){
+			delegateFactory.getHazelcastInstance().getLifecycleService().shutdown();
+		}
 		session           = null;
 		connection        = null;
 		producer          = null;
@@ -437,6 +433,26 @@ public class TestDelegate  extends TestCase {
 		delegateFactory   = null;
 		
 		Thread.sleep(2000);
+		
+	}
+	
+	private String[][] loadOntology(int ontology){
+		ArrayList<String[]> triples = new ArrayList<String[]>();
+		if(ontology == 1){
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/is","http://coralcea.ca/jasper/vocabulary/jta"});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/provides","http://coralcea.ca/jasper/vocabulary/hrData"});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/param","http://coralcea.ca/jasper/vocabulary/hrSRId"});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/queue",TEST_JTA_A_ADMIN_QUEUE});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/requires"}); // invalid row on purpose!
+		}
+		else{
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/is","http://coralcea.ca/jasper/vocabulary/jta"});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/provides","http://coralcea.ca/jasper/vocabulary/hrSRId"});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/param","http://coralcea.ca/jasper/vocabulary/patientId"});
+			triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaB","http://coralcea.ca/jasper/vocabulary/queue",TEST_JTA_B_ADMIN_QUEUE});
+		}
+		
+		return triples.toArray(new String[][]{});
 		
 	}
 	
