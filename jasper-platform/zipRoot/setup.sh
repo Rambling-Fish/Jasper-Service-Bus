@@ -9,7 +9,7 @@ chmod 755 bin/jsb
 chmod 755 exec/wrapper*
 chmod 755 jsbAutoStart
 chmod 600 config/jsb.jmxremote.password
-mv wrapper.jar libs/
+mv *.jar libs/
 mkdir activemq-data
 if [ ! -L exec/activemq-data ]
   then  
@@ -38,13 +38,13 @@ mkdir -p JTAs
 mkdir -p logs
 cd jsb-core
 chmod 755 jtaAutoStart
-if ! [ -d mule-standalone-3.3.0 ]; then
-   tar xvfz mule-standalone-3.3.0.tar.gz
-   rm mule-standalone-3.3.0.tar.gz
+if ! [ -d mule-standalone-3.4.0 ]; then
+   tar xvfz mule-standalone-3.4.0.tar.gz
+   rm mule-standalone-3.4.0.tar.gz
    tar xvfz default.tar.gz
-   mv default mule-standalone-3.3.0/apps/
+   mv default mule-standalone-3.4.0/apps/
    rm default.tar.gz
-   cd mule-standalone-3.3.0
+   cd mule-standalone-3.4.0
    ln -s ../keystore/JTAs keystore
 fi
 }
@@ -56,17 +56,17 @@ fi
 mkdir -p JTAs
 mkdir -p logs
 cd jsb-core
-if ! [ -d mule-standalone-3.3.0 ]; then
-   tar xvfz mule-standalone-3.3.0.tar.gz
-   rm mule-standalone-3.3.0.tar.gz
+if ! [ -d mule-standalone-3.4.0 ]; then
+   tar xvfz mule-standalone-3.4.0.tar.gz
+   rm mule-standalone-3.4.0.tar.gz
    tar xvfz default.tar.gz
-   mv default mule-standalone-3.3.0/apps/
+   mv default mule-standalone-3.4.0/apps/
    rm default.tar.gz
-   cd mule-standalone-3.3.0
+   cd mule-standalone-3.4.0
    ln -s ../keystore/JTAs keystore
    cd ..
    chmod 600 config/jsb.jmxremote.password
-   mv wrapper.jar libs/
+   mv *.jar libs/
 fi
 chmod 755 bin/jsb
 chmod 755 exec/wrapper*

@@ -59,7 +59,7 @@ function stop_m {
       echo "JTA Server is not running." 
    else
       echo -n "Stopping JTA Server.."
-      cd jsb-core/mule-standalone-3.3.0/bin
+      cd jsb-core/mule-standalone-3.4.0/bin
       ./mule stop
       cd ../../../
       if [ "$OS" == 'Linux' ]; then
@@ -122,7 +122,7 @@ function start_j {
 }
 
 function start_m {
-   if ! [ -d jsb-core/mule-standalone-3.3.0 ]; then
+   if ! [ -d jsb-core/mule-standalone-3.4.0 ]; then
       JTA='y'
       display_warning
       exit 0
@@ -130,7 +130,7 @@ function start_m {
    get_m_pid
 if [ -z "$M_PID" ]; then
       echo  "Starting JTA Server.."
-      cd jsb-core/mule-standalone-3.3.0/bin
+      cd jsb-core/mule-standalone-3.4.0/bin
       ./mule start
       cd ../../../
       sleep 5
