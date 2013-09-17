@@ -1,19 +1,21 @@
 package org.jasper.core;
  
-import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
+import javax.jms.JMSException;
 import javax.jms.Message;
+import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
+import javax.jms.Queue;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.Broker;
@@ -28,26 +30,21 @@ import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
 
-
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.IMap;
-import com.hazelcast.core.ItemEvent;
-import com.hazelcast.core.ItemListener;
+import com.hazelcast.core.ITopic;
+import com.hazelcast.core.MessageListener;
+import com.hazelcast.core.MultiMap;
  
-public class JasperBroker extends BrokerFilter implements ItemListener, EntryListener {
+public class JasperBroker extends BrokerFilter implements EntryListener, javax.jms.MessageListener {
      
     private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
     private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
      
     public static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
      
-    private Map<String,JtaInfo> jtaInfoMap;
-     
-    /*
-     * Map will store known connections to prevent multiple JTAs from using same JTA license key
-     */
-//  private Map<String, ConnectionInfo> jtaConnectionInfoMap;
+    private MultiMap<String,String> registeredLicenseKeys;
      
     /*
      * Map will store know connection context information so that we can manipulate the connections, we currently use
@@ -69,6 +66,13 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
      * ScheduledExecutorServices for spawning new threads
      */
     private ScheduledExecutorService jtaAuditExec;
+	private Connection connection;
+	private Session session;
+	private MessageProducer producer;
+	private Queue globalQ;
+	
+	private MessageConsumer consumer;
+	private Destination adminTopic;
      
     static Logger logger = Logger.getLogger(JasperBroker.class.getName());
      
@@ -76,25 +80,52 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
         super(next);
         core = JECore.getInstance();
          
-        if(core.isClusterEnabled()){      
-            jtaInfoMap = core.getHazelcastInstance().getMap("jtaInfoMap");
-            ((IMap<String, JtaInfo>) jtaInfoMap).addEntryListener (this, true);
-        }else{
-            jtaInfoMap = new ConcurrentHashMap<String, JtaInfo>();
-        }
-         
         jsbConnectionInfoMap = new ConcurrentHashMap<String, ConnectionInfo>();
         jtaConnectionContextMap = new ConcurrentHashMap<String, ConnectionContext>();
+        registeredLicenseKeys = core.getHazelcastInstance().getMultiMap("registeredLicenseKeys");
+        registeredLicenseKeys.addEntryListener (this, true);
+        
+        
+        
     }
       
      public void start() throws Exception{
          next.start();
+         
+         // Create a ConnectionFactory
+         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
+
+         // Create a Connection
+         connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
+         connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+         connection = connectionFactory.createConnection();
+         connection.start();
+
+         // Create a Session
+         session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+         // Create the destination (Topic or Queue)
+         globalQ = session.createQueue(DELEGATE_GLOBAL_QUEUE);
+
+         // Create a MessageProducer from the Session to the Topic or Queue
+         producer = session.createProducer(null);
+         producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+         producer.setTimeToLive(30000);
+         
+         adminTopic = session.createTopic("jms.jasper." + core.getDeploymentID() + ".admin.topic");
+         consumer = session.createConsumer(adminTopic);
+         consumer.setMessageListener(this);
+         
          setupJTALicenseKeyAudit();
      }
      
      public void stop() throws Exception {
-         next.stop();
          jtaAuditExec.shutdown();
+         consumer.close();
+         producer.close();
+         session.close();
+         connection.close();         
+         next.stop();         
      }
       
     private void setupJTALicenseKeyAudit(){
@@ -109,18 +140,19 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
     }
      
     private void auditRegisteredJTAs(){
-        for(String licenseKey:jtaInfoMap.keySet()){
+        for(String licenseKey:jtaConnectionContextMap.keySet()){
             JTALicense lic = core.getJTALicense(JAuthHelper.hexToBytes(licenseKey));
+            String jtaName = jtaConnectionContextMap.get(licenseKey).getUserName();
             if(core.willLicenseKeyExpireInDays(lic, 3)){
-                logger.error("JTA : " + getJta(licenseKey).getJtaName() + " will expire on : " + core.getExpiryDate(lic));
+                logger.error("JTA : " + jtaName + " will expire on : " + core.getExpiryDate(lic));
             }else if(core.willLicenseKeyExpireInDays(lic, 7)){
-                logger.warn("JTA : " + getJta(licenseKey).getJtaName() + " will expire on : " + core.getExpiryDate(lic));
+                logger.warn("JTA : " + jtaName + " will expire on : " + core.getExpiryDate(lic));
             }else if(core.willLicenseKeyExpireInDays(lic, 14)){
-                logger.info("JTA : " + getJta(licenseKey).getJtaName() + " will expire on : " + core.getExpiryDate(lic));
+                logger.info("JTA : " + jtaName + " will expire on : " + core.getExpiryDate(lic));
             }else if(core.willLicenseKeyExpireInDays(lic, 21)){
-                logger.debug("JTA : " + getJta(licenseKey).getJtaName() + " will expire on : " + core.getExpiryDate(lic));
+                logger.debug("JTA : " + jtaName + " will expire on : " + core.getExpiryDate(lic));
             }
-            if(!core.isJTAAuthenticationValid(getJta(licenseKey).getJtaName(), licenseKey)) dropJTAConnection(licenseKey);
+            if(!core.isJTAAuthenticationValid(jtaName, licenseKey)) dropJTAConnection(licenseKey);
         }
     }
       
@@ -131,50 +163,6 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
             context.getConnection().stop();
         } catch (Exception e) {
             logger.error("Exception caught when trying to drop JTA connection",e);
-        }
-    }
-    
-    private JtaInfo getJta(String key){
-    	return jtaInfoMap.get(key);
-    }
-    
-    private JtaInfo removeJta(String key){
-    	if(jtaInfoMap instanceof IMap){
-    		JtaInfo info = (JtaInfo) ((IMap)jtaInfoMap).get(key);
-			boolean removed = ((IMap)jtaInfoMap).tryRemove(key, 30, TimeUnit.SECONDS);
-			if(logger.isInfoEnabled()){
-				logger.info("tryRemove successful = " + removed + " for key = " + key);
-			}
-			return (removed)?info:null;
-    	}else{
-    		return jtaInfoMap.remove(key);
-    	}
-    }
-    
-    private boolean putJta(String key, JtaInfo info){
-    	if(jtaInfoMap instanceof IMap){
-			boolean success = ((IMap)jtaInfoMap).tryPut(key,info, 30, TimeUnit.SECONDS);
-			if(logger.isInfoEnabled()){
-				logger.info("tryPut returned = " + success + " when putting JTA =" + info.getJtaName() + " with key = " + key);
-			}
-			if(!success) logger.error("failed to put in jtaInfoMap JTA =" + info.getJtaName() + " with key = " + key);
-			return success;
-    	}else{
-    		jtaInfoMap.put(key,info);
-    		return true;
-    	}
-    }
- 
-    private void cleanRemoteJtaMap(String jsbInstance) {
-    	if(logger.isInfoEnabled()) logger.info("removing all JTA license keys from remote map for jsb : " + jsbInstance);
-        JtaInfo jtaInfo;
-        for(String key:jtaInfoMap.keySet()){
-            jtaInfo = getJta(key);
-            if(jtaInfo.getJsbConnectedTo().equals(jsbInstance)){
-            	if(logger.isInfoEnabled()) logger.info("removing : " + jtaInfo.getJtaName() + " from : " + jtaInfo.getJsbConnectedTo());
-            	removeJta(key);
-                jtaConnectionContextMap.remove(key);
-            }
         }
     }
     
@@ -196,279 +184,240 @@ public class JasperBroker extends BrokerFilter implements ItemListener, EntryLis
          * is success 
          */
         if(core.isJSBLicenseKey(info.getPassword())){
-             
-            /*
-             * During connection setup we validate that the JSB lisence key provided is valid and
-             * matches the stated JSB. JSB info is stored in username and the license key in the password
-             */
-            if(core.isJSBAuthenticationValid(info.getUserName(), info.getPassword())){
-                if(logger.isInfoEnabled()){
-                    logger.info("Peer JSB authenticated : " + core.getJSBDeploymentAndInstance(info.getPassword()));
-                }
-            }else{
-                logger.error("Invalid Peer JSB license key for : " + core.getJSBDeploymentAndInstance(info.getPassword()));
-                throw (SecurityException)new SecurityException("Invalid Peer JSB license key for : " + core.getJSBDeploymentAndInstance(info.getPassword()));
-            }
-             
-            /*
-             * Check to see if JSB deploymentId matches that of the system.
-             */
-            if(core.isSystemDeploymentId(info.getUserName().split(":")[0])){
-                if(logger.isInfoEnabled()){
-                    logger.info("Peer JSB deploymentId matches that of local JSB : " + info.getUserName().split(":")[0]);
-                }
-            }else{
-                logger.error("Peer JSB deploymentId does not match that of local JSB. Peer JSB deploymentId : " + info.getUserName().split(":")[0] + " and local deploymentId : " + core.getDeploymentID());
-                throw (SecurityException)new SecurityException("Peer JSB deploymentId does not match that of local JSB. Peer JSB deploymentId : " + info.getUserName().split(":")[0] + " and local deploymentId : " + core.getDeploymentID());
-            }
-            
-            /*
-             * Check if JSBLicense is unique
-             */
-            if(core.isThisMyJSBLicense(info.getPassword())){
-                logger.error("Peer JSB using same license key as local license key, failing connection setup");
-                throw (SecurityException)new SecurityException("Peer JSB using same license key as local license key, failing connection setup");
-            }
-             
-            /*
-             * We check that only one JSB instance id ever registers at one time, if a second JSB using the same
-             * instance id attempts to register we throw a security exception
-             */
-            if(!(jsbConnectionInfoMap.containsKey(info.getPassword()))){
-                jsbConnectionInfoMap.put(info.getPassword(), info);
-                super.addConnection(context, info);
-                logger.warn(getPrintableJtaAndJsbMap());
-                if(logger.isInfoEnabled()){
-                    logger.info("Peer JSB registered in system : " + core.getJSBDeploymentAndInstance(info.getPassword()));
-                }
-            }else{
-                ConnectionInfo oldJSBInfo = jsbConnectionInfoMap.get(info.getPassword());
-                logger.error("Peer JSB not registred in system, JSB instance id must be unique and another peer JSB has registered using same instance id, peer JSB with the following info already registered \n" +
-                        "deploymentId:instanceId = " + core.getJSBDeploymentAndInstance(info.getPassword()) + "\n" +
-                        "clientId:clientIp = " + oldJSBInfo.getClientId() + ":" + oldJSBInfo.getClientIp());
-                 
-                throw (SecurityException)new SecurityException("Peer JSB not registred in system, JSB instance id must be unique and another peer JSB has registered using same instance id, peer JSB with the following info already registered \n" +
-                        "deploymentId:instanceId = " + core.getJSBDeploymentAndInstance(info.getPassword()) + "\n" +
-                        "clientId:clientIp = " + oldJSBInfo.getClientId() + ":" + oldJSBInfo.getClientIp());
-            }	
+        	addJsbConnection(context,info);
         }else{
-            /*
-             * During connection setup we validate that the JTA license key provided is valid and
-             * matches the stated JTA. JTA info is stored in username and the license key in the password
-             */
-            if(core.isJTAAuthenticationValid(info.getUserName(), info.getPassword())){
-                if(logger.isInfoEnabled()){
-                    if(info.getUserName().contains("jsc")) 
-                        logger.info("JSC authenticated : " + info.getUserName());
-                    else
-                        logger.info("JTA authenticated : " + info.getUserName());
-                }
-            }else if(core.willLicenseKeyExpireInDays(core.getJTALicense(JAuthHelper.hexToBytes(info.getPassword())), 0)){
-                logger.error("Valid JTA license key, however it has expired : " + info.getUserName());
-                throw (SecurityException)new SecurityException("Invalid JTA license key : " + info.getUserName());
-            }else{
-                logger.error("Invalid JTA license key : " + info.getUserName());
-                throw (SecurityException)new SecurityException("Invalid JTA license key : " + info.getUserName());
-            }
-             
-            /*
-             * Check to see if JTA deploymentId matches that of the system.
-             */
-            if(core.isSystemDeploymentId(info.getUserName().split(":")[3])){
-                if(logger.isInfoEnabled()){
-                    if(info.getUserName().contains("jsc"))
-                        logger.info("JSC deploymentId matches that of the system : " + info.getUserName().split(":")[3]);
-                    else
-                        logger.info("JTA deploymentId matches that of the system : " + info.getUserName().split(":")[3]);
-                }
-            }else{
-                logger.error("JTA deploymentId does not match that of the system. JTA deploymentId : " + info.getUserName().split(":")[3] + " and system deploymentId : " + JECore.getInstance().getDeploymentID());
-                throw (SecurityException)new SecurityException("JTA deploymentId does not match that of the system. JTA deploymentId : " + info.getUserName().split(":")[3] + " and system deploymentId : " + JECore.getInstance().getDeploymentID());
-            }
-             
-            /*
-             * check if license key is available, if not it may be due to a race condition
-             * in which chase we wait 250 ms and retry, if all attempts fail we conclude
-             * the license key is already in use and we fail the registration.
-             */
-            boolean isLicenseKeyAvailable = false;
-            for(int count = 0; count < 5; count++){
-            	if(!(jtaInfoMap.containsKey(info.getPassword()))){
-            		isLicenseKeyAvailable = true;
-            		break;
-            	}else{
-            		//TODO Consider overwriting old entry or removing it here
-            		if(jtaInfoMap.get(info.getPassword()).getClientId().equals(info.getClientId())){
-            			logger.warn("jta trying to register with same clientID, may be rebalencing request:\n"
-            					+ "\t jtaName = " + jtaInfoMap.get(info.getPassword()).getJtaName()
-            					+ "\t old clientID = " + jtaInfoMap.get(info.getPassword()).getClientId()
-            					+ "\t JsbConnectedTo" + jtaInfoMap.get(info.getPassword()).getJsbConnectedTo()
-            					+ "\t new clientID = " + info.getClientId());
-            		}
-            		Thread.sleep(250);
-            	}
-            }
-            
-            if(isLicenseKeyAvailable){
-                super.addConnection(context, info); 
-            	putJta(info.getPassword(), new JtaInfo(info.getUserName(), info.getPassword(), core.getJSBDeploymentAndInstance(),info.getClientId(), info.getClientIp()));
-
-                jtaConnectionContextMap.put(info.getPassword(), context);
-
-                if(logger.isInfoEnabled()){
-	                if(info.getUserName().contains("jsc")){
-	                    logger.info("JSC registered on JSB : " + info.getUserName());
-	                }else{
-	                    logger.info("JTA registered on JSB : " + info.getUserName());
-	                }
-                }
-                if(!info.getUserName().contains("jsc")) notifyDelegate(Command.jta_connect, info.getUserName());
-                if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());                            
-            }else{
-                JtaInfo registeredJtaInfo = getJta(info.getPassword());
-                logger.error("JTA not registred since JTA with same license key registered on " + registeredJtaInfo.getJsbConnectedTo() + ", only one instance of a JTA can be registered with core at a time, JTA with with the following info already registered \n" +
-                        "vendor:appName:version:deploymentId = " + registeredJtaInfo.getJtaName() + "\n" +
-                        "clientId:clientIp = " + registeredJtaInfo.getClientId() + ":" + registeredJtaInfo.getClientIp());
-                throw (SecurityException)new SecurityException("JTA not registred since JTA with same license key registered on " + registeredJtaInfo.getJsbConnectedTo() + ", only one instance of a JTA can be registered with core at a time, JTA with with the following info already registered \n" +
-                        "vendor:appName:version:deploymentId = " + registeredJtaInfo.getJtaName() + "\n" +
-                        "clientId:clientIp = " + registeredJtaInfo.getClientId() + ":" + registeredJtaInfo.getClientIp());
-            }
-            
+        	addJtaConnection(context,info);
         }
     }
-     
-    public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error)throws Exception{
-        if(getJta(info.getPassword()) != null ){
+    
+    private void addJsbConnection(ConnectionContext context, ConnectionInfo info) throws Exception{
+        
+       /*
+        * During connection setup we validate that the JSB lisence key provided is valid and
+        * matches the stated JSB. JSB info is stored in username and the license key in the password
+        */
+       if(core.isJSBAuthenticationValid(info.getUserName(), info.getPassword())){
+           if(logger.isInfoEnabled()){
+               logger.info("Peer JSB authenticated : " + core.getJSBDeploymentAndInstance(info.getPassword()));
+           }
+       }else{
+           logger.error("Invalid Peer JSB license key for : " + core.getJSBDeploymentAndInstance(info.getPassword()));
+           throw (SecurityException)new SecurityException("Invalid Peer JSB license key for : " + core.getJSBDeploymentAndInstance(info.getPassword()));
+       }
+        
+       /*
+        * Check to see if JSB deploymentId matches that of the system.
+        */
+       if(core.isSystemDeploymentId(info.getUserName().split(":")[0])){
+           if(logger.isInfoEnabled()){
+               logger.info("Peer JSB deploymentId matches that of local JSB : " + info.getUserName().split(":")[0]);
+           }
+       }else{
+           logger.error("Peer JSB deploymentId does not match that of local JSB. Peer JSB deploymentId : " + info.getUserName().split(":")[0] + " and local deploymentId : " + core.getDeploymentID());
+           throw (SecurityException)new SecurityException("Peer JSB deploymentId does not match that of local JSB. Peer JSB deploymentId : " + info.getUserName().split(":")[0] + " and local deploymentId : " + core.getDeploymentID());
+       }
+       
+       /*
+        * Check if JSBLicense is unique
+        */
+       if(core.isThisMyJSBLicense(info.getPassword())){
+           logger.error("Peer JSB using same license key as local license key, failing connection setup");
+           throw (SecurityException)new SecurityException("Peer JSB using same license key as local license key, failing connection setup");
+       }
+        
+       /*
+        * We check that only one JSB instance id ever registers at one time, if a second JSB using the same
+        * instance id attempts to register we throw a security exception
+        */
+       if(!(jsbConnectionInfoMap.containsKey(info.getPassword()))){
+           jsbConnectionInfoMap.put(info.getPassword(), info);
+           super.addConnection(context, info);
+           broadcastAdminEvent("printMap");
 
-        	if(logger.isInfoEnabled()){
-	        	if(info.getUserName().contains("jsc")){
-	                logger.info("JSC de-registered from JSB : " + info.getUserName());
-	        	}else{
-	                logger.info("JTA de-registered from JSB : " + info.getUserName());
-	        	}
-        	}
-        	removeJta(info.getPassword());
-            jtaConnectionContextMap.remove(info.getPassword());
-            super.removeConnection(context, info, error);
-            if(!core.isClusterEnabled())logger.warn(getPrintableJtaMap());
-           
-            if(!info.getUserName().contains("jsc")) notifyDelegate(Command.jta_disconnect, info.getUserName());
-            return;
-        }else if(jsbConnectionInfoMap.get(info.getPassword()) != null){
+           if(logger.isInfoEnabled()){
+               logger.info("Peer JSB registered in system : " + core.getJSBDeploymentAndInstance(info.getPassword()));
+           }
+       }else{
+           ConnectionInfo oldJSBInfo = jsbConnectionInfoMap.get(info.getPassword());
+           logger.error("Peer JSB not registred in system, JSB instance id must be unique and another peer JSB has registered using same instance id, peer JSB with the following info already registered \n" +
+                   "deploymentId:instanceId = " + core.getJSBDeploymentAndInstance(info.getPassword()) + "\n" +
+                   "clientId:clientIp = " + oldJSBInfo.getClientId() + ":" + oldJSBInfo.getClientIp());
+            
+           throw (SecurityException)new SecurityException("Peer JSB not registred in system, JSB instance id must be unique and another peer JSB has registered using same instance id, peer JSB with the following info already registered \n" +
+                   "deploymentId:instanceId = " + core.getJSBDeploymentAndInstance(info.getPassword()) + "\n" +
+                   "clientId:clientIp = " + oldJSBInfo.getClientId() + ":" + oldJSBInfo.getClientIp());
+       }
+    }
+    
+    private void addJtaConnection(ConnectionContext context, ConnectionInfo info) throws Exception{
+        /*
+         * During connection setup we validate that the JTA license key provided is valid and
+         * matches the stated JTA. JTA info is stored in username and the license key in the password
+         */
+        if(core.isJTAAuthenticationValid(info.getUserName(), info.getPassword())){
             if(logger.isInfoEnabled()){
-                logger.info("Peer JSB deregistered from system : " + info.getUserName());
+                    logger.info(info.getUserName() + " authenticated");
             }
-            jsbConnectionInfoMap.remove(info.getPassword());
-            if(this.getBrokerService() instanceof JasperBrokerService && !((JasperBrokerService)this.getBrokerService()).isStopping()){
-                cleanRemoteJtaMap(core.getJSBDeploymentAndInstance(info.getPassword()));
+        }else if(core.willLicenseKeyExpireInDays(core.getJTALicense(JAuthHelper.hexToBytes(info.getPassword())), 0)){
+            logger.error("Valid license key, however license has expired : " + info.getUserName());
+            throw (SecurityException)new SecurityException("Valid license key, however license has expired : " + info.getUserName());
+        }else{
+            logger.error("Invalid license key : " + info.getUserName());
+            throw (SecurityException)new SecurityException("Invalid license key : " + info.getUserName());
+        }
+         
+        /*
+         * Check to see if JTA deploymentId matches that of the system.
+         */
+        if(core.isSystemDeploymentId(info.getUserName().split(":")[3])){
+            if(logger.isInfoEnabled()){
+                logger.info("license key deploymentId matches that of the system : " + info.getUserName().split(":")[3]);
             }
-            super.removeConnection(context, info, error);
-            logger.warn(getPrintableJtaAndJsbMap());
-            return;
+        }else{
+            logger.error("deploymentId does not match that of the system. license key deploymentId : " + info.getUserName().split(":")[3] + " and system deploymentId : " + JECore.getInstance().getDeploymentID());
+            throw (SecurityException)new SecurityException("JTA deploymentId does not match that of the system. license key deploymentId : " + info.getUserName().split(":")[3] + " and system deploymentId : " + JECore.getInstance().getDeploymentID());
         }
         
-        if(logger.isDebugEnabled()){
-        	logger.debug("Connection removed that is neither JSB nor JTA, info.getUserName() = " + info.getUserName());
+        /*
+         *Check if license key is already used
+         */
+        /*
+         * check if license key is available, if not it may be due to a race condition
+         * in which chase we wait 250 ms and retry, if all attempts fail we conclude
+         * the license key is already in use and we fail the registration.
+         */
+        boolean isLicenseKeyAvailable = false;
+        for(int count = 0; count < 5; count++){
+        	if(!(registeredLicenseKeys.containsValue(info.getPassword()))){
+        		isLicenseKeyAvailable = true;
+        		break;
+        	}else{
+        		String jsb = lookupJsb(info.getPassword());
+        		logger.warn("license key is not available it is currently being used by " + jsb);
+        		Thread.sleep(250);
+        	}
         }
-        super.removeConnection(context, info, error);
-    }
-     
-    private String getPrintableJtaMap() {
-        JtaInfo jtaInfo;
-        StringBuilder sb = new StringBuilder();
- 
-        sb.append("\n-----  JTA dist map start ----\n");
-        for(String key:jtaInfoMap.keySet()){
-            jtaInfo = getJta(key);
-            if(jtaInfo.getJtaName().contains("jsc")){
-                sb.append("jsc = " + jtaInfo.getJtaName() + " - connected to jsb = " + jtaInfo.getJsbConnectedTo() + "\n");
-            }else{
-            	sb.append("jta = " + jtaInfo.getJtaName() + " - connected to jsb = " + jtaInfo.getJsbConnectedTo() + "\n");
+        
+        if(isLicenseKeyAvailable){
+        	registeredLicenseKeys.put(core.getJSBDeploymentAndInstance(), info.getPassword());
+            jtaConnectionContextMap.put(info.getPassword(), context);
+
+            super.addConnection(context, info);
+            broadcastAdminEvent("printMap");
+            
+            if(logger.isInfoEnabled()){
+                logger.info(info.getUserName() + " registered") ;
             }
+            if(!info.getUserName().contains("jsc")) notifyDelegate(Command.jta_connect, info.getUserName());
+        }else{
+        	String errorMsg = "license key already registered on " + lookupJsb(info.getPassword());
+            logger.error(info.getUserName() + " registration failed due to " + errorMsg);
+            throw (SecurityException)new SecurityException(errorMsg);
         }
-        sb.append("-----  JTA dist map  end  ----");
-        return sb.toString();
     }
- 
-    private String getPrintableJsbMap() {
-        ConnectionInfo jsbInfo;
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n-----  JSB local map start ----\n");
-        for(String key:jsbConnectionInfoMap.keySet()){
-            jsbInfo = jsbConnectionInfoMap.get(key);
-            sb.append("jsb = " + jsbInfo.getUserName() + " - with IP = " + jsbInfo.getClientIp() + "\n");
-        }
-        sb.append("-----  JSB local map  end  ----");
-        return sb.toString();
-    }
-    
-    private String getPrintableJtaAndJsbMap() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getPrintableJsbMap());
-        sb.append(getPrintableJtaMap());
-        return sb.toString();
+
+	private String lookupJsb(String licenseKey) {
+    	for(String jsb:registeredLicenseKeys.keySet()){
+    		if(registeredLicenseKeys.get(jsb).contains(licenseKey))return jsb;
+    	}
+    	return null;
+	}
+
+	public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error)throws Exception{
+
+    	String key = info.getPassword();
+    	if(jtaConnectionContextMap.containsKey(key)){
+    		registeredLicenseKeys.remove(core.getJSBDeploymentAndInstance(), key);
+    		ConnectionContext jtaConnectionContext = jtaConnectionContextMap.remove(key);
+    		
+            if(jtaConnectionContext !=null && !info.getUserName().contains("jsc")) notifyDelegate(Command.jta_disconnect, info.getUserName());     
+    		
+    		if(logger.isInfoEnabled()) logger.info("connection for " + info.getUserName() + " removed, updated local and remote maps");
+    		
+    	}else if(jsbConnectionInfoMap.containsKey(key) && !((JasperBrokerService)this.getBrokerService()).isStopping()){
+    		jsbConnectionInfoMap.remove(key);    		
+        	registeredLicenseKeys.remove(core.getJSBDeploymentAndInstance(key));
+    		if(logger.isInfoEnabled()) logger.info("connection for jsb " + info.getUserName() + " removed, updated local and remote maps");    		
+    	}
+        super.removeConnection(context, info, error);
+        broadcastAdminEvent("printMap");
     }
     
      
-    private void notifyDelegate(Command command, String jtaName) {
+    private void broadcastAdminEvent(String msg) {
+    	try {
+			producer.send(adminTopic, session.createTextMessage(msg));
+		} catch (JMSException e) {
+			logger.error("exception caught when trying to broadcast admin event");
+		}
+	}
+
+	private void notifyDelegate(Command command, String jtaName) {
         try {
-            // Create a ConnectionFactory
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
- 
-            // Create a Connection
-            connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-            connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
-            Connection connection = connectionFactory.createConnection();
-            connection.start();
- 
-            // Create a Session
-            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
- 
-            // Create the destination (Topic or Queue)
-            Destination destination = session.createQueue(DELEGATE_GLOBAL_QUEUE);
- 
-            // Create a MessageProducer from the Session to the Topic or Queue
-            MessageProducer producer = session.createProducer(destination);
-            producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-            producer.setTimeToLive(30000);
- 
             JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, command, jtaName);
- 
             Message message = session.createObjectMessage(jam);
-            producer.send(message);
- 
-            // Clean up
-            session.close();
-            connection.close();
+            producer.send(globalQ, message);
         }
         catch (Exception e) {
             logger.error("Exception caught while notifying peers: ", e);
         }
     }
+    
+    private String getPrintableRegisteredLicenseKeysMap(){
+    	StringBuilder sb = new StringBuilder();
+    	sb.append("\n----------------------------------------");
 
-	public void entryAdded(EntryEvent arg0) {
-        logger.warn("entryAdded" + getPrintableJtaMap());	
+    	sb.append("\njsb peers { ");
+    	for(String key:jsbConnectionInfoMap.keySet()){
+    		sb.append(core.getJSBDeploymentAndInstance(key));
+    		sb.append(" ");
+    	}
+    	sb.append("}");
+    	
+    	sb.append("\nregistered clients \n{");
+    	
+    	int count = 0;
+    	
+    	for(String jsb:registeredLicenseKeys.keySet()){
+    		sb.append("\n\t" + jsb + "{ ");
+    		for(String jtaKey:registeredLicenseKeys.get(jsb)){
+    			JTALicense jtaLic = core.getJTALicense(JAuthHelper.hexToBytes(jtaKey));
+    			sb.append("\n\t\t" + jtaLic.getVendor());
+    			sb.append(": " + jtaLic.getAppName());
+    			sb.append(": " + jtaLic.getVersion());
+    			sb.append(": " + jtaLic.getDeploymentId());
+    		}
+    		sb.append("\n\t} total system keys = " + registeredLicenseKeys.get(jsb).size());
+    		count += registeredLicenseKeys.get(jsb).size();
+    	}
+    	sb.append("\n} total cluster keys = " + count);
+    	sb.append("\n----------------------------------------");
+    	return sb.toString();
+    }
+
+	public void entryAdded(EntryEvent event) {
+        logger.warn("entryAdded by " + event.getMember() + " value = " + event.getValue().toString().substring(0,15));	
 	}
 
-	public void entryEvicted(EntryEvent arg0) {
-        logger.warn("entryEvicted" + getPrintableJtaMap());	
+	public void entryEvicted(EntryEvent event) {
+        logger.warn("entryEvicted by " + event.getMember() + " value = " + event.getValue().toString().substring(0,15));	
 	}
 
-	public void entryRemoved(EntryEvent arg0) {
-        logger.warn("entryRemoved" + getPrintableJtaMap());	
+	public void entryRemoved(EntryEvent event) {
+        logger.warn("entryRemoved by " + event.getMember() + " value = " + event.getValue().toString().substring(0,15));	
 	}
 
-	public void entryUpdated(EntryEvent arg0) {
-        logger.warn("entryUpdated" + getPrintableJtaMap());	
+	public void entryUpdated(EntryEvent event) {
+        logger.warn("entryUpdated by " + event.getMember() + " value = " + event.getValue().toString().substring(0,15));	
 	}
 
-	public void itemAdded(ItemEvent arg0) {
-        logger.warn("itemAdded" + getPrintableJtaMap());	
+	public void onMessage(Message msg) {
+		try {
+			if(msg instanceof TextMessage && "printMap".equals(((TextMessage)msg).getText()) ){
+		        logger.warn(getPrintableRegisteredLicenseKeysMap());	
+			}
+		} catch (JMSException e) {
+			logger.error("jms exception caught when processing onMessage", e);
+		}
 	}
-
-	public void itemRemoved(ItemEvent arg0) {
-        logger.warn("itemRemoved" + getPrintableJtaMap());	
-	}
-     
-     
 }
