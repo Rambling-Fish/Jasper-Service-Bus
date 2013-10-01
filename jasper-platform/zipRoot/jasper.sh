@@ -1,7 +1,9 @@
 #!/bin/bash
 
 J_PID=""
+JSB_PID_FILE="jsb-core/bin/jsb.java.pid"
 JW_PID=""
+JSBwrapper_PID_FILE="jsb-core/bin/jsbWrapper.pid"
 M_PID=""
 UNAME=`uname`
 OS="$UNAME"
@@ -9,20 +11,14 @@ JSB=""
 JTA=""
 
 function get_j_pid {
-    J_PID=""
-    J_PID=`ps ax | grep java | grep 'JSB Server' | cut -d' ' -f1`
-    if [ -z "$J_PID" ]
-    then 
-      J_PID=`ps ax | grep java | grep 'JSB Server' | cut -d' ' -f2`
-      if [ -z "$J_PID" ]
-      then 
-      J_PID=`ps ax | grep java | grep 'JSB Server' | cut -d' ' -f3`
-      fi    
+    if [ -e "$JSB_PID_FILE" ]
+     then 
+        J_PID=`cat "$JSB_PID_FILE"`
     fi
-    if [ -e "jsb-core/bin/jsb.pid" ]
-    then
-      JW_PID=`cat jsb-core/bin/jsb.pid` 
-    fi   
+    if [ -e "$JSBwrapper_PID_FILE" ]
+     then     
+        JW_PID=`cat "$JSBwrapper_PID_FILE"`
+    fi
 }
 
 function get_m_pid {
@@ -151,7 +147,7 @@ function status_j {
    if [ -z  "$J_PID" ]; then
       echo "JSB is not running." 
    else
-      echo "JSB is running, wrapper PID=$JW_PID proccess PID=$J_PID"
+      echo "JSB is running, wrapper PID=$JW_PID process PID=$J_PID"
    fi
 }
 

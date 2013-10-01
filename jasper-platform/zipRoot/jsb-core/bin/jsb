@@ -19,7 +19,7 @@
 # Optimized for use with version 3.5.17 of the Wrapper.
 
 # Application
-APP_NAME="jsb"
+APP_NAME="jsbWrapper"
 APP_LONG_NAME="JSB Server"
 
 # Wrapper
@@ -227,9 +227,11 @@ COMMANDFILE="$PIDDIR/$APP_NAME.command"
 STATUSFILE="$PIDDIR/$APP_NAME.status"
 JAVASTATUSFILE="$PIDDIR/$APP_NAME.java.status"
 PIDFILE="$PIDDIR/$APP_NAME.pid"
+JPIDFILE="$PIDDIR/jsb.java.pid"
 LOCKDIR="/var/lock/subsys"
 LOCKFILE="$LOCKDIR/$APP_NAME"
 pid=""
+jpid=""
 
 # Resolve the location of the 'ps' command
 PSEXE="/usr/ucb/ps"
@@ -398,8 +400,8 @@ fi
 
 if [ "$DIST_OS" = "linux" ]
 then
-    if [ -e "/usr/lib/jvm/java-6-openjdk-amd64" ]; then
-        JAVA_HOME="/usr/lib/jvm/java-6-openjdk-amd64"; export JAVA_HOME
+    if [ -e "/usr/lib/jvm/jdk1.7.0" ]; then
+        JAVA_HOME="/usr/lib/jvm/jdk1.7.0"; export JAVA_HOME
         JAVA="/bin/java"; export JAVA
     fi
 else
@@ -660,11 +662,13 @@ checkUser() {
 
 getpid() {
     pid=""
+    jpid=""
     if [ -f "$PIDFILE" ]
     then
         if [ -r "$PIDFILE" ]
         then
             pid=`cat "$PIDFILE"`
+            jpid=`cat "$JPIDFILE"`
             if [ "X$pid" != "X" ]
             then
                 # It is possible that 'a' process with the pid exists but that it is not the
@@ -901,7 +905,8 @@ startwait() {
             eval echo `gettext ' WARNING: $APP_LONG_NAME may have failed to start.'`
             exit 1
         else
-            eval echo `gettext ' running: PID:$pid'`
+            eval echo `gettext ' Wrapper running: PID:$pid'`
+            eval echo `gettext ' JSB running: PID:$jpid'`
         fi
     else 
         echo ""
