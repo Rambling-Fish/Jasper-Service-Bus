@@ -8,10 +8,6 @@ import java.util.Map;
 
 public class JasperOntologyConstants {
 	
-	public static final String DEFAULT_OUTPUT = "json";
-	public static final int MAX_EXPIRY = 30000; // 30 seconds
-	public static final int MAX_POLLING_INTERVAL = 5000; // 5 seconds
-	public static final int MIN_POLLING_INTERVAL = 2000; // 2 seconds
     public static final Map<String, String> PREFIX_MAP;
     static {
         Map<String, String> aMap = new HashMap<String, String>();

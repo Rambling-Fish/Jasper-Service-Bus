@@ -1,10 +1,13 @@
 package org.jasper.core.delegate.handlers;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 import javax.jms.JMSException;
@@ -20,7 +23,6 @@ import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonString;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.log4j.Logger;
-import org.jasper.core.constants.JasperOntologyConstants;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.notification.triggers.Trigger;
@@ -42,6 +44,10 @@ public class DataHandler implements Runnable {
 	private long notificationExpiry;
 	private List<Trigger> list;
 	private static final int MILLISECONDS = 1000;
+	private String defaultOutput;
+	private int maxExpiry;
+	private int maxPollingInterval;
+	private int minPollingInterval;
 	
 	private static Logger logger = Logger.getLogger(DataHandler.class.getName());
 
@@ -86,6 +92,18 @@ public class DataHandler implements Runnable {
   	    isNotificationRequest = false;
   	    JsonArray response;
   	    String xmlResponse = null;
+  	    Properties prop = new Properties();
+ 	 
+  	try {
+          //load properties file
+  		prop.load(new FileInputStream(System.getProperty("jsb-property-file")));
+  		defaultOutput = prop.getProperty("defaultOutput", "json");
+  		maxExpiry = Integer.parseInt(prop.getProperty("maxNotificationExpiry","60"));
+  		maxPollingInterval = Integer.parseInt(prop.getProperty("maxPollingInterval","60"));
+  		minPollingInterval = Integer.parseInt(prop.getProperty("minPollingInterval","2"));
+  	} catch (IOException ex) {
+  		ex.printStackTrace();
+  	}
 
   	    if(request == null || request.length() == 0){
   	    	processInvalidRequest(txtMsg, "Invalid request received, request is null or empty string");
@@ -380,7 +398,7 @@ public class DataHandler implements Runnable {
 						expiry = Integer.parseInt(tmp);
 						expiry = (expiry * MILLISECONDS); // convert from seconds to milliseconds
 					}catch (NumberFormatException ex) {
-		    			expiry = JasperOntologyConstants.MAX_EXPIRY; //TODO should this be set to -1 indicating no expiry (one shot at data)
+		    			expiry = maxExpiry; //TODO should this be set to -1 indicating no expiry (one shot at data)
 					}
 				}
 				else if(result[i].toLowerCase().contains("polling=")){
@@ -390,7 +408,7 @@ public class DataHandler implements Runnable {
 						polling = (polling * MILLISECONDS); // convert from seconds to milliseconds
 						
 					}catch (NumberFormatException ex) {
-		    			polling = JasperOntologyConstants.MAX_POLLING_INTERVAL;
+		    			polling = maxPollingInterval;
 					}
 				}
 				else{
@@ -398,13 +416,13 @@ public class DataHandler implements Runnable {
 				}
 			}
 			
-			if(expiry == -1) expiry = JasperOntologyConstants.MAX_EXPIRY; // if not supplied set to max
-			if(expiry > JasperOntologyConstants.MAX_EXPIRY) expiry = JasperOntologyConstants.MAX_EXPIRY;
-			if(polling == -1) polling = JasperOntologyConstants.MAX_POLLING_INTERVAL; // if not supplied set to max
-			if(polling < JasperOntologyConstants.MIN_POLLING_INTERVAL) polling = JasperOntologyConstants.MIN_POLLING_INTERVAL;
-			if(polling > JasperOntologyConstants.MAX_POLLING_INTERVAL) polling = JasperOntologyConstants.MAX_POLLING_INTERVAL;
+			if(expiry == -1) expiry = maxExpiry; // if not supplied set to max
+			if(expiry > maxExpiry) expiry = maxExpiry;
+			if(polling == -1) polling = maxPollingInterval; // if not supplied set to max
+			if(polling < minPollingInterval) polling = minPollingInterval;
+			if(polling > maxPollingInterval) polling = maxPollingInterval;
 			if(polling > expiry) polling = expiry;
-			if(output == null) output =  JasperOntologyConstants.DEFAULT_OUTPUT;
+			if(output == null) output =  defaultOutput;
 			
 		} catch (URIException e) {
 			logger.error("Exception when decoding encoded notification request " ,e);
