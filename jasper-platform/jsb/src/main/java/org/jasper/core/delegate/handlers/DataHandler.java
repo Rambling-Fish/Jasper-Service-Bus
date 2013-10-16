@@ -98,9 +98,9 @@ public class DataHandler implements Runnable {
           //load properties file
   		prop.load(new FileInputStream(System.getProperty("jsb-property-file")));
   		defaultOutput = prop.getProperty("defaultOutput", "json");
-  		maxExpiry = Integer.parseInt(prop.getProperty("maxNotificationExpiry","60"));
-  		maxPollingInterval = Integer.parseInt(prop.getProperty("maxPollingInterval","60"));
-  		minPollingInterval = Integer.parseInt(prop.getProperty("minPollingInterval","2"));
+  		maxExpiry = Integer.parseInt(prop.getProperty("maxNotificationExpiry","60000"));
+  		maxPollingInterval = Integer.parseInt(prop.getProperty("maxPollingInterval","60000"));
+  		minPollingInterval = Integer.parseInt(prop.getProperty("minPollingInterval","2000"));
   	} catch (IOException ex) {
   		ex.printStackTrace();
   	}
