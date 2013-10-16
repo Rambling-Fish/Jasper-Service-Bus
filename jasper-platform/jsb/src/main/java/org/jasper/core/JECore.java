@@ -458,8 +458,7 @@ public class JECore {
     			core.broker.setPersistent(false);
     			
 				Config cfg = new Config();
-//				GroupConfig groupConfig = new GroupConfig(core.getDeploymentID(), core.getDeploymentID() + "_password_july_10_2013_0725");
-				GroupConfig groupConfig = new GroupConfig(core.getDeploymentID(), "99" + "_password_july_10_2013_0725");
+				GroupConfig groupConfig = new GroupConfig(core.getDeploymentID(), core.getDeploymentID() + "_password_july_10_2013_0725");
 				cfg.setGroupConfig(groupConfig);
 				core.hazelcastInstance=Hazelcast.newHazelcastInstance(cfg);
     			
