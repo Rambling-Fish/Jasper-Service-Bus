@@ -1,7 +1,10 @@
 package org.jasper.core.delegate;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,6 +50,12 @@ public class Delegate implements Runnable, MessageListener {
 	private Map<String, Message> responseMessages;
 	private Map<String, Object> locks;
 	private DelegateOntology jOntology;
+	
+	public String defaultOutput;
+	public int maxExpiry;
+	public int maxPollingInterval;
+	public int minPollingInterval;
+	Properties prop = new Properties();
 
 	static Logger logger = Logger.getLogger(Delegate.class.getName());
 	static private AtomicInteger count = new AtomicInteger(0);
@@ -72,6 +81,17 @@ public class Delegate implements Runnable, MessageListener {
 		delegateQ = jtaSession.createQueue("jms.delegate." + JECore.getInstance().getBrokerTransportIp() + "." + count.getAndIncrement() + ".queue");
 		responseConsumer = jtaSession.createConsumer(delegateQ);
 		responseConsumer.setMessageListener(this);
+		
+		 try {
+	          //load properties file
+	    		prop.load(new FileInputStream(System.getProperty("delegate-property-file")));
+	    		defaultOutput = prop.getProperty("defaultOutput", "json");
+	    		maxExpiry = Integer.parseInt(prop.getProperty("maxNotificationExpiry","60000"));
+	    		maxPollingInterval = Integer.parseInt(prop.getProperty("maxPollingInterval","60000"));
+	    		minPollingInterval = Integer.parseInt(prop.getProperty("minPollingInterval","2000"));
+	    	} catch (IOException ex) {
+	    		ex.printStackTrace();
+	    	}
 	}
 
 	public void shutdown() throws JMSException {

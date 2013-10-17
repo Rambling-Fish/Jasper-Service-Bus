@@ -1,13 +1,10 @@
 package org.jasper.core.delegate.handlers;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.UUID;
 
 import javax.jms.JMSException;
@@ -44,10 +41,6 @@ public class DataHandler implements Runnable {
 	private long notificationExpiry;
 	private List<Trigger> triggerList;
 	private static final int MILLISECONDS = 1000;
-	private String defaultOutput;
-	private int maxExpiry;
-	private int maxPollingInterval;
-	private int minPollingInterval;
 	
 	private static Logger logger = Logger.getLogger(DataHandler.class.getName());
 
@@ -92,18 +85,6 @@ public class DataHandler implements Runnable {
   	    isNotificationRequest = false;
   	    JsonArray response;
   	    String xmlResponse = null;
-  	    Properties prop = new Properties();
- 	 
-  	try {
-          //load properties file
-  		prop.load(new FileInputStream(System.getProperty("jsb-property-file")));
-  		defaultOutput = prop.getProperty("defaultOutput", "json");
-  		maxExpiry = Integer.parseInt(prop.getProperty("maxNotificationExpiry","60000"));
-  		maxPollingInterval = Integer.parseInt(prop.getProperty("maxPollingInterval","60000"));
-  		minPollingInterval = Integer.parseInt(prop.getProperty("minPollingInterval","2000"));
-  	} catch (IOException ex) {
-  		ex.printStackTrace();
-  	}
 
   	    if(request == null || request.length() == 0){
   	    	processInvalidRequest(txtMsg, "Invalid request received, request is null or empty string");
@@ -123,7 +104,7 @@ public class DataHandler implements Runnable {
   	    	setNotificationExpiry();
   	    }
 
-  	    if(isNotificationRequest){
+  	    if(isNotificationRequest){  	    	
   	    	while(true){
   	    		response = getResponse(ruri, jtaParms);
   	    		if(response != null){
@@ -159,8 +140,9 @@ public class DataHandler implements Runnable {
     		}
     	}
     	
-    	if(output.equalsIgnoreCase("xml")){
+    	if(output != null && output.equalsIgnoreCase("xml")){
     		//TODO convert to xml here IF YOU CAN!
+    		xmlResponse = response.toString();
     		sendResponse(txtMsg,xmlResponse);
     	}
     	else{
@@ -376,7 +358,7 @@ public class DataHandler implements Runnable {
 		
 		result = text.split("\\?");
 		
-		if(result.length < 2) return; //TODO determine what invalid request is
+		if(result.length < 1) return;
 		
 		try {
 			for(int i=1;i<result.length;i++){
@@ -395,7 +377,7 @@ public class DataHandler implements Runnable {
 						expiry = Integer.parseInt(tmp);
 						expiry = (expiry * MILLISECONDS); // convert from seconds to milliseconds
 					}catch (NumberFormatException ex) {
-		    			expiry = maxExpiry; //TODO should this be set to -1 indicating no expiry (one shot at data)
+		    			expiry = delegate.maxExpiry; //TODO should this be set to -1 indicating no expiry (one shot at data)
 					}
 				}
 				else if(result[i].toLowerCase().contains("polling=")){
@@ -405,7 +387,7 @@ public class DataHandler implements Runnable {
 						polling = (polling * MILLISECONDS); // convert from seconds to milliseconds
 						
 					}catch (NumberFormatException ex) {
-		    			polling = maxPollingInterval;
+		    			polling = delegate.maxPollingInterval;
 					}
 				}
 				else{
@@ -413,13 +395,15 @@ public class DataHandler implements Runnable {
 				}
 			}
 			
-			if(expiry == -1) expiry = maxExpiry; // if not supplied set to max
-			if(expiry > maxExpiry) expiry = maxExpiry;
-			if(polling == -1) polling = maxPollingInterval; // if not supplied set to max
-			if(polling < minPollingInterval) polling = minPollingInterval;
-			if(polling > maxPollingInterval) polling = maxPollingInterval;
-			if(polling > expiry) polling = expiry;
-			if(output == null) output =  defaultOutput;
+			if(notification != null){
+				if(expiry == -1) expiry = delegate.maxExpiry; // if not supplied set to max
+				if(expiry > delegate.maxExpiry) expiry = delegate.maxExpiry;
+				if(polling == -1) polling = delegate.maxPollingInterval; // if not supplied set to max
+				if(polling < delegate.minPollingInterval) polling = delegate.minPollingInterval;
+				if(polling > delegate.maxPollingInterval) polling = delegate.maxPollingInterval;
+				if(polling > expiry) polling = expiry;
+				if(output == null) output =  delegate.defaultOutput;
+			}
 			
 		} catch (URIException e) {
 			logger.error("Exception when decoding encoded notification request " ,e);
