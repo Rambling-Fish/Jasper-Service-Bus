@@ -42,7 +42,7 @@ public class DataHandler implements Runnable {
 	private int polling;
 	private boolean isNotificationRequest = false;
 	private long notificationExpiry;
-	private List<Trigger> list;
+	private List<Trigger> triggerList;
 	private static final int MILLISECONDS = 1000;
 	private String defaultOutput;
 	private int maxExpiry;
@@ -128,10 +128,6 @@ public class DataHandler implements Runnable {
   	    		response = getResponse(ruri, jtaParms);
   	    		if(response != null){
   	    			if(isCriteriaMet(response)){
-  	    				if(output.equalsIgnoreCase("xml")){
-//  	    					xmlResponse = XML.toString(response.toString());
-//  	    					xmlResponse = StringEscapeUtils.unescapeXml(xmlResponse);
-  	    				}
   	    				break;
   	    			}
   	    			else if(isNotificationExpired()){
@@ -164,6 +160,7 @@ public class DataHandler implements Runnable {
     	}
     	
     	if(output.equalsIgnoreCase("xml")){
+    		//TODO convert to xml here IF YOU CAN!
     		sendResponse(txtMsg,xmlResponse);
     	}
     	else{
@@ -315,8 +312,8 @@ public class DataHandler implements Runnable {
 	
 	private boolean isCriteriaMet(JsonArray response){
 		boolean result = false;
-		for(int i=0;i<list.size();i++){
-			if(list.get(i).evaluate(response)){
+		for(int i=0;i<triggerList.size();i++){
+			if(triggerList.get(i).evaluate(response)){
 				result = true;
 			}
 		}
@@ -362,7 +359,7 @@ public class DataHandler implements Runnable {
 			triggerParms = parms[i].split(",");
 			trigger = factory.createTrigger(functions[i], triggerParms);
 			if(trigger != null){
-				list.add(trigger);
+				triggerList.add(trigger);
 			}
 			else{
 				logger.error("Invalid notification request received - cannot create trigger: " + triggerParms.toString());
@@ -386,7 +383,7 @@ public class DataHandler implements Runnable {
 				result[i] = URIUtil.decode(result[i]);
 				if(result[i].toLowerCase().contains("trigger=")){
 					notification = result[i].replaceFirst("trigger=", "");
-					list = new ArrayList<Trigger>();
+					triggerList = new ArrayList<Trigger>();
 					parseTrigger(notification);
 				}
 				else if(result[i].toLowerCase().contains("output=")){
