@@ -375,6 +375,7 @@ public class TestDelegate  extends TestCase {
 
 	@Before
 	public void setUp() throws Exception {
+		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
 		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 		 
 		 JECore core = JECore.getInstance();

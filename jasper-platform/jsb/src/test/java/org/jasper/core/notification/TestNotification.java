@@ -43,10 +43,10 @@ public class TestNotification  extends TestCase {
 
 	private static final String TEST_JTA_ADMIN_QUEUE = "jms.TestJTA.admin.queue";
 	private static final String TEST_JTA_NAME = "TestJTA";
-	private static final String RURI = "http://coralcea.ca/jasper/environmentalSensor/temperature/";
-	private static final String COUNT_NOTIFICATION = "http://coralcea.ca/jasper/roomTempData?trigger=count(http://coralcea.ca/jasper/environmentalSensor/temperature/temp,gt,15)?expiry=20?polling=5";
-	private static final String BAD_NOTIFICATION = "?trigger=count(http://coralcea.ca/jasper/environmentalSensor/temperature/temp,gt,15)?expiry=20";
-	private static final String NOT_MET_NOTIFICATION = "http://coralcea.ca/jasper/roomTempData?trigger=count(http://coralcea.ca/jasper/environmentalSensor/temperature/temp,gt,40)?expiry=5?polling=5";
+	private static final String RURI = "http://coralcea.ca/jasper/environmentalSensor/roomTemperature";
+	private static final String COUNT_NOTIFICATION = "http://coralcea.ca/jasper/roomTempData?trigger=count(http://coralcea.ca/jasper/environmentalSensor/roomTemperature,gt,15)?expiry=20?polling=5";
+	private static final String BAD_NOTIFICATION = "?trigger=count(http://coralcea.ca/jasper/environmentalSensor/roomTemperature,gt,15)?expiry=20";
+	private static final String NOT_MET_NOTIFICATION = "http://coralcea.ca/jasper/roomTempData?trigger=count(http://coralcea.ca/jasper/environmentalSensor/roomTemperature,gt,40)?expiry=5?polling=5";
 	private Connection connection;
 	private DelegateFactory delegateFactory;
 	private ActiveMQConnectionFactory connectionFactory;
@@ -57,7 +57,7 @@ public class TestNotification  extends TestCase {
 	private ExecutorService executorService;
 	private Delegate delegate;
 	private JECore core;
-	private String tmp = "{ http://coralcea.ca/jasper/environmentalSensor/temperature/temp : 25 ,\n" +
+	private String tmp = "{ http://coralcea.ca/jasper/environmentalSensor/roomTemperature : 25 ,\n" +
 		    "http://coralcea.ca/jasper/timeStamp : 2013-10-14 02:18:45.0903 EDT }";
 
 	/*
@@ -66,7 +66,7 @@ public class TestNotification  extends TestCase {
 	 */
 	@Test
 	public void testJsonParser() { 
-		String tmp2 = "{ http://coralcea.ca/jasper/environmentalSensor/temperature/temp : 25R ,\n" +
+		String tmp2 = "{ http://coralcea.ca/jasper/environmentalSensor/roomTemperature : 25R ,\n" +
 			    "http://coralcea.ca/jasper/timeStamp : 2013-10-14 02:18:45.0903 EDT }"; 
 		JsonArray response = new JsonArray();
 		JsonResponseParser parser = new JsonResponseParser();
