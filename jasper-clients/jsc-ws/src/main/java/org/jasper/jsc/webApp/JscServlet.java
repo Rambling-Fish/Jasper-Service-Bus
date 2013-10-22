@@ -1,9 +1,13 @@
 package org.jasper.jsc.webApp;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -51,6 +55,7 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 	private MessageConsumer responseConsumer;
 	private Map<String,Message> responses;
 	private Map<String,Object> locks;
+	public Map<String, String> uriMapper = new HashMap<String, String>();
 
 	private ScheduledExecutorService mapAuditExecutor;
 
@@ -60,6 +65,7 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
     
 	public void init(){
     	Properties prop = getProperties();
+    	loadOntologyMapper();
 
     	responses = new ConcurrentHashMap<String, Message>();
     	locks = new ConcurrentHashMap<String, Object>();
@@ -110,6 +116,7 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 		};;;
 		
 		mapAuditExecutor.scheduleAtFixedRate(command , AUDIT_TIME_IN_MILLISECONDS, AUDIT_TIME_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
+		
     }
 	
     public void destroy(){
@@ -154,6 +161,44 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 		}  		
     	return prop;
 	}
+    
+    private void loadOntologyMapper() {
+    	BufferedReader br = null;
+    	String line;
+    	String[] parsedLine;
+		try {
+    	File file = new File(System.getProperty("catalina.base") + "/conf/jsc.ontology.properties");
+			if(file.exists()){
+				FileReader inputFile = new FileReader(file);
+				if(log.isInfoEnabled()) log.info("loading properties file from catalina.base/conf");
+				br = new BufferedReader(inputFile);
+
+			    // Read file line by line and print on the console
+			    while ((line = br.readLine()) != null)   {
+			    	parsedLine = line.split("=");
+			    	uriMapper.put(parsedLine[0], parsedLine[1]);
+			    }
+			    //Close the buffer reader
+			    br.close();
+			}else{
+				InputStream input = getServletContext().getResourceAsStream("/WEB-INF/conf/jsc.ontology.properties");
+				if(input != null){
+					br = new BufferedReader(new InputStreamReader(input));
+					if(log.isInfoEnabled()) log.info("loading properties file from WEB-INF/conf");
+					while ((line = br.readLine()) != null)   {
+						parsedLine = line.split("=");
+						uriMapper.put(parsedLine[0], parsedLine[1]);
+					}
+					//Close the buffer reader
+					br.close();
+				}
+			}
+			
+		} catch (IOException e) {
+			log.warn("error loading ontology properties file - continuing without", e);
+		} 
+   	
+	}
 	
 	private void auditMap() {
 		synchronized (responses) {
@@ -175,12 +220,50 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
     	StringBuffer jasperQuery = new StringBuffer();
+    	String[] tmp;
         String path = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):"";
-        jasperQuery.append(path);
-        if(request.getQueryString() != null)
-        {
+        if(uriMapper.containsKey(path)){
+        	jasperQuery.append(uriMapper.get(path));
+        }
+        else{
+        	jasperQuery.append(path);
+        }
+ 
+        if(request.getQueryString() != null){
             jasperQuery.append("?");
-            jasperQuery.append(request.getQueryString());
+            if(!request.getQueryString().startsWith("query=")){
+            	// parse all parameters in incoming query
+            	String parms[] = request.getQueryString().split("\\?");
+
+            	for(int i=0;i<parms.length;i++){
+            		if(!parms[i].startsWith("trigger=")){
+            			tmp = parms[i].split("=");
+            			if(uriMapper.containsKey(tmp[0])){
+            				jasperQuery.append(uriMapper.get(tmp[0]));
+            				if(tmp.length == 2){
+            					jasperQuery.append("=");
+            					jasperQuery.append(tmp[1]);
+            				}
+            				if(tmp.length >= i) jasperQuery.append("?");
+            			}
+            			else{
+            				jasperQuery.append(tmp[0]);
+            				if(tmp.length == 2){
+            					jasperQuery.append("=");
+            					jasperQuery.append(tmp[1]);
+            				}
+            				if(tmp.length >= i) jasperQuery.append("?");
+            			}
+            		}
+            		else{
+            			jasperQuery.append(parms[i]);
+            			if(parms.length >= i) jasperQuery.append("?");
+            		}
+            	}
+            }
+            else{
+            	jasperQuery.append(request.getQueryString());
+            }
         }
        
 		try {
