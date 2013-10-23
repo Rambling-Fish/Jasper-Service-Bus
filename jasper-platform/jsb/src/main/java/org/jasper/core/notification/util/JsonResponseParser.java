@@ -47,35 +47,12 @@ public class JsonResponseParser{
 					try{
 						list.add(Integer.parseInt(value));
 					} catch(NumberFormatException e){
-						list.add(-1);
+						// do nothing we won't add to the list if not a number
 					}
 				
 				}
 			}
 		}
-		
-		
-		
-//		 List<Integer> list = new ArrayList<Integer>();
-//		Iterator<JsonValue> ruriIterator = array.iterator();
-//		while(ruriIterator.hasNext()){
-//			JsonObject ruriData = ruriIterator.next().getAsObject();
-//			
-//			JsonArray duriArray = ruriData.get("http://coralcea.ca/jasper/medicalSensor/heartRate/data").getAsArray();
-//			
-//			Iterator<JsonValue> duriIterator = duriArray.iterator();
-//			while(duriIterator.hasNext()){
-//				JsonValue duriData = duriIterator.next();
-//				
-//				if(duriData.isObject()){
-//					JsonObject duriObject = duriData.getAsObject();
-//					JsonValue duriValue = duriObject.get(ruri);
-//					if(duriValue.isNumber()){
-//						list.add(duriValue.getAsNumber().value().intValue());
-//					}
-//				}	
-//			}
-//		}
 		
 		return list;
 	}
