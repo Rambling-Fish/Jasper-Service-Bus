@@ -47,7 +47,7 @@ public class JsonResponseParser{
 					try{
 						list.add(Integer.parseInt(value));
 					} catch(NumberFormatException e){
-						// do nothing we won't add to the list if not a number
+						// do nothing we won't add to the list if not a valid number
 					}
 				
 				}
