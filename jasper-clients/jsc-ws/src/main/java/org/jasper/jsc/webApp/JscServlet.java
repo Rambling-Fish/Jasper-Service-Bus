@@ -221,6 +221,7 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
     	StringBuffer jasperQuery = new StringBuffer();
     	String[] tmp;
+    	String[] tmp2;
         String path = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):"";
         if(uriMapper.containsKey(path)){
         	jasperQuery.append(uriMapper.get(path));
@@ -233,31 +234,36 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
             jasperQuery.append("?");
             if(!request.getQueryString().startsWith("query=")){
             	// parse all parameters in incoming query
+            	// we ignore sparql queries as there is nothing to parse or
+            	// URIs to map
             	String parms[] = request.getQueryString().split("\\?");
 
             	for(int i=0;i<parms.length;i++){
             		if(!parms[i].startsWith("trigger=")){
-            			tmp = parms[i].split("=");
-            			if(uriMapper.containsKey(tmp[0])){
-            				jasperQuery.append(uriMapper.get(tmp[0]));
+            			tmp2 = parms[i].split("&");
+            			for(int x=0;x<tmp2.length;x++){
+            				tmp = tmp2[x].split("=");
+            				if(uriMapper.containsKey(tmp[0])){
+            					jasperQuery.append(uriMapper.get(tmp[0]));
+            				}
+            				else{
+            					jasperQuery.append(tmp[0]);
+            				}
             				if(tmp.length == 2){
             					jasperQuery.append("=");
             					jasperQuery.append(tmp[1]);
+            					if((tmp2.length - 1) > x){
+            						jasperQuery.append("&");
+            					}
             				}
-            				if(tmp.length >= i) jasperQuery.append("?");
             			}
-            			else{
-            				jasperQuery.append(tmp[0]);
-            				if(tmp.length == 2){
-            					jasperQuery.append("=");
-            					jasperQuery.append(tmp[1]);
-            				}
-            				if(tmp.length >= i) jasperQuery.append("?");
-            			}
+            			if((parms.length - 1) > i) jasperQuery.append("?");
             		}
             		else{
             			jasperQuery.append(parms[i]);
-            			if(parms.length >= i) jasperQuery.append("?");
+            			if((parms.length - 1) > i){
+            				jasperQuery.append("?");
+            			}
             		}
             	}
             }
