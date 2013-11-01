@@ -55,7 +55,8 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 	private MessageConsumer responseConsumer;
 	private Map<String,Message> responses;
 	private Map<String,Object> locks;
-	public Map<String, String> uriMapper = new HashMap<String, String>();
+	private Map<String, String> uriMapper = new HashMap<String, String>();
+	private int jscTimeout = 0;
 
 	private ScheduledExecutorService mapAuditExecutor;
 
@@ -72,6 +73,13 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
     	
     	String user = prop.getProperty("jsc.username");
     	String password = prop.getProperty("jsc.password");
+    	String timeout  = prop.getProperty("jsc.timeout", "60000");
+    	try{
+    		jscTimeout = Integer.parseInt(timeout);
+    	} catch (NumberFormatException ex) {
+    		jscTimeout = 60000; // set to 60 seconds on error
+    	}
+ 
 		try {
 			String transportURL = prop.getProperty("jsc.transport");
 			ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(transportURL);
@@ -289,12 +297,12 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 			    int count = 0;
 			    while(!responses.containsKey(correlationID)){
 			    	try {
-						lock.wait(10000);
+						lock.wait(jscTimeout);
 					} catch (InterruptedException e) {
 						log.error("Interrupted while waiting for lock notification",e);
 					}
 			    	count++;
-			    	if(count >= 6)break;
+			    	if(count >= 1)break;
 			    }
 			    responseJmsMsg = responses.remove(correlationID);
 			}
