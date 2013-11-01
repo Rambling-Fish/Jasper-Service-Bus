@@ -4,7 +4,7 @@ USER="jasper"
 
 case "$1" in
    start)
-      cd /opt/jasper/jasper-2.0/jsb-core/mule-standalone-3.3.0/bin
+      cd /opt/jasper/jasper-2.1/jsb-core/mule-standalone-3.3.0/bin
       su "$USER" -c "./mule start"
       cd ../../../
       ;;
