@@ -322,6 +322,7 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 			
 		} catch (JMSException e) {
 			log.error("Exception when trying to send request to jasper",e);
+			response.getWriter().write("{\"error\"=\"jscTimedOutWaitingForJsbResponse\"}");
 		}
     }
 
