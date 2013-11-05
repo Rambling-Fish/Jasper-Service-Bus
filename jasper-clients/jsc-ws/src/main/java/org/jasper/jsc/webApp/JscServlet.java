@@ -1,9 +1,13 @@
 package org.jasper.jsc.webApp;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -51,6 +55,8 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 	private MessageConsumer responseConsumer;
 	private Map<String,Message> responses;
 	private Map<String,Object> locks;
+	private Map<String, String> uriMapper = new HashMap<String, String>();
+	private int jscTimeout = 0;
 
 	private ScheduledExecutorService mapAuditExecutor;
 
@@ -60,12 +66,20 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
     
 	public void init(){
     	Properties prop = getProperties();
+    	loadOntologyMapper();
 
     	responses = new ConcurrentHashMap<String, Message>();
     	locks = new ConcurrentHashMap<String, Object>();
     	
     	String user = prop.getProperty("jsc.username");
     	String password = prop.getProperty("jsc.password");
+    	String timeout  = prop.getProperty("jsc.timeout", "60000");
+    	try{
+    		jscTimeout = Integer.parseInt(timeout);
+    	} catch (NumberFormatException ex) {
+    		jscTimeout = 60000; // set to 60 seconds on error
+    	}
+ 
 		try {
 			String transportURL = prop.getProperty("jsc.transport");
 			ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(transportURL);
@@ -110,6 +124,7 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 		};;;
 		
 		mapAuditExecutor.scheduleAtFixedRate(command , AUDIT_TIME_IN_MILLISECONDS, AUDIT_TIME_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
+		
     }
 	
     public void destroy(){
@@ -154,6 +169,44 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 		}  		
     	return prop;
 	}
+    
+    private void loadOntologyMapper() {
+    	BufferedReader br = null;
+    	String line;
+    	String[] parsedLine;
+		try {
+    	File file = new File(System.getProperty("catalina.base") + "/conf/jsc.ontology.properties");
+			if(file.exists()){
+				FileReader inputFile = new FileReader(file);
+				if(log.isInfoEnabled()) log.info("loading properties file from catalina.base/conf");
+				br = new BufferedReader(inputFile);
+
+			    // Read file line by line and print on the console
+			    while ((line = br.readLine()) != null)   {
+			    	parsedLine = line.split("=");
+			    	uriMapper.put(parsedLine[0], parsedLine[1]);
+			    }
+			    //Close the buffer reader
+			    br.close();
+			}else{
+				InputStream input = getServletContext().getResourceAsStream("/WEB-INF/conf/jsc.ontology.properties");
+				if(input != null){
+					br = new BufferedReader(new InputStreamReader(input));
+					if(log.isInfoEnabled()) log.info("loading properties file from WEB-INF/conf");
+					while ((line = br.readLine()) != null)   {
+						parsedLine = line.split("=");
+						uriMapper.put(parsedLine[0], parsedLine[1]);
+					}
+					//Close the buffer reader
+					br.close();
+				}
+			}
+			
+		} catch (IOException e) {
+			log.warn("error loading ontology properties file - continuing without", e);
+		} 
+   	
+	}
 	
 	private void auditMap() {
 		synchronized (responses) {
@@ -175,12 +228,56 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
     	StringBuffer jasperQuery = new StringBuffer();
+    	String[] tmp;
+    	String[] tmp2;
         String path = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):"";
-        jasperQuery.append(path);
-        if(request.getQueryString() != null)
-        {
+        if(uriMapper.containsKey(path)){
+        	jasperQuery.append(uriMapper.get(path));
+        }
+        else{
+        	jasperQuery.append(path);
+        }
+ 
+        if(request.getQueryString() != null){
             jasperQuery.append("?");
-            jasperQuery.append(request.getQueryString());
+            if(!request.getQueryString().startsWith("query=")){
+            	// parse all parameters in incoming query
+            	// we ignore sparql queries as there is nothing to parse or
+            	// URIs to map
+            	String parms[] = request.getQueryString().split("\\?");
+
+            	for(int i=0;i<parms.length;i++){
+            		if(!parms[i].startsWith("trigger=")){
+            			tmp2 = parms[i].split("&");
+            			for(int x=0;x<tmp2.length;x++){
+            				tmp = tmp2[x].split("=");
+            				if(uriMapper.containsKey(tmp[0])){
+            					jasperQuery.append(uriMapper.get(tmp[0]));
+            				}
+            				else{
+            					jasperQuery.append(tmp[0]);
+            				}
+            				if(tmp.length == 2){
+            					jasperQuery.append("=");
+            					jasperQuery.append(tmp[1]);
+            					if((tmp2.length - 1) > x){
+            						jasperQuery.append("&");
+            					}
+            				}
+            			}
+            			if((parms.length - 1) > i) jasperQuery.append("?");
+            		}
+            		else{
+            			jasperQuery.append(parms[i]);
+            			if((parms.length - 1) > i){
+            				jasperQuery.append("?");
+            			}
+            		}
+            	}
+            }
+            else{
+            	jasperQuery.append(request.getQueryString());
+            }
         }
        
 		try {
@@ -200,12 +297,12 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 			    int count = 0;
 			    while(!responses.containsKey(correlationID)){
 			    	try {
-						lock.wait(10000);
+						lock.wait(jscTimeout);
 					} catch (InterruptedException e) {
 						log.error("Interrupted while waiting for lock notification",e);
 					}
 			    	count++;
-			    	if(count >= 6)break;
+			    	if(count >= 1)break;
 			    }
 			    responseJmsMsg = responses.remove(correlationID);
 			}
@@ -225,6 +322,7 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 			
 		} catch (JMSException e) {
 			log.error("Exception when trying to send request to jasper",e);
+			response.getWriter().write("{\"error\"=\"jscTimedOutWaitingForJsbResponse\"}");
 		}
     }
 
