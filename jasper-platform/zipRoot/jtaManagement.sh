@@ -74,7 +74,7 @@ deploy()
             echo ""
             echo "$CHOICE is being deployed...please wait"
             sleep 10s
-            mv JTAs/"$CHOICE" jsb-core/mule-standalone-3.3.0/apps/"$CHOICE" 
+            mv JTAs/"$CHOICE" jsb-core/mule-standalone-3.4.0/apps/"$CHOICE" 
             sleep 5s
             deploy
             break
@@ -91,7 +91,7 @@ undeploy()
     echo "JTA undeployment"
     echo "-----------------"
     echo
-    cd jsb-core/mule-standalone-3.3.0/apps/
+    cd jsb-core/mule-standalone-3.4.0/apps/
     JTAList=`find . -maxdepth 1 -name "*-anchor.txt" | grep -v default-anchor.txt | rev | cut -c 12- | rev | cut -c 3-`
     cd ../../../
     get_m_pid
@@ -117,8 +117,8 @@ undeploy()
            echo ""
            echo "$CHOICE is being undeployed...please wait"
            sleep 10s
-           cp -rf jsb-core/mule-standalone-3.3.0/apps/"$CHOICE" JTAs/"$CHOICE"
-           rm jsb-core/mule-standalone-3.3.0/apps/"$CHOICE"-anchor.txt
+           cp -rf jsb-core/mule-standalone-3.4.0/apps/"$CHOICE" JTAs/"$CHOICE"
+           rm jsb-core/mule-standalone-3.4.0/apps/"$CHOICE"-anchor.txt
            sleep 5s
            undeploy
            break
@@ -366,7 +366,7 @@ else
      cd ..
    fi
    if [ $1 = "-ld" ]; then
-      cd jsb-core/mule-standalone-3.3.0/apps/
+      cd jsb-core/mule-standalone-3.4.0/apps/
       JTAList=`find . -maxdepth 1 -name "*-anchor.txt" | rev | cut -c 12- | rev | cut -c 3-`
       cd ../../../
       echo "$JTAList"
@@ -375,15 +375,15 @@ else
       if [ -z $2 ]; then
          echo "Usage: $0 -d[eploy] {appName}" 
       else
-         mv JTAs/"$2" jsb-core/mule-standalone-3.3.0/apps/"$2"
+         mv JTAs/"$2" jsb-core/mule-standalone-3.4.0/apps/"$2"
       fi
    fi
    if [ $1 = "-u" ];then
       if [ -z $2 ]; then
          echo "Usage: $0 -u[ndeploy] {appName}"
       else
-         mv jsb-core/mule-standalone-3.3.0/apps/"$2" JTAs 
-        rm jsb-core/mule-standalone-3.3.0/apps/"$2-anchor.txt"
+         mv jsb-core/mule-standalone-3.4.0/apps/"$2" JTAs 
+        rm jsb-core/mule-standalone-3.4.0/apps/"$2-anchor.txt"
       fi
    fi
 fi
