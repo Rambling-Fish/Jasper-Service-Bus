@@ -123,6 +123,7 @@ public class JasperLicenseKeyGenerator {
 		        		                   "\tjtav - validate JTA lisenceFile\n" +
 		        		                   "\tjsb  - generate JSB lisenceFile\n" +
 		        		                   "\tjsbv - validate JSB lisenceFile\n" +
+		        		                   "\ttest - generate testing mule app\n" +
 		        		                   "\t:");
 		        input = in.readLine();
 		        input = input.toLowerCase();
@@ -189,7 +190,7 @@ public class JasperLicenseKeyGenerator {
 		        	}else{
 		        		System.out.println("lisence file doesn't exist");
 		        	}
-		        } if (input.startsWith("jsb")){
+		        } else if (input.startsWith("jsb")){
 		        	System.out.println("jasperLab:0:2012-12-25:time.nrc.ca");
 		        	System.out.print("Enter JSB info <deployment_id>:<jsb_instance>:<expiry yyyy-mm-dd>:<ntp_host>:<ntp_port> ; expiry and ntp info optional = \n");
 			        input = in.readLine();
@@ -224,6 +225,38 @@ public class JasperLicenseKeyGenerator {
 			        lic.setLicenseKey(rsaEncrypt(lic.toString().getBytes(), privateKey));
 			        saveJSBLicenseToFile(LICENSE_FILE_PATH, lic);
 			        System.out.println("File created : " + LICENSE_FILE_PATH + lic.getDeploymentId() + JAuthHelper.JSB_LICENSE_FILE_SUFFIX);
+		        }else if(input.startsWith("test")){
+		        	System.out.print("Number of connections: ");
+		        	int num = Integer.parseInt(in.readLine());
+		        	
+		        	StringBuilder sb = new StringBuilder();
+		        	sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" + 
+		        			  "<mule xmlns=\"http://www.mulesoft.org/schema/mule/core\" xmlns:http=\"http://www.mulesoft.org/schema/mule/http\" xmlns:jms=\"http://www.mulesoft.org/schema/mule/jms\" xmlns:doc=\"http://www.mulesoft.org/schema/mule/documentation\" xmlns:spring=\"http://www.springframework.org/schema/beans\" xmlns:core=\"http://www.mulesoft.org/schema/mule/core\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"CE-3.3.0\" xsi:schemaLocation=\"http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd\">\n");
+		        	
+		        	for(int count = 0;count < num;count++){
+		        		String username = "jasper:jtaDemo-sample-" + count + ":1.0:jasperLab";
+		        		String[] appInfo = username.split(":");			        
+				        String vendor = appInfo[0];
+				        String appName = appInfo[1];
+				        String version = appInfo[2];
+				        String deploymentId = appInfo[3];
+		        		
+		        		JTALicense lic = new JTALicense(vendor, appName, version, deploymentId, null, null, null, null);
+				        lic.setLicenseKey(rsaEncrypt(lic.toString().getBytes(), privateKey));
+						String password = JAuthHelper.bytesToHex(lic.getLicenseKey());
+						
+		        		sb.append("  <jms:activemq-connector name=\"con" + count + "\" specification=\"1.1\" username=\""+ username +"\" password=\"" + password + "\" brokerURL=\"${jasperEngineURL}\" validateConnections=\"true\" maxRedelivery=\"10\" doc:name=\"con" + count + "\" />\n");
+		        	}
+		        	
+		        	sb.append("\n");
+		        	
+		        	for(int count = 0;count < num;count++){
+		        		sb.append("  <flow name=\"jms" + count + "-flow\" doc:name=\"jms" + count + "-flow\"><jms:inbound-endpoint exchange-pattern=\"request-response\" queue=\"jms.jasper.jtaDemo-sample-" + count + ".1.0.jasperLab.admin.queue\" connector-ref=\"con" + count + "\" doc:name=\"jms" + count + "\"/><component class=\"org.jasper.testing.loaclcache.LocalCache\" doc:name=\"Java\"/></flow>\n");
+		        	}
+		        	
+		        	sb.append("</mule>\n");
+		        	
+		        	System.out.print(sb);
 		        }
 		    }
 		} catch (IOException e) {
