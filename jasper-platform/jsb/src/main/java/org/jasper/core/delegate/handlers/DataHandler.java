@@ -187,14 +187,14 @@ public class DataHandler implements Runnable {
 	  	  		  			if(value.isString()){
 	  	  		  				valuePair.put(key, ((JsonString)value).value());
 	  	  		  			}else{
-	  	  		  				logger.warn("value is not String" + value);
+	  	  		  			if(logger.isInfoEnabled()) logger.info("value is not String" + value);
 	  	  		  			}
   	  		  			}else{
-  	  		  				logger.warn("index is neither JsonObject nor JsonString, index = " + index);
+  	  		  			if(logger.isInfoEnabled()) logger.info("index is neither JsonObject nor JsonString, index = " + index);
   	  		  			}
   		  			}
   				}else{
-	  				logger.warn("param is neither JsonString nor JsonArray, param = " + param);
+  					if(logger.isInfoEnabled()) logger.info("param is neither JsonString nor JsonArray, param = " + param);
   				}
   			}
   			
@@ -227,7 +227,6 @@ public class DataHandler implements Runnable {
 		if(request == null)return null;
 		String[] splitRequest = request.split("\\?");
 		if(splitRequest.length == 1){
-//			return new HashMap<String, String>();
 			return getMapFromValuePairString(splitRequest[0]);
 		}else if(splitRequest.length == 2){
 			return getMapFromValuePairString(splitRequest[1]);
