@@ -35,35 +35,27 @@ public class AdminHandler implements Runnable {
 
 	public void run() {
 		try{
-			handleAdminMessage();
+			jam = (JasperAdminMessage) ((ObjectMessage)jmsRequest).getObject();
+			if(jam == null){
+				logger.warn("AdminHandler did not receive a JasperAdminMessage, ignoring message : " + jmsRequest);
+				return;
+			}
+			
+			Command cmd = jam.getCommand();
+			switch (cmd) {
+				case jta_disconnect:
+					handleDisconnect();
+					break;
+				case jta_connect:
+					handleConnect();
+					break;
+				default:
+					logger.error("Invalid Jasper Admin Message received - ignoring " + jam.getCommand());
+					break;
+			}
 		}catch (Exception e){
 			logger.error("Exception caught in handler " + e);
 		}
-	}
-	
-	private void handleAdminMessage() throws Exception {
-		if(jmsRequest instanceof ObjectMessage && ((ObjectMessage)jmsRequest).getObject() instanceof JasperAdminMessage){
-			jam = (JasperAdminMessage) ((ObjectMessage)jmsRequest).getObject();
-		}
-		
-		if(jam == null){
-			logger.warn("AdminHandler did not receive a JasperAdminMessage, ignoring message : " + jmsRequest);
-			return;
-		}
-		
-		Command cmd = jam.getCommand();
-		switch (cmd) {
-			case jta_disconnect:
-				handleDisconnect();
-				break;
-			case jta_connect:
-				handleConnect();
-				break;
-			default:
-				logger.error("Invalid Jasper Admin Message received - ignoring " + jam.getCommand());
-				break;
-		}
-		
 	}
 	
 	private void handleDisconnect(){
