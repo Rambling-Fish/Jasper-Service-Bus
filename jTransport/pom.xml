@@ -15,6 +15,7 @@
     
     <modules>
         <module>jTransport-jasperEngine</module>
+        <module>JasperConnector</module>
     </modules>
     
     <build>

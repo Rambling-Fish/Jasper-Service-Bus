@@ -1,0 +1,15 @@
+<!-- BEGIN_INCLUDE(jasper:publish-to-topic) -->
+    <jasper:publish-to-topic topic="Some Topic" />
+<!-- END_INCLUDE(jasper:publish-to-topic) -->
+
+<!-- BEGIN_INCLUDE(jasper:send-to-queue-receive-response) -->
+    <jasper:send-to-queue-receive-response />
+<!-- END_INCLUDE(jasper:send-to-queue-receive-response) -->
+
+<!-- BEGIN_INCLUDE(jasper:subscribe-to-topic) -->
+    <jasper:subscribe-to-topic topic="Some Topic" />
+<!-- END_INCLUDE(jasper:subscribe-to-topic) -->
+
+<!-- BEGIN_INCLUDE(jasper:receive-from-queue-send-response) -->
+    <jasper:receive-from-queue-send-response queue="Some Queue" />
+<!-- END_INCLUDE(jasper:receive-from-queue-send-response) -->
