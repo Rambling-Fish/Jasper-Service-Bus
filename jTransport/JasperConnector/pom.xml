@@ -20,6 +20,32 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
+	                <groupId>org.apache.maven.plugins</groupId>
+	                <artifactId>maven-resources-plugin</artifactId>
+	                <version>2.6</version>
+	                <executions>
+	                    <execution>
+	                        <id>copy-resources-jasper-connector</id>
+	                        <phase>install</phase>
+	                        <goals>
+	                            <goal>copy-resources</goal>
+	                        </goals>
+	                        <configuration>
+	                            <outputDirectory>${project.basedir}/../../target/jTransports</outputDirectory>
+	                            <resources>
+	                                <resource>
+	                                    <directory>${project.basedir}/target</directory>
+	                                    <includes>
+	                                        <include>*.jar</include>
+	                                        <include>*.zip</include>
+	                                    </includes>
+	                                </resource>
+	                            </resources>
+	                        </configuration>
+	                    </execution>
+	                </executions>
+                </plugin>
+				<plugin>
 					<groupId>org.mule.tools.devkit</groupId>
 					<artifactId>mule-devkit-maven-plugin</artifactId>
 					<version>${mule.devkit.version}</version>
