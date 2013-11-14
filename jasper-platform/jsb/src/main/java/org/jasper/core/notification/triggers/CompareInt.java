@@ -8,19 +8,22 @@ import org.apache.jena.atlas.json.JsonArray;
 import org.apache.log4j.Logger;
 import org.jasper.core.notification.util.JsonResponseParser;
 
-public class Count implements Serializable, Trigger{
+public class CompareInt extends Trigger implements Serializable{
 	private static final long serialVersionUID = -4016629738650948052L;
 	private String left;
 	private String right;
 	private String operand;
 	private int x;
 	private int y;
-	static Logger logger = Logger.getLogger(Count.class.getName());
-
-	public Count(String left, String operand, String right) {
+	static Logger logger = Logger.getLogger(CompareInt.class.getName());
+	
+	public CompareInt(int expiry, int polling, String left, String operand, String right) {
+		super(expiry, polling);
 		this.left    = left;
 		this.right   = right;
 		this.operand = operand;
+		this.expiry = expiry;
+		this.polling = polling;
 
 		try{
 			if(!left.startsWith("http")){
@@ -35,6 +38,7 @@ public class Count implements Serializable, Trigger{
 		
 	}
 	
+	@Override
 	public boolean evaluate(JsonArray ruriArray){
 		JsonResponseParser respParser = new JsonResponseParser();
 		

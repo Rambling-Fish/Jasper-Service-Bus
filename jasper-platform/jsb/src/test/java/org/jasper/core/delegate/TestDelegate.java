@@ -60,6 +60,7 @@ public class TestDelegate  extends TestCase {
 	private Message message;
 	private ExecutorService executorService;
 	private Delegate[] delegates = new Delegate[2];
+	private HazelcastInstance hz;
 
 	/*
 	 * This test sends an invalid response to the delegate in response to a get_ontology 
@@ -383,8 +384,7 @@ public class TestDelegate  extends TestCase {
 		 Config cfg = new Config();
 		 GroupConfig groupConfig = new GroupConfig("testDelegateJunitTestingSuite", "testDelegateJunitTestingSuite_" + System.currentTimeMillis());
 		 cfg.setGroupConfig(groupConfig);
-		 HazelcastInstance hz = Hazelcast.newHazelcastInstance(cfg);
-		 core.setHazelcastInstance(hz);
+		 hz = Hazelcast.newHazelcastInstance(cfg);
 		 
 		 delegateFactory = new DelegateFactory(false, core);
 
@@ -419,11 +419,8 @@ public class TestDelegate  extends TestCase {
 		for(int i = 0; i< delegates.length; i++) {
 			delegates[i].shutdown();
 		}
-		delegateFactory.getHazelcastInstance().getLifecycleService().shutdown();
+		hz.getLifecycleService().shutdown();
 		Thread.sleep(500);
-		if(delegateFactory.getHazelcastInstance().getLifecycleService().isRunning()){
-			delegateFactory.getHazelcastInstance().getLifecycleService().shutdown();
-		}
 		session           = null;
 		connection        = null;
 		producer          = null;

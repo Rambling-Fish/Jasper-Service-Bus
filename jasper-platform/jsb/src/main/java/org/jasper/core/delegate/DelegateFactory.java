@@ -8,9 +8,6 @@ import org.jasper.core.JECore;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JasperOntologyConstants;
 
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 
@@ -18,13 +15,11 @@ public class DelegateFactory{
 
 	private Connection connection;
     private Model model;
-    private HazelcastInstance hazelcastInstance;
     private DelegateOntology jOntology;
 
     public DelegateFactory(boolean distributed, JECore core) throws JMSException{ 	
     	initializeModel();   	
     	
-		hazelcastInstance = core.getHazelcastInstance();
 		jOntology = new DelegateOntology(this, model);
 		
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
@@ -46,7 +41,4 @@ public class DelegateFactory{
         }
     }
 
-	public HazelcastInstance getHazelcastInstance() {
-		return hazelcastInstance;
-	}
 }

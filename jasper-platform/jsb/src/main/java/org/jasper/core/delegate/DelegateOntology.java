@@ -7,6 +7,7 @@ import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.log4j.Logger;
 import org.jasper.core.constants.JasperOntologyConstants;
+import org.jasper.core.persistence.PersistenceFacade;
 
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
@@ -39,7 +40,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	
 	public DelegateOntology(DelegateFactory factory, Model model){
 		this.model = model;
-		jtaStatements = factory.getHazelcastInstance().getMultiMap("jtaStatements");
+		jtaStatements = PersistenceFacade.getInstance().getMultiMap("jtaStatements");
 		jtaStatements.addEntryListener(this, true);
 	}
 
