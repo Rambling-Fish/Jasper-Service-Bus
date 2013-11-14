@@ -295,6 +295,7 @@ this.key = txtMsg.getJMSMessageID(); //TODO need a key all UDEs would know
 		for(int i=0;i<triggerList.size();i++){
 			if(triggerList.get(i).evaluate(response)){
 				result = true;
+				sharedTriggers.remove(key);
 			}
 		}
 	
@@ -310,6 +311,7 @@ this.key = txtMsg.getJMSMessageID(); //TODO need a key all UDEs would know
 		for(int i=0;i<triggerList.size();i++){
 			if(triggerList.get(i).isNotificationExpired()){
 				result = true;
+				sharedTriggers.remove(key);
 			}
 		}
 	
