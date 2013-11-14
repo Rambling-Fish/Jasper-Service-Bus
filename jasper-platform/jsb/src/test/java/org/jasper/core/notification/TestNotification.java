@@ -26,6 +26,7 @@ import org.jasper.core.delegate.DelegateFactory;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.notification.triggers.TriggerFactory;
 import org.jasper.core.notification.util.JsonResponseParser;
+import org.jasper.core.persistence.PersistenceFacade;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -47,6 +48,11 @@ public class TestNotification  extends TestCase {
 	private static final String COUNT_NOTIFICATION = "http://coralcea.ca/jasper/roomTempData?trigger=count(http://coralcea.ca/jasper/environmentalSensor/roomTemperature,gt,15)?expiry=20?polling=5";
 	private static final String BAD_NOTIFICATION = "?trigger=count(http://coralcea.ca/jasper/environmentalSensor/roomTemperature,gt,15)?expiry=20";
 	private static final String NOT_MET_NOTIFICATION = "http://coralcea.ca/jasper/roomTempData?trigger=count(http://coralcea.ca/jasper/environmentalSensor/roomTemperature,gt,40)?expiry=5?polling=5";
+	private static final String COMPARE_INT = "compareint";
+	private static final String RANGE = "range";
+	
+	private static final int EXPIRY = 10;
+	private static final int POLLING = 5;
 	private Connection connection;
 	private DelegateFactory delegateFactory;
 	private ActiveMQConnectionFactory connectionFactory;
@@ -57,6 +63,7 @@ public class TestNotification  extends TestCase {
 	private ExecutorService executorService;
 	private Delegate delegate;
 	private JECore core;
+	private HazelcastInstance hz;
 	private String tmp = "{ http://coralcea.ca/jasper/environmentalSensor/roomTemperature : 25 ,\n" +
 		    "http://coralcea.ca/jasper/timeStamp : 2013-10-14 02:18:45.0903 EDT }";
 
@@ -90,17 +97,21 @@ public class TestNotification  extends TestCase {
 	public void testTriggerFactory() {
 		TriggerFactory factory = new TriggerFactory();
 
-		Trigger trig1 = factory.createTrigger("count", RURI, "gt", "20");
-		Trigger trig2 = factory.createTrigger("range", RURI, "10", "25");
-		Trigger trig3 = factory.createTrigger("wrong", RURI, "gt", "45");
-		Trigger trig4 = factory.createTrigger("count", RURI);
-		Trigger trig5 = factory.createTrigger("range", RURI,"20","ne", "30");
+		Trigger trig1 = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "gt", "20");
+		Trigger trig2 = factory.createTrigger(RANGE, EXPIRY, POLLING, RURI, "10", "25");
+		Trigger trig3 = factory.createTrigger("wrong", EXPIRY, POLLING, RURI, "gt", "45");
+		Trigger trig4 = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI);
+		Trigger trig5 = factory.createTrigger(RANGE, EXPIRY, POLLING, RURI,"20","ne", "30");
 
 		TestCase.assertNotNull(trig1);
 		TestCase.assertNotNull(trig2);
 		TestCase.assertNull(trig3);
 		TestCase.assertNull(trig4);
 		TestCase.assertNull(trig5);
+		
+		Trigger trigger = new Trigger();
+		trigger.evaluate(null);
+		TestCase.assertNotNull(trigger);
 	
 	}
 	
@@ -108,33 +119,46 @@ public class TestNotification  extends TestCase {
 	 * This tests the Count Trigger class
 	 */
 	@Test
-	public void testCountTrigger() {
+	public void testCompareIntTrigger() {
 		TriggerFactory factory = new TriggerFactory();
-		Trigger gtCount  = factory.createTrigger("count", RURI, "gt", "20");
-		Trigger eqCount  = factory.createTrigger("count", RURI, "eq", "25");
-		Trigger ltCount  = factory.createTrigger("count", RURI, "lt", "38");
-		Trigger neCount  = factory.createTrigger("count", RURI, "ne", "26");
-		Trigger geCount  = factory.createTrigger("count", RURI, "ge", "22");
-		Trigger leCount  = factory.createTrigger("count", RURI, "le", "25");
-		Trigger badCount = factory.createTrigger("count", RURI, "bad", "25");
-		Trigger left     = factory.createTrigger("count", "23Q", "lt", "40");
+		Trigger gtCompareInt  = factory.createTrigger(COMPARE_INT, 20, POLLING, RURI, "gt", "20");
+		gtCompareInt.setNotificationExpiry();
+		while(true){
+			try{
+				if(!gtCompareInt.isNotificationExpired()){
+					System.out.println(1);
+					Thread.sleep(100);
+				}
+				else break;
+			} catch (Exception ex){
+				System.out.println("Exception occurred during TestNotification.testcompareIntTrigger");
+			}
+		}
+		Trigger eqCompareInt  = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "eq", "25");
+		Trigger ltCompareInt  = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "lt", "38");
+		Trigger neCompareInt  = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "ne", "26");
+		Trigger geCompareInt  = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "ge", "22");
+		Trigger leCompareInt  = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "le", "25");
+		Trigger badCompareInt = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "bad", "25");
+		Trigger left          = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, "23Q", "lt", "40");
+		Trigger right         = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, "23Q", "lt", "http://jasper.com");
 
 		JsonArray response = new JsonArray();
 		response.add(tmp);
 		
 		// test all the operands
-		TestCase.assertTrue(gtCount.evaluate(response));
-		TestCase.assertTrue(eqCount.evaluate(response));
-		TestCase.assertTrue(ltCount.evaluate(response));
-		TestCase.assertTrue(neCount.evaluate(response));
-		TestCase.assertTrue(geCount.evaluate(response));
-		TestCase.assertTrue(leCount.evaluate(response));
-		TestCase.assertFalse(badCount.evaluate(response));
+		TestCase.assertTrue(gtCompareInt.evaluate(response));
+		TestCase.assertTrue(eqCompareInt.evaluate(response));
+		TestCase.assertTrue(ltCompareInt.evaluate(response));
+		TestCase.assertTrue(neCompareInt.evaluate(response));
+		TestCase.assertTrue(geCompareInt.evaluate(response));
+		TestCase.assertTrue(leCompareInt.evaluate(response));
+		TestCase.assertFalse(badCompareInt.evaluate(response));
 		left.evaluate(response);
 		
 		//Test empty response passed into trigger
 		response.clear();
-		TestCase.assertFalse(gtCount.evaluate(response));
+		TestCase.assertFalse(gtCompareInt.evaluate(response));
 
 	}
 	
@@ -146,8 +170,8 @@ public class TestNotification  extends TestCase {
 		JsonArray response = new JsonArray();
 		response.add(tmp);
 		TriggerFactory factory = new TriggerFactory();
-		Trigger range1  = factory.createTrigger("range", RURI, "20", "30");
-		Trigger range2  = factory.createTrigger("range", "30T", "25", "36");
+		Trigger range1  = factory.createTrigger(RANGE, EXPIRY, POLLING, RURI, "20", "30");
+		Trigger range2  = factory.createTrigger(RANGE, EXPIRY, POLLING, "30T", "25", "36");
 		
 		TestCase.assertTrue(range1.evaluate(response));
 		
@@ -282,8 +306,7 @@ public class TestNotification  extends TestCase {
 		 Config cfg = new Config();
 		 GroupConfig groupConfig = new GroupConfig("testNotificationJunitTestingSuite", "testNotificationJunitTestingSuite_" + System.currentTimeMillis());
 		 cfg.setGroupConfig(groupConfig);
-		 HazelcastInstance hz = Hazelcast.newHazelcastInstance(cfg);
-		 core.setHazelcastInstance(hz);
+		 hz = Hazelcast.newHazelcastInstance(cfg);
 		 
 		 delegateFactory = new DelegateFactory(false, core);
 
@@ -313,11 +336,8 @@ public class TestNotification  extends TestCase {
 		connection.close();
 
 		delegate.shutdown();
-		delegateFactory.getHazelcastInstance().getLifecycleService().shutdown();
+		hz.getLifecycleService().shutdown();
 		Thread.sleep(500);
-		if(delegateFactory.getHazelcastInstance().getLifecycleService().isRunning()){
-			delegateFactory.getHazelcastInstance().getLifecycleService().shutdown();
-		}
 		session           = null;
 		connection        = null;
 		producer          = null;

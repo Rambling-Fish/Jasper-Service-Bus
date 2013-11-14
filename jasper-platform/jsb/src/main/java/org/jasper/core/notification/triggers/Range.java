@@ -8,7 +8,7 @@ import org.apache.jena.atlas.json.JsonArray;
 import org.apache.log4j.Logger;
 import org.jasper.core.notification.util.JsonResponseParser;
 
-public class Range implements Serializable, Trigger{
+public class Range extends Trigger implements Serializable{
 	private static final long serialVersionUID = -4016645138650948052L;
 	private String left;
 	private String minString;
@@ -19,7 +19,8 @@ public class Range implements Serializable, Trigger{
 	static Logger logger = Logger.getLogger(Range.class.getName());
 
 	
-	public Range(String left, String min, String max) {
+	public Range(int expiry, int polling, String left, String min, String max) {
+		super(expiry, polling);
 		this.left    = left;
 		this.minString   = min;
 		this.maxString = max;
@@ -36,6 +37,7 @@ public class Range implements Serializable, Trigger{
 		
 	}
 	
+	@Override
 	public boolean evaluate(JsonArray ruriArray){
 		JsonResponseParser respParser = new JsonResponseParser();
 		

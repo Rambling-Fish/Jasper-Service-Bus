@@ -23,7 +23,7 @@ import org.apache.activemq.broker.BrokerFilter;
 import org.apache.activemq.broker.ConnectionContext;
 import org.apache.activemq.command.ConnectionInfo;
 import org.apache.log4j.Logger;
-import org.jasper.core.constants.JtaInfo;
+import org.jasper.core.persistence.PersistenceFacade;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
@@ -32,9 +32,6 @@ import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
 
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.ITopic;
-import com.hazelcast.core.MessageListener;
 import com.hazelcast.core.MultiMap;
  
 public class JasperBroker extends BrokerFilter implements EntryListener, javax.jms.MessageListener {
@@ -82,7 +79,7 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
          
         jsbConnectionInfoMap = new ConcurrentHashMap<String, ConnectionInfo>();
         jtaConnectionContextMap = new ConcurrentHashMap<String, ConnectionContext>();
-        registeredLicenseKeys = core.getHazelcastInstance().getMultiMap("registeredLicenseKeys");
+        registeredLicenseKeys = PersistenceFacade.getInstance().getMultiMap("registeredLicenseKeys");
         registeredLicenseKeys.addEntryListener (this, true);
         
         

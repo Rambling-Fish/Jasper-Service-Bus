@@ -38,14 +38,10 @@ import org.apache.log4j.xml.DOMConfigurator;
 import org.jasper.core.auth.JasperAuthenticationPlugin;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateFactory;
+import org.jasper.core.persistence.PersistenceFacade;
 import org.jasper.jLib.jAuth.JSBLicense;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
-
-import com.hazelcast.config.Config;
-import com.hazelcast.config.GroupConfig;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
 
 public class JECore {
 	
@@ -70,8 +66,6 @@ public class JECore {
 
 	private static Delegate[] delegates;
 
-	private HazelcastInstance hazelcastInstance;
-	
 	private JECore(){
 		
 	}
@@ -278,24 +272,7 @@ public class JECore {
 			}
 		}
 		executorService.shutdown();
-		
-		if(hazelcastInstance != null){
-	    	hazelcastInstance.getLifecycleService().shutdown();
-	    	int count = 0;
-			try {
-		    	while(hazelcastInstance.getLifecycleService().isRunning()){
-					Thread.sleep(500);
-		    		count++;
-		    		if(count > 20){
-		    			hazelcastInstance.getLifecycleService().terminate();
-		    			break;
-		    		}
-		    	}
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-    	}
+		PersistenceFacade.getInstance().shutdown();
 		
 		try {
 			broker.stop();
@@ -457,11 +434,6 @@ public class JECore {
     			BrokerRegistry.getInstance().bind("localhost", core.broker);
     			core.broker.setPersistent(false);
     			
-				Config cfg = new Config();
-				GroupConfig groupConfig = new GroupConfig(core.getDeploymentID(), core.getDeploymentID() + "_password_july_10_2013_0725");
-				cfg.setGroupConfig(groupConfig);
-				core.hazelcastInstance=Hazelcast.newHazelcastInstance(cfg);
-    			
     			try{
     				core.broker.getSystemUsage().getMemoryUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("memoryLimit","64")));
     				core.broker.getSystemUsage().getStoreUsage().setLimit(1024L * 1024 * Long.parseLong(prop.getProperty("storeLimit","10000")));
@@ -571,14 +543,6 @@ public class JECore {
 	
 	public boolean isClusterEnabled(){
 		return clusterEnabled;
-	}
-
-	public HazelcastInstance getHazelcastInstance() {
-		return hazelcastInstance;
-	}
-	
-	public void setHazelcastInstance(HazelcastInstance hz) {
-		hazelcastInstance = hz;
 	}
 	
 }

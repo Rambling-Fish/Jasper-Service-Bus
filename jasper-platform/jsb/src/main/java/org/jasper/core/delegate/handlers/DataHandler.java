@@ -24,6 +24,7 @@ import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.notification.triggers.TriggerFactory;
+import org.jasper.core.persistence.PersistenceFacade;
 
 public class DataHandler implements Runnable {
 
@@ -38,9 +39,10 @@ public class DataHandler implements Runnable {
 	private int expiry;
 	private int polling;
 	private boolean isNotificationRequest = false;
-	private long notificationExpiry;
 	private List<Trigger> triggerList;
 	private static final int MILLISECONDS = 1000;
+	private Map<String,List<Trigger>> sharedTriggers;
+	private String key;
 	
 	private static Logger logger = Logger.getLogger(DataHandler.class.getName());
 
@@ -85,7 +87,7 @@ public class DataHandler implements Runnable {
   	    isNotificationRequest = false;
   	    JsonArray response;
   	    String xmlResponse = null;
-
+this.key = txtMsg.getJMSMessageID(); //TODO need a key all UDEs would know
   	    if(request == null || request.length() == 0){
   	    	processInvalidRequest(txtMsg, "Invalid request received, request is null or empty string");
   	    	return;
@@ -99,10 +101,11 @@ public class DataHandler implements Runnable {
   	    
   	    parseRequest(request);
   	    
-  	    if(notification != null){
-  	    	isNotificationRequest = true;
-  	    	setNotificationExpiry();
+  	    if(triggerList != null){
+  	    	sharedTriggers.put(key, triggerList);
   	    }
+  	    
+  	    isNotificationRequest = (notification != null);
 
   	    if(isNotificationRequest){  	    	
   	    	while(true){
@@ -117,9 +120,9 @@ public class DataHandler implements Runnable {
   	    			}
   	    		}
   	    		else if(isNotificationExpired()){
-	    				processInvalidRequest(txtMsg, "notification: " + notification + " has expired");
-	    				return;
-	    			}
+  	    			processInvalidRequest(txtMsg, "notification: " + notification + " has expired");
+  	    			return;
+  	    		}
   	    		Thread.sleep(polling);
   	    	}
   	    }
@@ -127,27 +130,27 @@ public class DataHandler implements Runnable {
   	    	response = getResponse(ruri,request);
   	    }
 
-    	if(response == null){
-    		if(!isNotificationRequest){
-    			processInvalidRequest(txtMsg, ""+ ruri +" is not supported");
-    			return;
-    		}
-    		else{
-    			if(isNotificationExpired()){
-    				processInvalidRequest(txtMsg, "notification " + notification + " has expired");
-        			return;
-    			}
-    		}
-    	}
+  	    if(response == null){
+  	    	if(!isNotificationRequest){
+  	    		processInvalidRequest(txtMsg, ""+ ruri +" is not supported");
+  	    		return;
+  	    	}
+  	    	else{
+  	    		if(isNotificationExpired()){
+  	    			processInvalidRequest(txtMsg, "notification " + notification + " has expired");
+  	    			return;
+  	    		}
+  	    	}
+  	    }
     	
-    	if(output != null && output.equalsIgnoreCase("xml")){
-    		//TODO convert to xml here IF YOU CAN!
-    		xmlResponse = response.toString();
-    		sendResponse(txtMsg,xmlResponse);
-    	}
-    	else{
-    		sendResponse(txtMsg,response.toString());
-    	}
+  	    if(output != null && output.equalsIgnoreCase("xml")){
+  	    	//TODO convert to xml here IF YOU CAN!
+  	    	xmlResponse = response.toString();
+  	    	sendResponse(txtMsg,xmlResponse);
+  	    }
+  	    else{
+  	    	sendResponse(txtMsg,response.toString());
+  	    }
     	
 	}
 	
@@ -287,10 +290,6 @@ public class DataHandler implements Runnable {
         delegate.sendMessage(jmsRequestMsg.getJMSReplyTo(), message);
 	}
 	
-	private void setNotificationExpiry(){
-		notificationExpiry = (System.currentTimeMillis() + expiry);
-	}
-	
 	private boolean isCriteriaMet(JsonArray response){
 		boolean result = false;
 		for(int i=0;i<triggerList.size();i++){
@@ -303,16 +302,18 @@ public class DataHandler implements Runnable {
 	}
 	
 	/*
-	 * Determines if the current notification has expired or not. If it has not
-	 * expired and the time left to expiry is less than the polling period, 
-	 * the polling period is set to time left to expiry to allow for one more
-	 * attempt to get data
+	 * Checks all triggers in the shared map for expiry
 	 */
 	private boolean isNotificationExpired(){
-		long time = System.currentTimeMillis();
-		long timeLeft = (notificationExpiry - time);
-		if ((timeLeft < polling) && (timeLeft > 0)) polling = (int)timeLeft;
-		return (notificationExpiry - (System.currentTimeMillis() + polling) <= 0);
+		boolean result = false;
+		triggerList = sharedTriggers.get(key);
+		for(int i=0;i<triggerList.size();i++){
+			if(triggerList.get(i).isNotificationExpired()){
+				result = true;
+			}
+		}
+	
+		return result;
 	}
 	
 	/*
@@ -338,15 +339,15 @@ public class DataHandler implements Runnable {
 		String[] triggerParms;
 		for(int i=0; i<functions.length;i++){
 			triggerParms = parms[i].split(",");
-			trigger = factory.createTrigger(functions[i], triggerParms);
+			trigger = factory.createTrigger(functions[i], expiry, polling, triggerParms);
 			if(trigger != null){
+				trigger.setNotificationExpiry();
 				triggerList.add(trigger);
 			}
 			else{
 				logger.error("Invalid notification request received - cannot create trigger: " + triggerParms.toString());
 			}
-		}
-		
+		}		
 	}
 	
 	private void parseRequest(String text) {
@@ -365,7 +366,6 @@ public class DataHandler implements Runnable {
 				if(result[i].toLowerCase().contains("trigger=")){
 					notification = result[i].replaceFirst("trigger=", "");
 					triggerList = new ArrayList<Trigger>();
-					parseTrigger(notification);
 				}
 				else if(result[i].toLowerCase().contains("output=")){
 					output = result[i].toLowerCase().replaceFirst("output=", "");
@@ -376,7 +376,9 @@ public class DataHandler implements Runnable {
 						expiry = Integer.parseInt(tmp);
 						expiry = (expiry * MILLISECONDS); // convert from seconds to milliseconds
 					}catch (NumberFormatException ex) {
-		    			expiry = delegate.maxExpiry; //TODO should this be set to -1 indicating no expiry (one shot at data)
+						// give one shot at getting data on error since we do
+						// know what to set expiry to
+						expiry = 0;
 					}
 				}
 				else if(result[i].toLowerCase().contains("polling=")){
@@ -400,8 +402,11 @@ public class DataHandler implements Runnable {
 				if(polling == -1) polling = delegate.maxPollingInterval; // if not supplied set to max
 				if(polling < delegate.minPollingInterval) polling = delegate.minPollingInterval;
 				if(polling > delegate.maxPollingInterval) polling = delegate.maxPollingInterval;
-				if(polling > expiry) polling = expiry;
+				if(polling > expiry) polling = (int) expiry;
 				if(output == null) output =  delegate.defaultOutput;
+				
+				sharedTriggers = PersistenceFacade.getInstance().getMap("sharedTriggers");
+				parseTrigger(notification);
 			}
 			
 		} catch (URIException e) {
