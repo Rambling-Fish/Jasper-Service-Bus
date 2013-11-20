@@ -39,10 +39,9 @@ public class DataHandler implements Runnable {
 	private String jtaParms;
 	private int expiry;
 	private int polling;
-	private boolean isNotificationRequest = false;
 	private List<Trigger> triggerList;
 	private static final int MILLISECONDS = 1000;
-	private PersistedObject persistedData;
+	private PersistedObject statefulData;
 	private Map<String,PersistedObject> sharedData;
 	
 	private static Logger logger = Logger.getLogger(DataHandler.class.getName());
@@ -55,7 +54,6 @@ public class DataHandler implements Runnable {
 		this.jmsRequest = jmsRequest;
 		this.locks = locks;
 		this.responses = responses;
-		this.persistedData = new PersistedObject();
 	}
 
 	public void run() {
@@ -78,11 +76,11 @@ public class DataHandler implements Runnable {
   	  	}
         
         delegate.sendMessage(msg.getJMSReplyTo(),message);
+        removeSharedData("key");
 	}
 	
 	private void processRequest(TextMessage txtMsg) throws Exception {
   	    String request = txtMsg.getText();
-  	    isNotificationRequest = false;
   	    JsonArray response;
   	    String xmlResponse = null;
   	    sharedData = PersistenceFacade.getInstance().getMap("sharedData");
@@ -99,22 +97,20 @@ public class DataHandler implements Runnable {
   	    }
   	    
   	    parseRequest(request);
-  	    // populate object that contains stateful data
-  	    persistedData.setCorrelationID(txtMsg.getJMSCorrelationID());
-  	    persistedData.setMessageID(txtMsg.getJMSMessageID());
-  	    persistedData.setReplyTo(txtMsg.getJMSReplyTo());
-  	    persistedData.setRequest(request);
-  	    persistedData.setRURI(ruri);
+  	    
+  	    // create object that contains stateful data
+  	    statefulData = new PersistedObject(txtMsg.getJMSCorrelationID(), txtMsg.getJMSMessageID(), request, ruri, txtMsg.getJMSReplyTo(), false);
   	    
   	    if(triggerList != null){
-  	    	persistedData.setTriggers(triggerList);
+  	    	statefulData.setTriggers(triggerList);
+  	    	statefulData.setNotification(notification);
+  	    	statefulData.setIsNotificationRequest(true);
   	    }
   	    //TODO still need a valid key
-  	    sharedData.put("key", persistedData);
+  	    sharedData.put("key", statefulData);
+//  	  System.out.println("SIZE="+sharedData.size());
   	    
-  	    isNotificationRequest = (notification != null);
-
-  	    if(isNotificationRequest){  	    	
+  	    if(sharedData.get("key").isNotificationRequest()){  	    	
   	    	while(true){
   	    		response = getResponse(ruri, jtaParms);
   	    		if(response != null){
@@ -122,7 +118,7 @@ public class DataHandler implements Runnable {
   	    				break;
   	    			}
   	    			else if(isNotificationExpired()){
-  	    				processInvalidRequest(txtMsg, "notification: " + notification + " has expired");
+  	    				processInvalidRequest(txtMsg, "notification: " + sharedData.get("key").getNotification() + " has expired");
   	    				return;
   	    			}
   	    		}
@@ -138,13 +134,13 @@ public class DataHandler implements Runnable {
   	    }
 
   	    if(response == null){
-  	    	if(!isNotificationRequest){
+  	    	if(!sharedData.get("key").isNotificationRequest()){
   	    		processInvalidRequest(txtMsg, ""+ ruri +" is not supported");
   	    		return;
   	    	}
   	    	else{
   	    		if(isNotificationExpired()){
-  	    			processInvalidRequest(txtMsg, "notification " + notification + " has expired");
+  	    			processInvalidRequest(txtMsg, "notification " + sharedData.get("key").getNotification() + " has expired");
   	    			return;
   	    		}
   	    	}
@@ -153,10 +149,10 @@ public class DataHandler implements Runnable {
   	    if(output != null && output.equalsIgnoreCase("xml")){
   	    	//TODO convert to xml here IF YOU CAN!
   	    	xmlResponse = response.toString();
-  	    	sendResponse(txtMsg,xmlResponse);
+  	    	sendResponse(xmlResponse);
   	    }
   	    else{
-  	    	sendResponse(txtMsg,response.toString());
+  	    	sendResponse(response.toString());
   	    }
     	
 	}
@@ -288,13 +284,14 @@ public class DataHandler implements Runnable {
 		return result;
 	}
 	
-	private void sendResponse(TextMessage jmsRequestMsg,String response) throws JMSException {
+	private void sendResponse(String response) throws JMSException {
         Message message = delegate.createTextMessage(response);      
-        String correlationID = jmsRequestMsg.getJMSCorrelationID();
-        if(correlationID == null) correlationID = jmsRequestMsg.getJMSMessageID();
+        String correlationID = sharedData.get("key").getCorrelationID();
+        if(correlationID == null) correlationID = sharedData.get("key").getMessageID();
         message.setJMSCorrelationID(correlationID);
 		
-        delegate.sendMessage(jmsRequest.getJMSReplyTo(), message);
+        delegate.sendMessage(sharedData.get("key").getReplyTo(), message);
+        removeSharedData("key");
         
 	}
 	
@@ -303,7 +300,6 @@ public class DataHandler implements Runnable {
 		for(int i=0;i<triggerList.size();i++){
 			if(triggerList.get(i).evaluate(response)){
 				result = true;
-				sharedData.remove("key");
 			}
 		}
 	
@@ -319,7 +315,6 @@ public class DataHandler implements Runnable {
 		for(int i=0;i<triggerList.size();i++){
 			if(triggerList.get(i).isNotificationExpired()){
 				result = true;
-				sharedData.remove("key");
 			}
 		}
 	
@@ -358,6 +353,11 @@ public class DataHandler implements Runnable {
 				logger.error("Invalid notification request received - cannot create trigger: " + triggerParms.toString());
 			}
 		}		
+	}
+	
+	private void removeSharedData(String key){
+		sharedData.remove(key);
+//		System.out.println("SIZE="+sharedData.size());
 	}
 	
 	private void parseRequest(String text) {
