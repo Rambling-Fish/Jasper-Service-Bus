@@ -3,6 +3,7 @@ package org.jasper.core.persistence;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.jasper.core.JECore;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
@@ -21,7 +22,8 @@ public class MemoryCache {
 		
         // TODO the deploymentID will be retrieved from the licenseKey subsystem not directly from core
 		config = new Config();
-		groupConfig = new GroupConfig("jasperLab", "jasperLab" + "_password_july_10_2013_0725");
+		String groupName = JECore.getInstance().getDeploymentID();
+		groupConfig = new GroupConfig(groupName, groupName + "_password_nov_20_2013_1520");
 		createHazelcastInstance();
 	}
 
