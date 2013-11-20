@@ -85,7 +85,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.9</version>
 				<configuration>
-					<argLine>-Djta-keystore=${project.basedir}/../../jasper-platform/zipRoot/jsb-core/keystore/JTAs</argLine>
+					<argLine>-Djta-keystore=${project.basedir}/src/test/resources/keystore</argLine>
 				</configuration>
 			</plugin>
 			<plugin>
