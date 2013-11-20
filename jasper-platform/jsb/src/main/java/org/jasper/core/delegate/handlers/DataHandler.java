@@ -54,7 +54,7 @@ public class DataHandler implements Runnable {
 		this.jOntology = jOntology;
 		this.jmsRequest = jmsRequest;
 		this.locks = locks;
-		this.responses = responses;	
+		this.responses = responses;
 		this.persistedData = new PersistedObject();
 	}
 
@@ -85,6 +85,7 @@ public class DataHandler implements Runnable {
   	    isNotificationRequest = false;
   	    JsonArray response;
   	    String xmlResponse = null;
+  	    sharedData = PersistenceFacade.getInstance().getMap("sharedData");
 
   	    if(request == null || request.length() == 0){
   	    	processInvalidRequest(txtMsg, "Invalid request received, request is null or empty string");
@@ -414,7 +415,6 @@ public class DataHandler implements Runnable {
 				if(polling > expiry) polling = (int) expiry;
 				if(output == null) output =  delegate.defaultOutput;
 				
-				sharedData = PersistenceFacade.getInstance().getMap("sharedData");
 				parseTrigger(notification);
 			}
 			
