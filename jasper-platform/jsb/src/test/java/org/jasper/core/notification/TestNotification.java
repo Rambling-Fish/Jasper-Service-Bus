@@ -134,25 +134,37 @@ public class TestNotification  extends TestCase {
 				System.out.println("Exception occurred during TestNotification.testcompareIntTrigger");
 			}
 		}
+		Trigger gtCompareInt2 = factory.createTrigger(COMPARE_INT, 20, POLLING, RURI, "gt", "25");
 		Trigger eqCompareInt  = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "eq", "25");
+		Trigger eqCompareInt2 = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "eq", "5");
 		Trigger ltCompareInt  = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "lt", "38");
+		Trigger ltCompareInt2 = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "lt", "25");
 		Trigger neCompareInt  = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "ne", "26");
+		Trigger neCompareInt2 = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "ne", "25");
 		Trigger geCompareInt  = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "ge", "22");
+		Trigger geCompareInt2 = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "ge", "27");
 		Trigger leCompareInt  = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "le", "25");
+		Trigger leCompareInt2 = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "le", "24");
 		Trigger badCompareInt = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "bad", "25");
 		Trigger left          = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, "23Q", "lt", "40");
-		Trigger right         = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, "23Q", "lt", "http://jasper.com");
+		Trigger right         = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "lt", "http://jasper.com");
 
 		JsonArray response = new JsonArray();
 		response.add(tmp);
 		
 		// test all the operands
+		TestCase.assertFalse(gtCompareInt2.evaluate(response));
 		TestCase.assertTrue(gtCompareInt.evaluate(response));
 		TestCase.assertTrue(eqCompareInt.evaluate(response));
+		TestCase.assertFalse(eqCompareInt2.evaluate(response));
 		TestCase.assertTrue(ltCompareInt.evaluate(response));
+		TestCase.assertFalse(ltCompareInt2.evaluate(response));
 		TestCase.assertTrue(neCompareInt.evaluate(response));
+		TestCase.assertFalse(neCompareInt2.evaluate(response));
 		TestCase.assertTrue(geCompareInt.evaluate(response));
+		TestCase.assertFalse(geCompareInt2.evaluate(response));
 		TestCase.assertTrue(leCompareInt.evaluate(response));
+		TestCase.assertFalse(leCompareInt2.evaluate(response));
 		TestCase.assertFalse(badCompareInt.evaluate(response));
 		left.evaluate(response);
 		
@@ -171,13 +183,14 @@ public class TestNotification  extends TestCase {
 		response.add(tmp);
 		TriggerFactory factory = new TriggerFactory();
 		Trigger range1  = factory.createTrigger(RANGE, EXPIRY, POLLING, RURI, "20", "30");
-		Trigger range2  = factory.createTrigger(RANGE, EXPIRY, POLLING, "30T", "25", "36");
+		Trigger range2  = factory.createTrigger(RANGE, EXPIRY, POLLING, RURI, "26", "36");
+		Trigger range3  = factory.createTrigger(RANGE, EXPIRY, POLLING, "30T", "25", "36");
 		
 		TestCase.assertTrue(range1.evaluate(response));
+		TestCase.assertFalse(range2.evaluate(response));
 		
 		response.clear();
-		range2.evaluate(response);
-		
+		range3.evaluate(response);
 		tmp = "helloWorld";
 		response.add(tmp);
 		TestCase.assertFalse(range1.evaluate(response));
