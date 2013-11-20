@@ -24,6 +24,7 @@ import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.notification.triggers.TriggerFactory;
+import org.jasper.core.persistence.PersistedObject;
 import org.jasper.core.persistence.PersistenceFacade;
 
 public class DataHandler implements Runnable {
@@ -41,8 +42,8 @@ public class DataHandler implements Runnable {
 	private boolean isNotificationRequest = false;
 	private List<Trigger> triggerList;
 	private static final int MILLISECONDS = 1000;
-	private Map<String,List<Trigger>> sharedTriggers;
-	private String key;
+	private PersistedObject persistedData;
+	private Map<String,PersistedObject> sharedData;
 	
 	private static Logger logger = Logger.getLogger(DataHandler.class.getName());
 
@@ -54,15 +55,12 @@ public class DataHandler implements Runnable {
 		this.jmsRequest = jmsRequest;
 		this.locks = locks;
 		this.responses = responses;	
+		this.persistedData = new PersistedObject();
 	}
 
 	public void run() {
 		try{
-			if(jmsRequest instanceof TextMessage){
-				processRequest( (TextMessage) jmsRequest);
-			}else{
-				logger.warn("jmsRequest is not an instanceof TextMessage, dropping request as only TextMessage is currently supported for DataHandler requests. jmsRequest = " + jmsRequest);
-			}
+			processRequest( (TextMessage) jmsRequest);
 		}catch (Exception e){
 			logger.error("Exception caught in handler " + e);
 		}
@@ -87,7 +85,7 @@ public class DataHandler implements Runnable {
   	    isNotificationRequest = false;
   	    JsonArray response;
   	    String xmlResponse = null;
-this.key = txtMsg.getJMSMessageID(); //TODO need a key all UDEs would know
+
   	    if(request == null || request.length() == 0){
   	    	processInvalidRequest(txtMsg, "Invalid request received, request is null or empty string");
   	    	return;
@@ -100,10 +98,18 @@ this.key = txtMsg.getJMSMessageID(); //TODO need a key all UDEs would know
   	    }
   	    
   	    parseRequest(request);
+  	    // populate object that contains stateful data
+  	    persistedData.setCorrelationID(txtMsg.getJMSCorrelationID());
+  	    persistedData.setMessageID(txtMsg.getJMSMessageID());
+  	    persistedData.setReplyTo(txtMsg.getJMSReplyTo());
+  	    persistedData.setRequest(request);
+  	    persistedData.setRURI(ruri);
   	    
   	    if(triggerList != null){
-  	    	sharedTriggers.put(key, triggerList);
+  	    	persistedData.setTriggers(triggerList);
   	    }
+  	    //TODO still need a valid key
+  	    sharedData.put("key", persistedData);
   	    
   	    isNotificationRequest = (notification != null);
 
@@ -287,7 +293,8 @@ this.key = txtMsg.getJMSMessageID(); //TODO need a key all UDEs would know
         if(correlationID == null) correlationID = jmsRequestMsg.getJMSMessageID();
         message.setJMSCorrelationID(correlationID);
 		
-        delegate.sendMessage(jmsRequestMsg.getJMSReplyTo(), message);
+        delegate.sendMessage(jmsRequest.getJMSReplyTo(), message);
+        
 	}
 	
 	private boolean isCriteriaMet(JsonArray response){
@@ -295,7 +302,7 @@ this.key = txtMsg.getJMSMessageID(); //TODO need a key all UDEs would know
 		for(int i=0;i<triggerList.size();i++){
 			if(triggerList.get(i).evaluate(response)){
 				result = true;
-				sharedTriggers.remove(key);
+				sharedData.remove("key");
 			}
 		}
 	
@@ -307,11 +314,11 @@ this.key = txtMsg.getJMSMessageID(); //TODO need a key all UDEs would know
 	 */
 	private boolean isNotificationExpired(){
 		boolean result = false;
-		triggerList = sharedTriggers.get(key);
+		triggerList = sharedData.get("key").getTriggers();
 		for(int i=0;i<triggerList.size();i++){
 			if(triggerList.get(i).isNotificationExpired()){
 				result = true;
-				sharedTriggers.remove(key);
+				sharedData.remove("key");
 			}
 		}
 	
@@ -407,7 +414,7 @@ this.key = txtMsg.getJMSMessageID(); //TODO need a key all UDEs would know
 				if(polling > expiry) polling = (int) expiry;
 				if(output == null) output =  delegate.defaultOutput;
 				
-				sharedTriggers = PersistenceFacade.getInstance().getMap("sharedTriggers");
+				sharedData = PersistenceFacade.getInstance().getMap("sharedData");
 				parseTrigger(notification);
 			}
 			
