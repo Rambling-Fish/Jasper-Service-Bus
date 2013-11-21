@@ -104,7 +104,41 @@ public class Delegate implements Runnable, MessageListener {
 	}
 
 	public void run() {
-		processRequests();
+		do {
+			try {
+				Message jmsRequest;
+				do {
+					jmsRequest = globalDelegateConsumer.receive(500);
+				} while (jmsRequest == null && !isShutdown);
+				
+				if (isShutdown)	break;
+
+				if (jmsRequest instanceof ObjectMessage) {
+					ObjectMessage objMessage = (ObjectMessage) jmsRequest;
+					Object obj = objMessage.getObject();
+					if (obj instanceof JasperAdminMessage) {
+						JasperAdminMessage jam = ((JasperAdminMessage) obj);
+						if (jam.getType() == Type.ontologyManagement) {
+							delegateHandlers.submit(new AdminHandler(this,jOntology, jmsRequest, locks,responseMessages));
+						}
+					}
+				} else if (jmsRequest instanceof TextMessage) {
+					String text = ((TextMessage) jmsRequest).getText();
+					if (text != null && text.startsWith("?query=")) {
+						delegateHandlers.submit(new SparqlHandler(this,jOntology, jmsRequest));
+					} else if (text != null) {
+						delegateHandlers.submit(new DataHandler(this, jOntology,jmsRequest, locks, responseMessages));
+					} else {
+						logger.error("Incoming text message has null payload - ignoring " + jmsRequest);
+					}
+				} else {
+					logger.warn("JMS Message neither ObjectMessage nor TextMessage, ignoring request : " + jmsRequest);
+				}
+			} catch (Exception e) {
+				logger.error("Exception caught while listening for request in delegate : ",e);
+			}
+		} while (!isShutdown);
+
 	}
 
 	public void onMessage(Message msg) {
@@ -153,43 +187,5 @@ public class Delegate implements Runnable, MessageListener {
 			mapMsg.setObject(key, map.get(key));
 		}
 		return mapMsg;
-	}
-
-	public void processRequests() {
-		do {
-			try {
-				Message jmsRequest;
-				do {
-					jmsRequest = globalDelegateConsumer.receive(500);
-				} while (jmsRequest == null && !isShutdown);
-				
-				if (isShutdown)	break;
-
-				if (jmsRequest instanceof ObjectMessage) {
-					ObjectMessage objMessage = (ObjectMessage) jmsRequest;
-					Object obj = objMessage.getObject();
-					if (obj instanceof JasperAdminMessage) {
-						JasperAdminMessage jam = ((JasperAdminMessage) obj);
-						if (jam.getType() == Type.ontologyManagement) {
-							delegateHandlers.submit(new AdminHandler(this,jOntology, jmsRequest, locks,responseMessages));
-						}
-					}
-				} else if (jmsRequest instanceof TextMessage) {
-					String text = ((TextMessage) jmsRequest).getText();
-					if (text != null && text.startsWith("?query=")) {
-						delegateHandlers.submit(new SparqlHandler(this,jOntology, jmsRequest));
-					} else if (text != null) {
-						delegateHandlers.submit(new DataHandler(this, jOntology,jmsRequest, locks, responseMessages));
-					} else {
-						logger.error("Incoming text message has null payload - ignoring " + jmsRequest);
-					}
-				} else {
-					logger.warn("JMS Message neither ObjectMessage nor TextMessage, ignoring request : " + jmsRequest);
-				}
-			} catch (Exception e) {
-				logger.error("Exception caught while listening for request in delegate : ",e);
-			}
-		} while (!isShutdown);
-
 	}
 }
