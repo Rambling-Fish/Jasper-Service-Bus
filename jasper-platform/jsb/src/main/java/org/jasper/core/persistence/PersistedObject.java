@@ -20,7 +20,7 @@ public class PersistedObject implements Serializable{
 	private boolean isNotificationRequest;
 	private List<Trigger> triggers;
 	
-	public PersistedObject(String correlationID, String messageID, String request, String ruri, Destination replyTo, boolean isNotificaitonRequest) {
+	public PersistedObject(String correlationID, String messageID, String request, String ruri, Destination replyTo, boolean isNotificationRequest) {
 		this.correlationID = correlationID;
 		this.messageID = messageID;
 		this.request = request;
