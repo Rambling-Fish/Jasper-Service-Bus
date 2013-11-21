@@ -7,6 +7,7 @@ import org.jasper.core.JECore;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
+import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.MultiMap;
@@ -23,6 +24,11 @@ public class MemoryCache {
         // TODO the deploymentID will be retrieved from the licenseKey subsystem not directly from core
 		config = new Config();
 		String groupName = JECore.getInstance().getDeploymentID();
+		String localIP = JECore.getInstance().getBrokerTransportIp();
+		
+		NetworkConfig network = config.getNetworkConfig();
+		network.getInterfaces().setEnabled(true).addInterface(localIP);
+		
 		groupConfig = new GroupConfig(groupName, groupName + "_password_nov_20_2013_1520");
 		createHazelcastInstance();
 	}
