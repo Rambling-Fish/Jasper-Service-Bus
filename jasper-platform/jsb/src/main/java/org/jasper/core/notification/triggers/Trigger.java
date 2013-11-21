@@ -1,12 +1,17 @@
 package org.jasper.core.notification.triggers;
 
+import java.io.Serializable;
+
 import org.apache.jena.atlas.json.JsonArray;
 
-public class Trigger {
+public class Trigger implements Serializable{
 		
-	public int expiry;
-	public int polling;
-	public static long notificationExpiry;
+	private static final long serialVersionUID = 1808933811512364772L;
+	private int expiry;
+	private int polling;
+	private static long notificationExpiry;
+	private long nextRun;
+	private long lastRun;
 
 	public Trigger(int expiry, int polling) {
 		this.expiry  = expiry;
@@ -23,6 +28,7 @@ public class Trigger {
 	
 	public void setNotificationExpiry(){
 		notificationExpiry = (System.currentTimeMillis() + expiry);
+		nextRun = System.currentTimeMillis() + polling;
 	}
 	
 	/*
@@ -32,11 +38,21 @@ public class Trigger {
 	 * attempt to get data
 	 */
 	public boolean isNotificationExpired(){
-		long time = System.currentTimeMillis();
-		long timeLeft = (notificationExpiry - time);
+		long now = System.currentTimeMillis();
+		long timeLeft = (notificationExpiry - now);
 		if ((timeLeft < polling) && (timeLeft > 0)) polling = (int)timeLeft;
 		return (notificationExpiry - (System.currentTimeMillis() + polling) <= 0);
 	}
-
+	
+	public boolean isTimeToRun(){
+		long now = System.currentTimeMillis();
+		System.out.println(nextRun - now);
+		return ((nextRun - now) <=0);
+	}
+	
+	public void updateRunTime(){
+		lastRun = System.currentTimeMillis();
+		nextRun = (lastRun + polling);
+	}
 
 }

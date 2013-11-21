@@ -108,7 +108,6 @@ public class DataHandler implements Runnable {
   	    }
   	    //TODO still need a valid key
   	    sharedData.put("key", statefulData);
-//  	  System.out.println("SIZE="+sharedData.size());
   	    
   	    if(sharedData.get("key").isNotificationRequest()){  	    	
   	    	while(true){
@@ -300,6 +299,7 @@ public class DataHandler implements Runnable {
 		for(int i=0;i<triggerList.size();i++){
 			if(triggerList.get(i).evaluate(response)){
 				result = true;
+				triggerList.get(i).updateRunTime();
 			}
 		}
 	
@@ -316,6 +316,7 @@ public class DataHandler implements Runnable {
 			if(triggerList.get(i).isNotificationExpired()){
 				result = true;
 			}
+			triggerList.get(i).updateRunTime();
 		}
 	
 		return result;
@@ -357,7 +358,7 @@ public class DataHandler implements Runnable {
 	
 	private void removeSharedData(String key){
 		sharedData.remove(key);
-//		System.out.println("SIZE="+sharedData.size());
+
 	}
 	
 	private void parseRequest(String text) {

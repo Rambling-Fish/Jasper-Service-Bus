@@ -22,8 +22,6 @@ public class CompareInt extends Trigger implements Serializable{
 		this.left    = left;
 		this.right   = right;
 		this.operand = operand;
-		this.expiry = expiry;
-		this.polling = polling;
 
 		try{
 			if(!left.startsWith("http")){
