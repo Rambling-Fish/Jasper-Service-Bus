@@ -46,7 +46,6 @@ public class Trigger implements Serializable{
 	
 	public boolean isTimeToRun(){
 		long now = System.currentTimeMillis();
-		System.out.println(nextRun - now);
 		return ((nextRun - now) <=0);
 	}
 	
