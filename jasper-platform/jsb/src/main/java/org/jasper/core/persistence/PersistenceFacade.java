@@ -1,6 +1,7 @@
 package org.jasper.core.persistence;
 
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 
 import com.hazelcast.core.MultiMap;
 
@@ -31,7 +32,10 @@ public class PersistenceFacade {
 	
 	public Object getSharedMemoryInstance(){
 		return memCache.getHazelcastInstance();
+	}
 	
+	public BlockingQueue getQueue(String name) {
+		return memCache.getQueue(name);
 	}
 	
 	public void shutdown(){
