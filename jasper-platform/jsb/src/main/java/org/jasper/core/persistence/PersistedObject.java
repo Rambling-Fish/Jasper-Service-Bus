@@ -19,8 +19,9 @@ public class PersistedObject implements Serializable{
 	private String notification;
 	private boolean isNotificationRequest;
 	private List<Trigger> triggers;
+	private String key;
 	
-	public PersistedObject(String correlationID, String messageID, String request, String ruri, Destination replyTo, boolean isNotificationRequest) {
+	public PersistedObject(String key, String correlationID, String messageID, String request, String ruri, Destination replyTo, boolean isNotificationRequest) {
 		this.correlationID = correlationID;
 		this.messageID = messageID;
 		this.request = request;
@@ -75,6 +76,14 @@ public class PersistedObject implements Serializable{
 	
 	public void setRequest(String request){
 		this.request = request;
+	}
+	
+	public void setKey(String key){
+		this.key = key;
+	}
+	
+	public String getKey(){
+		return key;
 	}
 	
 	public String getRURI(){
