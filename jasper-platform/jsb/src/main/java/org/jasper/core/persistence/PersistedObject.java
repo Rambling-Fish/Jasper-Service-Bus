@@ -22,6 +22,7 @@ public class PersistedObject implements Serializable{
 	private String key;
 	
 	public PersistedObject(String key, String correlationID, String messageID, String request, String ruri, Destination replyTo, boolean isNotificationRequest) {
+		this.key = key;
 		this.correlationID = correlationID;
 		this.messageID = messageID;
 		this.request = request;

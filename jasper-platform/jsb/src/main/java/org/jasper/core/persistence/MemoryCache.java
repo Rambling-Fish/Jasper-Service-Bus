@@ -1,6 +1,7 @@
 package org.jasper.core.persistence;
 
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 
 import org.apache.log4j.Logger;
 import org.jasper.core.JECore;
@@ -56,6 +57,11 @@ public class MemoryCache {
 	public Map getMap(String name) {
 		createHazelcastInstance();
 		return hazelcastInstance.getMap(name);
+	}
+	
+	public BlockingQueue getQueue(String name){
+		createHazelcastInstance();
+		return hazelcastInstance.getQueue(name);
 	}
 	
 	public void shutdown(){
