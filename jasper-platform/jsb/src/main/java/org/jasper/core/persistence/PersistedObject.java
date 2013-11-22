@@ -13,7 +13,6 @@ public class PersistedObject implements Serializable{
 	private static final long serialVersionUID = 4733352197348993633L;
 	private Destination replyTo;
 	private String correlationID;
-	private String messageID;
 	private String request;
 	private String ruri;
 	private String notification;
@@ -21,10 +20,9 @@ public class PersistedObject implements Serializable{
 	private List<Trigger> triggers;
 	private String key;
 	
-	public PersistedObject(String key, String correlationID, String messageID, String request, String ruri, Destination replyTo, boolean isNotificationRequest) {
+	public PersistedObject(String key, String correlationID, String request, String ruri, Destination replyTo, boolean isNotificationRequest) {
 		this.key = key;
 		this.correlationID = correlationID;
-		this.messageID = messageID;
 		this.request = request;
 		this.ruri = ruri;
 		this.replyTo = replyTo;
@@ -61,14 +59,6 @@ public class PersistedObject implements Serializable{
 	
 	public void setCorrelationID(String correlationID){
 		this.correlationID = correlationID;
-	}
-	
-	public String getMessageID(){
-		return messageID;
-	}
-	
-	public void setMessageID(String messageID){
-		this.messageID = messageID;
 	}
 	
 	public String getRequest(){
