@@ -25,6 +25,7 @@ import org.apache.jena.atlas.json.JsonObject;
 import org.jasper.core.JECore;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JtaInfo;
+import org.jasper.core.persistence.PersistenceFacade;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -56,7 +57,6 @@ public class TestDelegate  extends TestCase {
 	private Message message;
 	private ExecutorService executorService;
 	private Delegate[] delegates = new Delegate[2];
-	private HazelcastInstance hz;
 
 	/*
 	 * This test sends an invalid response to the delegate in response to a get_ontology 
@@ -376,12 +376,7 @@ public class TestDelegate  extends TestCase {
 		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 		 
 		 JECore core = JECore.getInstance();
-		 
-//		 Config cfg = new Config();
-//		 GroupConfig groupConfig = new GroupConfig("testDelegateJunitTestingSuite", "testDelegateJunitTestingSuite_" + System.currentTimeMillis());
-//		 cfg.setGroupConfig(groupConfig);
-//		 hz = Hazelcast.newHazelcastInstance(cfg);
-		 
+		
 		 delegateFactory = new DelegateFactory(false, core);
 
         // Create a Connection
@@ -415,8 +410,7 @@ public class TestDelegate  extends TestCase {
 		for(int i = 0; i< delegates.length; i++) {
 			delegates[i].shutdown();
 		}
-//		hz.getLifecycleService().shutdown();
-//		Thread.sleep(500);
+		PersistenceFacade.getInstance().shutdown();
 		session           = null;
 		connection        = null;
 		producer          = null;
