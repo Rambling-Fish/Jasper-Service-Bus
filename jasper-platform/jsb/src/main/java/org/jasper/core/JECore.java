@@ -16,9 +16,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -38,6 +42,7 @@ import org.apache.log4j.xml.DOMConfigurator;
 import org.jasper.core.auth.JasperAuthenticationPlugin;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateFactory;
+import org.jasper.core.persistence.PersistedObject;
 import org.jasper.core.persistence.PersistenceFacade;
 import org.jasper.jLib.jAuth.JSBLicense;
 import org.jasper.jLib.jAuth.JTALicense;
@@ -205,6 +210,22 @@ public class JECore {
 		} catch (SecurityException e){
 			logger.error("SecurityException caught when trying to load license key, shutting down",e);
 			shutdown();
+		}
+	}
+	
+	public void auditMap(String udeInstance){
+		Map<String,PersistedObject> sharedData;
+		BlockingQueue<PersistedObject> workQueue;
+		sharedData = PersistenceFacade.getInstance().getMap("sharedData");
+		workQueue = PersistenceFacade.getInstance().getQueue("tasks");
+		PersistedObject statefulData;
+
+		for(String s:sharedData.keySet()){
+			statefulData = sharedData.get(s);
+			// Only resubmit jobs to queue for UDE that has gone down
+			if(statefulData != null && statefulData.getUDEInstance().equals(udeInstance)){
+				workQueue.offer(statefulData);
+			}
 		}
 	}
 	

@@ -19,14 +19,18 @@ public class PersistedObject implements Serializable{
 	private boolean isNotificationRequest;
 	private List<Trigger> triggers;
 	private String key;
+	private String jtaParms;
+	private String UDEInstance;
 	
-	public PersistedObject(String key, String correlationID, String request, String ruri, Destination replyTo, boolean isNotificationRequest) {
+	public PersistedObject(String key, String correlationID, String request, String ruri, Destination replyTo,
+			boolean isNotificationRequest, String UDEInstance) {
 		this.key = key;
 		this.correlationID = correlationID;
 		this.request = request;
 		this.ruri = ruri;
 		this.replyTo = replyTo;
 		this.isNotificationRequest = isNotificationRequest;
+		this.UDEInstance = UDEInstance;
 	}
 	
 	public PersistedObject() {
@@ -48,11 +52,7 @@ public class PersistedObject implements Serializable{
 	public void setTriggers(List<Trigger> triggers){
 		this.triggers = triggers;
 	}
-	
-	public boolean hasTriggers(){
-		return triggers.isEmpty();
-	}
-	
+		
 	public String getCorrelationID(){
 		return correlationID;
 	}
@@ -93,12 +93,24 @@ public class PersistedObject implements Serializable{
 		this.notification = notification;
 	}
 	
-	public boolean getIsNotificationRequest(){
-		return isNotificationRequest;
-	}
-	
 	public void setIsNotificationRequest(boolean isNotificationRequest){
 		this.isNotificationRequest = isNotificationRequest;
+	}
+	
+	public String getJtaParms(){
+		return jtaParms;
+	}
+	
+	public void setJtaParms(String jtaParms){
+		this.jtaParms = jtaParms;
+	}
+	
+	public String getUDEInstance(){
+		return UDEInstance;
+	}
+	
+	public void setUDEInstance(String UDEInstance){
+		this.UDEInstance = UDEInstance;
 	}
 	
 	public boolean isNotificationRequest(){

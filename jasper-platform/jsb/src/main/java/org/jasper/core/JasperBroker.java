@@ -334,6 +334,7 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
     	}else if(jsbConnectionInfoMap.containsKey(key) && !((JasperBrokerService)this.getBrokerService()).isStopping()){
     		jsbConnectionInfoMap.remove(key);    		
         	registeredLicenseKeys.remove(core.getJSBDeploymentAndInstance(key));
+        	core.auditMap(core.getJSBDeploymentAndInstance(key));
     		if(logger.isInfoEnabled()) logger.info("connection for jsb " + info.getUserName() + " removed, updated local and remote maps");    		
     	}
         super.removeConnection(context, info, error);

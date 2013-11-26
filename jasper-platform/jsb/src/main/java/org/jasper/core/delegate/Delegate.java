@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 import org.jasper.core.JECore;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.delegate.handlers.AdminHandler;
+import org.jasper.core.delegate.handlers.DataConsumer;
 import org.jasper.core.delegate.handlers.DataHandler;
 import org.jasper.core.delegate.handlers.SparqlHandler;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
@@ -46,6 +47,7 @@ public class Delegate implements Runnable, MessageListener {
 	private Destination delegateQ;
 	private MessageConsumer responseConsumer;
 	private ExecutorService delegateHandlers;
+	private ExecutorService dataConsumer;
 
 	private Map<String, Message> responseMessages;
 	private Map<String, Object> locks;
@@ -67,9 +69,11 @@ public class Delegate implements Runnable, MessageListener {
 		this.locks = new ConcurrentHashMap<String, Object>();
 
 		delegateHandlers = Executors.newFixedThreadPool(2);
+		dataConsumer = Executors.newCachedThreadPool();
 		this.jOntology = jOntology;
 
-		globalSession = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
+
+		globalSession = connection.createSession(true,Session.SESSION_TRANSACTED);
 		globalQueue = globalSession.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
 		globalDelegateConsumer = globalSession.createConsumer(globalQueue);
 
@@ -81,6 +85,8 @@ public class Delegate implements Runnable, MessageListener {
 		delegateQ = jtaSession.createQueue("jms.delegate." + JECore.getInstance().getBrokerTransportIp() + "." + count.getAndIncrement() + ".queue");
 		responseConsumer = jtaSession.createConsumer(delegateQ);
 		responseConsumer.setMessageListener(this);
+		
+		dataConsumer.execute(new DataConsumer(this,jOntology,locks,responseMessages));
 		
 		 try {
 	          //load properties file
@@ -96,6 +102,7 @@ public class Delegate implements Runnable, MessageListener {
 
 	public void shutdown() throws JMSException {
 		isShutdown = true;
+		dataConsumer.shutdown();
 		producer.close();
 		responseConsumer.close();
 		jtaSession.close();
@@ -120,14 +127,17 @@ public class Delegate implements Runnable, MessageListener {
 						JasperAdminMessage jam = ((JasperAdminMessage) obj);
 						if (jam.getType() == Type.ontologyManagement) {
 							delegateHandlers.submit(new AdminHandler(this,jOntology, jmsRequest, locks,responseMessages));
+							globalSession.commit();
 						}
 					}
 				} else if (jmsRequest instanceof TextMessage) {
 					String text = ((TextMessage) jmsRequest).getText();
 					if (text != null && text.startsWith("?query=")) {
 						delegateHandlers.submit(new SparqlHandler(this,jOntology, jmsRequest));
+						globalSession.commit();
 					} else if (text != null) {
-						delegateHandlers.submit(new DataHandler(this, jOntology,jmsRequest, locks, responseMessages));
+						delegateHandlers.submit(new DataHandler(this, jmsRequest, globalSession));
+
 					} else {
 						logger.error("Incoming text message has null payload - ignoring " + jmsRequest);
 					}
