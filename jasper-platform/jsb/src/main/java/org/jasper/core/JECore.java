@@ -85,7 +85,7 @@ public class JECore {
 	}
 	
 	public String getDeploymentID() {
-		return license.getDeploymentId();
+		return (license!=null)?license.getDeploymentId():"licenceKeyNotSet";
 	}
 	
     public String getJSBDeploymentAndInstance(String password) {
@@ -559,9 +559,49 @@ public class JECore {
 	}
 
 	public String getBrokerTransportIp() {
-		return brokerTransportIp;
+		return (brokerTransportIp!=null)?brokerTransportIp:getLocalIP();
 	}
 	
+	private String getLocalIP() {
+		String localIP = null;
+		try{
+			localIP = InetAddress.getLocalHost().getHostAddress();
+		}catch(UnknownHostException e){
+			logger.info("unknown host exception caught, expected on linux system.", e);
+		}
+		
+		Enumeration<NetworkInterface> interfaces = null;
+		try {
+			interfaces = NetworkInterface.getNetworkInterfaces();
+		} catch (SocketException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		while (interfaces.hasMoreElements()){
+		    NetworkInterface current = interfaces.nextElement();
+		    try {
+				if (!current.isUp() || current.isLoopback() || current.isVirtual()) continue;
+			} catch (SocketException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		    if(current.getName().equals("eth0")){
+		    	Enumeration<InetAddress> addresses = current.getInetAddresses();
+			    while (addresses.hasMoreElements()){
+			        InetAddress current_addr = addresses.nextElement();
+			        if (current_addr.isLoopbackAddress()) continue;
+			        if (current_addr instanceof Inet4Address){
+			        	localIP = current_addr.getHostAddress();
+			        	break;
+			        }
+			    }
+		    } 
+		}
+		
+		return localIP;
+		
+	}
+
 	public boolean isClusterEnabled(){
 		return clusterEnabled;
 	}

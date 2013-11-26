@@ -32,11 +32,7 @@ import org.junit.After;
 import org.junit.Before;
 //
 import org.junit.Test;
-import org.mule.transport.jasperengine.JasperEngineConnector;
 
-import com.hazelcast.config.Config;
-import com.hazelcast.config.GroupConfig;
-import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 //
 public class TestDelegate  extends TestCase {
@@ -381,10 +377,10 @@ public class TestDelegate  extends TestCase {
 		 
 		 JECore core = JECore.getInstance();
 		 
-		 Config cfg = new Config();
-		 GroupConfig groupConfig = new GroupConfig("testDelegateJunitTestingSuite", "testDelegateJunitTestingSuite_" + System.currentTimeMillis());
-		 cfg.setGroupConfig(groupConfig);
-		 hz = Hazelcast.newHazelcastInstance(cfg);
+//		 Config cfg = new Config();
+//		 GroupConfig groupConfig = new GroupConfig("testDelegateJunitTestingSuite", "testDelegateJunitTestingSuite_" + System.currentTimeMillis());
+//		 cfg.setGroupConfig(groupConfig);
+//		 hz = Hazelcast.newHazelcastInstance(cfg);
 		 
 		 delegateFactory = new DelegateFactory(false, core);
 
@@ -419,8 +415,8 @@ public class TestDelegate  extends TestCase {
 		for(int i = 0; i< delegates.length; i++) {
 			delegates[i].shutdown();
 		}
-		hz.getLifecycleService().shutdown();
-		Thread.sleep(500);
+//		hz.getLifecycleService().shutdown();
+//		Thread.sleep(500);
 		session           = null;
 		connection        = null;
 		producer          = null;
