@@ -115,9 +115,9 @@
 			<version>3.4.1</version>
 		</dependency>
         <dependency>
-            <groupId>org.jasper.jTransport</groupId>
-            <artifactId>jTransport-jasperEngine</artifactId>
-            <version>2.1</version>
+            <groupId>org.jasper.jTransports</groupId>
+            <artifactId>JasperConnector</artifactId>
+            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>org.jasper.jLib</groupId>

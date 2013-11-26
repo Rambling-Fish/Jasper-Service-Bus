@@ -1,12 +1,10 @@
 package org.jasper.core.delegate.handlers;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -19,7 +17,6 @@ import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonString;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.log4j.Logger;
-import org.jasper.core.JECore;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.notification.triggers.Trigger;
@@ -152,7 +149,7 @@ public class DataConsumer implements Runnable {
   			String provides   = ((JsonString)j.getAsObject().get(DelegateOntology.PROVIDES).getAsString()).value();
   			JsonObject jsonParams = (JsonObject) j.getAsObject().get(DelegateOntology.PARAMS);
   			Object param = null;
-  			Map<String,Serializable> valuePair = new HashMap<String, Serializable>();
+  			Map<String,String> valuePair = new HashMap<String, String>();
   			for(String key:jsonParams.keys()){
   				param = jsonParams.get(key);
   				if(param instanceof JsonString){
@@ -215,9 +212,14 @@ public class DataConsumer implements Runnable {
 		}		
 	}
 
-	private String getResponseFromQueue(String q, Map<String, Serializable> map) throws JMSException {
+	private String getResponseFromQueue(String q, Map<String, String> map) throws JMSException {
 		
-		Message msg = delegate.createMapMessage(map);
+		JsonObject jObj = new JsonObject();
+		
+		for(String key:map.keySet()){
+			jObj.put(key, (String)map.get(key));
+		}
+		Message msg = delegate.createTextMessage(jObj.toString());	
 		
         String correlationID = UUID.randomUUID().toString();
         msg.setJMSCorrelationID(correlationID);
