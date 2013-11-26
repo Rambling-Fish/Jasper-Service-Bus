@@ -54,12 +54,12 @@ public class MemoryCache {
 		return hazelcastInstance.getMultiMap(name);
 	}
 	
-	public Map getMap(String name) {
+	public Map<String,PersistedObject> getMap(String name) {
 		createHazelcastInstance();
 		return hazelcastInstance.getMap(name);
 	}
 	
-	public BlockingQueue getQueue(String name){
+	public BlockingQueue<PersistedObject> getQueue(String name){
 		createHazelcastInstance();
 		return hazelcastInstance.getQueue(name);
 	}

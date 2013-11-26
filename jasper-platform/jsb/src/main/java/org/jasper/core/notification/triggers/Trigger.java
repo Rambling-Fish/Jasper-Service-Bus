@@ -9,9 +9,7 @@ public class Trigger implements Serializable{
 	private static final long serialVersionUID = 1808933811512364772L;
 	private int expiry;
 	private int polling;
-	private static long notificationExpiry;
-	private long nextRun;
-	private long lastRun;
+	private long notificationExpiry;
 
 	public Trigger(int expiry, int polling) {
 		this.expiry  = expiry;
@@ -26,9 +24,28 @@ public class Trigger implements Serializable{
 		return false;
 	}
 	
+	public long getNotificationExpiry(){
+		return notificationExpiry;
+	}
+	
 	public void setNotificationExpiry(){
 		notificationExpiry = (System.currentTimeMillis() + expiry);
-		nextRun = System.currentTimeMillis() + polling;
+	}
+	
+	public void setPolling(int polling){
+		this.polling = polling;
+	}
+	
+	public int getPolling(){
+		return polling;
+	}
+	
+	public void setExpiry(int expiry){
+		this.expiry = expiry;
+	}
+	
+	public int getExpiry(){
+		return expiry;
 	}
 	
 	/*
@@ -44,14 +61,4 @@ public class Trigger implements Serializable{
 		return (notificationExpiry - (System.currentTimeMillis() + polling) <= 0);
 	}
 	
-	public boolean isTimeToRun(){
-		long now = System.currentTimeMillis();
-		return ((nextRun - now) <=0);
-	}
-	
-	public void updateRunTime(){
-		lastRun = System.currentTimeMillis();
-		nextRun = (lastRun + polling);
-	}
-
 }

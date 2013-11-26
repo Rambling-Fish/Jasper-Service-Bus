@@ -26,7 +26,7 @@ public class PersistenceFacade {
 		return memCache.getMultiMap(name);
 	}
 	
-	public Map getMap(String name) {
+	public Map<String,PersistedObject> getMap(String name) {
 		return memCache.getMap(name);
 	}
 	
@@ -34,7 +34,7 @@ public class PersistenceFacade {
 		return memCache.getHazelcastInstance();
 	}
 	
-	public BlockingQueue getQueue(String name) {
+	public BlockingQueue<PersistedObject> getQueue(String name) {
 		return memCache.getQueue(name);
 	}
 	
