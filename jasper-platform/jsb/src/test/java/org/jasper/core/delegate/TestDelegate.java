@@ -45,9 +45,9 @@ public class TestDelegate  extends TestCase {
 	private static final String SPARQL_QUERY3   = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=";
 	private static final String SPARQL_QUERY2   = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=jj";
 	private static final String SPARQL_QUERY    = "?query=PREFIX%20:%20%3Chttp://coralcea.ca/jasper/vocabulary/%3E%20PREFIX%20jta:%20%3Chttp://coralcea.ca/jasper/vocabulary/jta/%3E%20PREFIX%20jasper:%20%3Chttp://coralcea.ca/jasper/%3E%20SELECT%20?jta%20?jtaProvidedData%20?params%20WHERE%20{%20{%20?jta%20:is%20:jta%20.%20?jta%20:provides%20?jtaProvidedData%20.%20}%20UNION%20{%20?jta%20:is%20:jta%20.%20?jta%20:param%20?params%20.%20}%20}&output=json";
-	private static final String GOOD_DATA_QUERY = "http://coralcea.ca/jasper/vocabulary/hrData?http://coralcea.ca/jasper/vocabulary/hrSRId=12";
+	private static final String GOOD_DATA_QUERY = "http://coralcea.ca/jasper/vocabulary/hrData?http://coralcea.ca/jasper/vocabulary/hrSRId=12?output=json";
 	private static final String INDIRECT_DATA_QUERY = "http://coralcea.ca/jasper/vocabulary/hrData?http://coralcea.ca/jasper/vocabulary/patientId=0012";
-	private static final String BAD_DATA_QUERY  = "http://coralcea.ca/jasper/vocabulary/invalidURI";
+	private static final String BAD_DATA_QUERY  = "http://coralcea.ca/jasper/vocabulary/invalidURI?output=xml";
 	private Connection connection;
 	private DelegateFactory delegateFactory;
 	private ActiveMQConnectionFactory connectionFactory;
@@ -64,6 +64,9 @@ public class TestDelegate  extends TestCase {
 	 */
 	@Test
 	public void testJTAConnectInvalidResponse() throws Exception {
+		System.out.println("======================");
+		System.out.println("RUNNING DELEGATE TESTS");
+		System.out.println("======================");
 		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_A_NAME);
         
 		message = session.createObjectMessage(jam);
@@ -201,7 +204,7 @@ public class TestDelegate  extends TestCase {
 		    Thread.sleep(1000);
 		
 		// Send jta disconnect message
-		JasperAdminMessage jam2 = new JasperAdminMessage(Type.ontologyManagement, Command.jta_disconnect, this.TEST_JTA_A_NAME);
+		JasperAdminMessage jam2 = new JasperAdminMessage(Type.ontologyManagement, Command.jta_disconnect, TEST_JTA_A_NAME);
 		message = session.createObjectMessage(jam2);
 		producer.send(message);
 		
@@ -267,6 +270,7 @@ public class TestDelegate  extends TestCase {
 		
 		message = session.createTextMessage(BAD_DATA_QUERY);
 		message.setJMSCorrelationID("12345");
+		message.setJMSReplyTo(globalQueue);
 		producer.send(message);
 		
 		message = session.createMapMessage();

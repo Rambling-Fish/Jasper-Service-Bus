@@ -88,6 +88,7 @@ public class DataConsumer implements Runnable {
   	    String ruri = statefulData.getRURI();
   	    jtaParms = statefulData.getJtaParms();
 		sharedData = PersistenceFacade.getInstance().getMap("sharedData");
+		output = statefulData.getOutput();
 
   	    
   	    if(statefulData.isNotificationRequest()){ 
@@ -100,12 +101,12 @@ public class DataConsumer implements Runnable {
   	    			}
   	    			else if(isNotificationExpired()){
   	    				processInvalidRequest("notification: " + statefulData.getNotification() + " has expired");
-  	    				return;
+  	    				break;
   	    			}
   	    		}
   	    		else if(isNotificationExpired()){
   	    			processInvalidRequest("notification: " + statefulData.getNotification() + " has expired");
-  	    			return;
+  	    			break;
   	    		}
   	    	Thread.sleep(polling);
   	    	}

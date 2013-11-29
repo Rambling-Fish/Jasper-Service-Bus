@@ -21,9 +21,10 @@ public class PersistedObject implements Serializable{
 	private String key;
 	private String jtaParms;
 	private String UDEInstance;
+	private String output;
 	
 	public PersistedObject(String key, String correlationID, String request, String ruri, Destination replyTo,
-			boolean isNotificationRequest, String UDEInstance) {
+			boolean isNotificationRequest, String UDEInstance, String output) {
 		this.key = key;
 		this.correlationID = correlationID;
 		this.request = request;
@@ -31,6 +32,7 @@ public class PersistedObject implements Serializable{
 		this.replyTo = replyTo;
 		this.isNotificationRequest = isNotificationRequest;
 		this.UDEInstance = UDEInstance;
+		this.output = output;
 	}
 	
 	public PersistedObject() {
@@ -111,6 +113,14 @@ public class PersistedObject implements Serializable{
 	
 	public void setUDEInstance(String UDEInstance){
 		this.UDEInstance = UDEInstance;
+	}
+	
+	public String getOutput(){
+		return output;
+	}
+	
+	public void setOutput(String output){
+		this.output = output;
 	}
 	
 	public boolean isNotificationRequest(){
