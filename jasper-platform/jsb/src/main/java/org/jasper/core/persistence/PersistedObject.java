@@ -19,7 +19,7 @@ public class PersistedObject implements Serializable{
 	private boolean isNotificationRequest;
 	private List<Trigger> triggers;
 	private String key;
-	private String jtaParms;
+	private String dtaParms;
 	private String UDEInstance;
 	private String output;
 	
@@ -99,12 +99,12 @@ public class PersistedObject implements Serializable{
 		this.isNotificationRequest = isNotificationRequest;
 	}
 	
-	public String getJtaParms(){
-		return jtaParms;
+	public String getDtaParms(){
+		return dtaParms;
 	}
 	
-	public void setJtaParms(String jtaParms){
-		this.jtaParms = jtaParms;
+	public void setDtaParms(String dtaParms){
+		this.dtaParms = dtaParms;
 	}
 	
 	public String getUDEInstance(){
