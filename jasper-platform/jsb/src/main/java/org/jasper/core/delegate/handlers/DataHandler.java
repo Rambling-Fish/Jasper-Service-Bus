@@ -91,7 +91,7 @@ public class DataHandler implements Runnable {
   	    
   	    // create object that contains stateful data
   	    statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, txtMsg.getJMSReplyTo(),
-  	    		false, JECore.getInstance().getJSBDeploymentAndInstance());
+  	    		false, JECore.getInstance().getUdeDeploymentAndInstance());
   	    
   	    logger.debug("*****\nstatefulData created on " + statefulData.getUDEInstance());
   	    

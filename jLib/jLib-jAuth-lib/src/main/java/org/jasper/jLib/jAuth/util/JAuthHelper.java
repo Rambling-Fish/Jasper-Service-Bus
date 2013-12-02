@@ -12,8 +12,10 @@ import java.security.spec.RSAPublicKeySpec;
 
 import javax.crypto.Cipher;
 
-import org.jasper.jLib.jAuth.JSBLicense;
-import org.jasper.jLib.jAuth.JTALicense;
+import org.jasper.jLib.jAuth.*;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 public class JAuthHelper {
 	
@@ -21,6 +23,8 @@ public class JAuthHelper {
 
 	public static final String JTA_LICENSE_FILE_SUFFIX = "-jta-license.key";
 	public static final String JSB_LICENSE_FILE_SUFFIX = "-jsb-license.key";
+	public static final String CLIENT_LICENSE_FILE_SUFFIX = "-clnt-license.key";
+	public static final String UDE_LICENSE_FILE_SUFFIX = "-ude-license.key";
 	
 	public static byte[] rsaDecrypt(byte[] data,PublicKey pubKey) throws Exception{
 		  Cipher cipher = Cipher.getInstance("RSA");
@@ -47,6 +51,34 @@ public class JAuthHelper {
 		ObjectInputStream oin = new ObjectInputStream(new BufferedInputStream(in));
 		try {
 			JSBLicense lic = (JSBLicense) oin.readObject();
+			return lic;
+		} catch (Exception e) {
+		    throw new RuntimeException("Spurious serialisation error", e);
+		} finally {
+			oin.close();
+		}
+	}
+	
+	public static ClientLicense loadClientLicenseFromFile(String filename) throws IOException {
+		InputStream in = new FileInputStream(filename);
+		ObjectInputStream oin = new ObjectInputStream(new BufferedInputStream(in));
+		
+		try {
+			ClientLicense lic = (ClientLicense) oin.readObject();
+			return lic;
+		} catch (Exception e) {
+		    throw new RuntimeException("Spurious serialisation error", e);
+		} finally {
+			oin.close();
+		}
+		
+	}
+	
+	public static UDELicense loadUDELicenseFromFile(String filename) throws IOException {
+		InputStream in = new FileInputStream(filename);
+		ObjectInputStream oin = new ObjectInputStream(new BufferedInputStream(in));
+		try {
+			UDELicense lic = (UDELicense) oin.readObject();
 			return lic;
 		} catch (Exception e) {
 		    throw new RuntimeException("Spurious serialisation error", e);
