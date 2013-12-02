@@ -30,7 +30,7 @@ public class DataConsumer implements Runnable {
 	private Map<String, Object> locks;
 	private Map<String, Message> responses;
 	private String output;
-	private String jtaParms;
+	private String dtaParms;
 	private int polling;
 	private List<Trigger> triggerList;
 	private PersistedObject statefulData;
@@ -86,26 +86,27 @@ public class DataConsumer implements Runnable {
   	    String xmlResponse = null;
   	    key = statefulData.getKey();
   	    String ruri = statefulData.getRURI();
-  	    jtaParms = statefulData.getJtaParms();
+  	    dtaParms = statefulData.getDtaParms();
 		sharedData = PersistenceFacade.getInstance().getMap("sharedData");
+		output = statefulData.getOutput();
 
   	    
   	    if(statefulData.isNotificationRequest()){ 
   	    	polling = statefulData.getTriggers().get(0).getPolling();
   	    	while(true){
-  	    		response = getResponse(ruri, jtaParms);
+  	    		response = getResponse(ruri, dtaParms);
   	    		if(response != null){
   	    			if(isCriteriaMet(response)){
   	    				break;
   	    			}
   	    			else if(isNotificationExpired()){
   	    				processInvalidRequest("notification: " + statefulData.getNotification() + " has expired");
-  	    				return;
+  	    				break;
   	    			}
   	    		}
   	    		else if(isNotificationExpired()){
   	    			processInvalidRequest("notification: " + statefulData.getNotification() + " has expired");
-  	    			return;
+  	    			break;
   	    		}
   	    	Thread.sleep(polling);
   	    	}

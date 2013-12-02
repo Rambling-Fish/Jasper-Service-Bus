@@ -1,6 +1,5 @@
 package org.jasper.core.notification;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -8,17 +7,13 @@ import java.util.concurrent.Executors;
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
-import javax.jms.ObjectMessage;
 import javax.jms.Session;
 
 import junit.framework.TestCase;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.jena.atlas.json.JsonArray;
-import org.apache.jena.atlas.json.JsonObject;
 import org.jasper.core.JECore;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.delegate.Delegate;
@@ -26,10 +21,6 @@ import org.jasper.core.delegate.DelegateFactory;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.notification.triggers.TriggerFactory;
 import org.jasper.core.notification.util.JsonResponseParser;
-import org.jasper.core.persistence.PersistenceFacade;
-import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
-import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
-import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
 import org.junit.After;
 import org.junit.Before;
 //
@@ -42,12 +33,7 @@ import com.hazelcast.core.HazelcastInstance;
 //
 public class TestNotification  extends TestCase {
 
-	private static final String TEST_JTA_ADMIN_QUEUE = "jms.TestJTA.admin.queue";
-	private static final String TEST_JTA_NAME = "TestJTA";
 	private static final String RURI = "http://coralcea.ca/jasper/environmentalSensor/roomTemperature";
-	private static final String COUNT_NOTIFICATION = "http://coralcea.ca/jasper/roomTempData?trigger=count(http://coralcea.ca/jasper/environmentalSensor/roomTemperature,gt,15)?expiry=20?polling=5";
-	private static final String BAD_NOTIFICATION = "?trigger=count(http://coralcea.ca/jasper/environmentalSensor/roomTemperature,gt,15)?expiry=20";
-	private static final String NOT_MET_NOTIFICATION = "http://coralcea.ca/jasper/roomTempData?trigger=count(http://coralcea.ca/jasper/environmentalSensor/roomTemperature,gt,40)?expiry=5?polling=5";
 	private static final String COMPARE_INT = "compareint";
 	private static final String RANGE = "range";
 	
@@ -59,7 +45,6 @@ public class TestNotification  extends TestCase {
 	private Session session;
 	private Destination globalQueue;
 	private MessageProducer producer;
-	private Message message;
 	private ExecutorService executorService;
 	private Delegate delegate;
 	private JECore core;
@@ -73,6 +58,9 @@ public class TestNotification  extends TestCase {
 	 */
 	@Test
 	public void testJsonParser() { 
+		System.out.println("==========================");
+		System.out.println("RUNNING NOTIFICATION TESTS");
+		System.out.println("==========================");
 		String tmp2 = "{ http://coralcea.ca/jasper/environmentalSensor/roomTemperature : 25R ,\n" +
 			    "http://coralcea.ca/jasper/timeStamp : 2013-10-14 02:18:45.0903 EDT }"; 
 		JsonArray response = new JsonArray();
@@ -111,6 +99,11 @@ public class TestNotification  extends TestCase {
 		
 		Trigger trigger = new Trigger();
 		trigger.evaluate(null);
+		trigger.getNotificationExpiry();
+		trigger.setPolling(2000);
+		trigger.getPolling();
+		trigger.setExpiry(10000);
+		trigger.getExpiry();
 		TestCase.assertNotNull(trigger);
 	
 	}
@@ -197,118 +190,6 @@ public class TestNotification  extends TestCase {
 		
 	}
 	
-	/*
-	 * This tests the Data Handler success and error paths for
-	 * notification requests
-	 */
-	@Test
-	public void testDataHandlerForNotifications() throws Exception {
-		JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, Command.jta_connect, TEST_JTA_NAME);
-        
-		message = session.createObjectMessage(jam);
-		Destination adminQueue = session.createQueue(TEST_JTA_ADMIN_QUEUE);
-		MessageConsumer adminConsumer = session.createConsumer(adminQueue);
-		MessageProducer adminProducer = session.createProducer(null);
-		producer.send(message);
-		
-		// Wait for a message
-	    Message adminRequest;
-	    int count = 0;
-	    
-	    do{
-    		adminRequest = adminConsumer.receive(3000);
-    		count++;
-    		if(count >= 3) break;
-    	}while(adminRequest == null);
-	    
-	    if (adminRequest instanceof ObjectMessage) {
-        	ObjectMessage objMessage = (ObjectMessage) adminRequest;
-        	Object obj = objMessage.getObject();
-        	if(obj instanceof JasperAdminMessage){
-				if(((JasperAdminMessage) obj).getType() == Type.ontologyManagement && ((JasperAdminMessage) obj).getCommand() == Command.get_ontology){
-        			String[][] triples = loadOntology();
-        			Message response = session.createObjectMessage(triples);
-        			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
-					adminProducer.send(adminRequest.getJMSReplyTo(), response );
-				}
-        	}
-	    }
-	    
-		// Send notification request
-		message = session.createTextMessage(COUNT_NOTIFICATION);
-		producer.send(message);
-		
-		count = 0;
-  
-		do{
-			adminRequest = adminConsumer.receive(3000);
-	    	count++;
-	    	if(count >= 3) break;
-	    }while(adminRequest == null);
-		    
-		// send response to notification request
-        if(adminRequest != null){
-        	JsonArray array = new JsonArray();
-			array.add(tmp);
-		    JsonObject jasonObj = new JsonObject();
-			jasonObj.put("http://coralcea.ca/jasper/environmentalSensor/temperature/temp", 25);
-			jasonObj.put("timestamp", "09042013:7:00");
-		    
-		    Message response = session.createTextMessage(jasonObj.toString());
-			response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
-			adminProducer.send(adminRequest.getJMSReplyTo(), response );
-        }
-		    
-		Thread.sleep(1000);
-		
-		// Send invalid notification request (no RURI)
-		message = session.createTextMessage(BAD_NOTIFICATION);
-		producer.send(message);
-		Thread.sleep(1000);
-		
-		// Send empty text messsage
-		message = session.createTextMessage(null);
-		producer.send(message);
-		Thread.sleep(1000);
-		
-		// Send notification request where criteria not met
-		message = session.createTextMessage(NOT_MET_NOTIFICATION);
-		producer.send(message);
-		
-		count = 0;
-		  
-	    do{
-    		adminRequest = adminConsumer.receive(3000);
-    		count++;
-    		if(count >= 3) break;
-    	}while(adminRequest == null);
-	    
-	    if(adminRequest != null){
-	    	JsonArray array = new JsonArray();
-	    	array.add(tmp);
-	    	JsonObject jasonObj = new JsonObject();
-	    	jasonObj.put("http://coralcea.ca/jasper/environmentalSensor/temperature/temp", 25);
-	    	jasonObj.put("timestamp", "09042013:7:00");
-	    
-	    	Message response = session.createTextMessage(jasonObj.toString());
-	    	response.setJMSCorrelationID(adminRequest.getJMSCorrelationID());
-	    	adminProducer.send(adminRequest.getJMSReplyTo(), response );
-	    }
-    
-		Thread.sleep(1000);
-		
-		// Send jta disconnect message
-		JasperAdminMessage jam2 = new JasperAdminMessage(Type.ontologyManagement, Command.jta_disconnect, TEST_JTA_NAME);
-		message = session.createObjectMessage(jam2);
-		producer.send(message);
-		
-		// Send notification request after DTA has de-registered
-		message = session.createTextMessage(COUNT_NOTIFICATION);
-		producer.send(message);
-		
-		Thread.sleep(2000);
-	}
-
 	@Before
 	public void setUp() throws Exception {
 		 System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
@@ -364,16 +245,4 @@ public class TestNotification  extends TestCase {
 		Thread.sleep(2000);
 		
 	}
-	
-	private String[][] loadOntology(){
-		ArrayList<String[]> triples = new ArrayList<String[]>();
-	
-		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/is","http://coralcea.ca/jasper/vocabulary/jta"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/provides","http://coralcea.ca/jasper/roomTempData"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/vocabulary/jtaA","http://coralcea.ca/jasper/vocabulary/queue",TEST_JTA_ADMIN_QUEUE});
-		
-		return triples.toArray(new String[][]{});
-		
-	}
-	
 }

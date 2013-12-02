@@ -98,7 +98,7 @@ public class JECore {
     }
      
     public String getUdeDeploymentAndInstance() {
-        return license.getDeploymentId() + ":" + license.getInstanceId();
+        return (license!=null)?license.getDeploymentId() + ":" + license.getInstanceId():"jasperLab:0";
     }
     
     public boolean isThisMyUdeLicense(String password){

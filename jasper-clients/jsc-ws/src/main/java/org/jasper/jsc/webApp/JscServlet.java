@@ -10,144 +10,43 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
-import javax.jms.Connection;
-import javax.jms.DeliveryMode;
-import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
-import javax.jms.JMSSecurityException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.jms.TextMessage;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Logger;
+import org.jasper.jsc.Jsc;
 
 @WebServlet("/")
-public class JscServlet extends HttpServlet  implements MessageListener  {
+public class JscServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
-	private static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
-
-	private static final long AUDIT_TIME_IN_MILLISECONDS = 15000;
-
 	static Logger log = Logger.getLogger(JscServlet.class.getName());
-	
-	private Connection connection = null;
-	private Session session = null;
-	private Queue globalDelegateQueue;
-	private MessageProducer producer;
-	private Queue servletQueue;
-	private MessageConsumer responseConsumer;
-	private Map<String,Message> responses;
-	private Map<String,Object> locks;
 	private Map<String, String> uriMapper = new HashMap<String, String>();
-	private int jscTimeout = 0;
-
-	private ScheduledExecutorService mapAuditExecutor;
+	
+	private Jsc jsc;
 
 	public JscServlet(){
 		super();
+		jsc = new Jsc(getProperties());
     }
     
 	public void init(){
-    	Properties prop = getProperties();
     	loadOntologyMapper();
-
-    	responses = new ConcurrentHashMap<String, Message>();
-    	locks = new ConcurrentHashMap<String, Object>();
-    	
-    	String user = prop.getProperty("jsc.username");
-    	String password = prop.getProperty("jsc.password");
-    	String timeout  = prop.getProperty("jsc.timeout", "60000");
-    	try{
-    		jscTimeout = Integer.parseInt(timeout);
-    	} catch (NumberFormatException ex) {
-    		jscTimeout = 60000; // set to 60 seconds on error
-    	}
- 
 		try {
-			String transportURL = prop.getProperty("jsc.transport");
-			ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(transportURL);
-			connection = connectionFactory.createConnection(user, password);
-			connection.setExceptionListener(new ExceptionListener() {
-				public void onException(JMSException arg0) {
-					log.error("Exception caught in JSC, ignoring : ", arg0);
-				}
-			});
-			
-			if(log.isInfoEnabled()){
-				log.info("Queue Connection successfully established with " + prop.getProperty("jsc.transport"));
-			}
-			
-		} catch (JMSSecurityException se) {
-			log.error(" client authentication failed due to an invalid user name or password.", se);
+			jsc.init();
 		} catch (JMSException e) {
-			log.error("the JMS provider failed to create the queue connection ", e);
-		}	
-		
-		try {
-			connection.start();
-			session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
-			globalDelegateQueue = session.createQueue(DELEGATE_GLOBAL_QUEUE);
-			
-			producer = session.createProducer(globalDelegateQueue);
-			producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-			producer.setTimeToLive(30000);
-			
-			servletQueue = session.createQueue("jms.jsc." + System.nanoTime() + ".queue");
-	        responseConsumer = session.createConsumer(servletQueue);
-	        responseConsumer.setMessageListener(this);
-		} catch (JMSException e) {
-			log.error("Exception when initilizing servlet and connecting to jasper",e);
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		
-		mapAuditExecutor = Executors.newSingleThreadScheduledExecutor();
-		Runnable command = new Runnable() {
-			public void run() {
-				auditMap();
-			}
-		};;;
-		
-		mapAuditExecutor.scheduleAtFixedRate(command , AUDIT_TIME_IN_MILLISECONDS, AUDIT_TIME_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
-		
     }
 	
     public void destroy(){
-
-    	try {
-        	mapAuditExecutor.shutdown();
-			mapAuditExecutor.awaitTermination(AUDIT_TIME_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
-		} catch (InterruptedException ie) {
-			log.error("mapAuditExecutor failed to terminate, forcing shutdown",ie);
-		}finally{
-			if(!mapAuditExecutor.isShutdown()) mapAuditExecutor.shutdownNow();
-		}
-    	
-		try {
-	    	responseConsumer.close();
-	    	producer.close();
-	    	session.close();
-	    	connection.stop();
-	    	connection.close();
-		} catch (JMSException e) {
-			log.error("Exception when destroying servlet and cleaning resources conencted to jasper",e);
-		}
-		
+    	jsc.destroy();
     }
     
     private Properties getProperties() {
@@ -207,24 +106,6 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
 		} 
    	
 	}
-	
-	private void auditMap() {
-		synchronized (responses) {
-			long currentTime = System.currentTimeMillis();
-			for(String key:responses.keySet()){
-				try {
-					if((responses.get(key).getJMSTimestamp() + AUDIT_TIME_IN_MILLISECONDS) > currentTime){
-						log.warn("Map audit found response that has timed out and weren't forwarded to JSC, removing response from map and droping response for JMSCorrelationID : " + key);
-						responses.remove(key);
-						locks.remove(key).notifyAll();
-					}
-				} catch (JMSException e) {
-					log.error("Exception caught when getting JMSExpiration",e);
-				}
-			}
-		}
-		
-	}
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
     	StringBuffer jasperQuery = new StringBuffer();
@@ -280,77 +161,23 @@ public class JscServlet extends HttpServlet  implements MessageListener  {
             }
         }
        
-		try {
-
-	        TextMessage message = session.createTextMessage();
-
-			message.setText(jasperQuery.toString());
-			String correlationID = UUID.randomUUID().toString();
-			message.setJMSCorrelationID(correlationID);
-			message.setJMSReplyTo(servletQueue);
-			
-			Message responseJmsMsg = null;
-			Object lock = new Object();
-			synchronized (lock) {
-				locks.put(correlationID, lock);
-				producer.send(message);
-			    int count = 0;
-			    while(!responses.containsKey(correlationID)){
-			    	try {
-						lock.wait(jscTimeout);
-					} catch (InterruptedException e) {
-						log.error("Interrupted while waiting for lock notification",e);
-					}
-			    	count++;
-			    	if(count >= 1)break;
-			    }
-			    responseJmsMsg = responses.remove(correlationID);
-			}
-			
-			response.setContentType("application/json");
-	        response.setCharacterEncoding("UTF-8");
-			
-			if(responseJmsMsg == null){
-				response.getWriter().write("{\"error\"=\"jscTimedOutWaitingForJsbResponse\"}");
-				log.warn("No respone for JMSCorrelationID : " + correlationID + " sending {\"error\"=\"jscTimedOutWaitingForJsbResponse\"} back to client");			
-			}else if (responseJmsMsg instanceof TextMessage){
-				response.getWriter().write(((TextMessage) responseJmsMsg).getText());
-			}else{
-				response.getWriter().write("{\"error\"=\"responseWasNotJmsTextMessage\"}");
-				log.warn("Response was not a TextMessage for JMSCorrelationID : " + correlationID + " sending {} back to client");
-			}
-			
-		} catch (JMSException e) {
-			log.error("Exception when trying to send request to jasper",e);
-			response.getWriter().write("{\"error\"=\"jscTimedOutWaitingForJsbResponse\"}");
+		response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+		
+        String jscResponse = jsc.get(jasperQuery.toString());
+        
+		if(jscResponse == null){
+			response.getWriter().write("{\"error\"=\"null response from jsc for reqeust : " + jasperQuery + "\"}");
+			log.warn("null response for from jsc for request : " + jasperQuery);			
+		}else{
+			response.getWriter().write(jscResponse);
 		}
     }
 
     protected void doPost(HttpServletRequest httpservletrequest, HttpServletResponse httpservletresponse) throws ServletException, IOException{
+    	httpservletresponse.getWriter().write("POST NOT SUPPORTED");
     }
 
-	public void onMessage(Message msg) {
-		try{
-			if(msg.getJMSCorrelationID() == null){
-				log.warn("jms response message recieved with null JMSCorrelationID, ignoring message.");
-				return;
-			}
 
-			msg.setJMSTimestamp(System.currentTimeMillis());
-			
-			if(locks.containsKey(msg.getJMSCorrelationID())){
-				responses.put(msg.getJMSCorrelationID(), msg);
-				Object lock = locks.remove(msg.getJMSCorrelationID());
-				synchronized (lock) {
-					lock.notifyAll();
-				}
-			}else{
-				log.error("response with correlationID = " + msg.getJMSCorrelationID() + " recieved however no record of sending message with this ID, ignoring");
-			}
-
-		} catch (JMSException e) {
-			log.error("Exception when storing response recieved in onMessage",e);
-		}		
-	}
 
 }

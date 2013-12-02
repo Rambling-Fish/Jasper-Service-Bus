@@ -26,7 +26,7 @@ public class DataHandler implements Runnable {
 	private Message jmsRequest;
 	private String notification;
 	private String output;
-	private String jtaParms;
+	private String dtaParms;
 	private int expiry;
 	private int polling;
 	private List<Trigger> triggerList;
@@ -99,7 +99,7 @@ public class DataHandler implements Runnable {
   	    	statefulData.setTriggers(triggerList);
   	    	statefulData.setNotification(notification);
   	    	statefulData.setIsNotificationRequest(true);
-  	    	statefulData.setJtaParms(jtaParms);
+  	    	statefulData.setDtaParms(dtaParms);
   	    }
 
   	    sharedData.put(key, statefulData);
@@ -198,7 +198,7 @@ public class DataHandler implements Runnable {
 					}
 				}
 				else{
-					jtaParms = result[i];
+					dtaParms = result[i];
 				}
 			}
 			
