@@ -42,6 +42,17 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 		this.model = model;
 		jtaStatements = PersistenceFacade.getInstance().getMultiMap("jtaStatements");
 		jtaStatements.addEntryListener(this, true);
+		
+		for(String key:jtaStatements.keySet()){
+			for(String[]triple:jtaStatements.get(key)){
+				Resource s = model.getResource(triple[0]);
+		    	Property p = model.getProperty(triple[1]);
+				RDFNode o = model.getResource(triple[2]);
+				Statement statements = model.createStatement(s, p, o);
+				model.add(statements);
+			}
+		}
+		
 	}
 
 	public JsonArray getQandParams(String ruri,Map<String, String> params){
