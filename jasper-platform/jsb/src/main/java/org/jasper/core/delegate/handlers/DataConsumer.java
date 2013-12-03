@@ -17,6 +17,7 @@ import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonString;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.log4j.Logger;
+import org.jasper.core.JECore;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.notification.triggers.Trigger;
@@ -55,6 +56,12 @@ public class DataConsumer implements Runnable {
 			do{
 				statefulData = workQueue.take();
 				if(statefulData != null){
+					statefulData.setUDEInstance(JECore.getInstance().getUdeDeploymentAndInstance());
+                    if(logger.isDebugEnabled()){
+                            logger.debug("**************************************");
+                            logger.debug("  GOT IT on " +  statefulData.getUDEInstance());
+                            logger.debug("**************************************");
+                    }
 					processRequest(statefulData);
 				}
 				if (isShutdown) break;

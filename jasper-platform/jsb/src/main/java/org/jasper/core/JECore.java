@@ -1,6 +1,5 @@
 package org.jasper.core;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -11,17 +10,9 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.security.InvalidParameterException;
 import java.security.PublicKey;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Enumeration;
-import java.util.GregorianCalendar;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
-import java.util.TimeZone;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,8 +26,6 @@ import org.apache.activemq.broker.BrokerRegistry;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.JsbTransportConnector;
 import org.apache.activemq.network.NetworkConnector;
-import org.apache.commons.net.ntp.NTPUDPClient;
-import org.apache.commons.net.ntp.TimeInfo;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.jasper.core.auth.JasperAuthenticationPlugin;
@@ -44,12 +33,9 @@ import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateFactory;
 import org.jasper.core.persistence.PersistedObject;
 import org.jasper.core.persistence.PersistenceFacade;
-//import org.jasper.jLib.jAuth.JSBLicense;
-import org.jasper.jLib.jAuth.ClientLicense;
+import org.jasper.core.auth.AuthenticationFacade;
 import org.jasper.jLib.jAuth.UDELicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
-
-import com.google.gson.Gson;
 
 public class JECore {
 	
@@ -58,7 +44,7 @@ public class JECore {
 	private static JECore core;
 	
 	private BrokerService broker;
-	private UDELicense license;
+	private static UDELicense license;
 	private PublicKey publicKey;
 	private static int numDelegates;
 	private static int defaultNumDelegates = 5;
@@ -68,7 +54,7 @@ public class JECore {
 	private boolean clusterEnabled;
 
 	private static String brokerTransportIp;
-
+	private static AuthenticationFacade authFacade;
 	private static ExecutorService executorService;
 	private static DelegateFactory factory;
 
@@ -83,19 +69,9 @@ public class JECore {
 		return core;
 	}
 	
-	public boolean isSystemDeploymentId(String id) {
-		return license.getDeploymentId().equals(id);
-	}
-	
 	public String getDeploymentID() {
 		return (license!=null)?license.getDeploymentId():"licenceKeyNotSet";
 	}
-	
-    public String getUdeDeploymentAndInstance(String password) {
-        UDELicense lic = getUdeLicense(JAuthHelper.hexToBytes(password));
-        if(lic == null) return null;
-        return (lic.getDeploymentId() + ":" + lic.getInstanceId());
-    }
      
     public String getUdeDeploymentAndInstance() {
         return (license!=null)?license.getDeploymentId() + ":" + license.getInstanceId():"jasperLab:0";
@@ -105,83 +81,11 @@ public class JECore {
         return JAuthHelper.bytesToHex(license.getLicenseKey()).equals(password);
     }
 	
-	private void loadKeys(String keyStore) throws IOException {
-		File licenseKeyFile = getLicenseKeyFile(keyStore);
-		if(licenseKeyFile == null){
-	    	throw (SecurityException)new SecurityException("Unable to find single UDE license key in: " + keyStore);
-		}
-		license = JAuthHelper.loadUDELicenseFromFile(keyStore + licenseKeyFile.getName());
-		publicKey = JAuthHelper.getPublicKeyFromFile(keyStore);
-	}
-		
-	private File getLicenseKeyFile(String keystore){
-		List<File> results = new ArrayList<File>();
-		File[] files = new File(keystore).listFiles();
-
-		for (File file : files) {
-		    if (file.isFile()) {
-		    	if(file.getName().endsWith(JAuthHelper.UDE_LICENSE_FILE_SUFFIX)){
-		    		results.add(file);
-		    	}
-		    }
-		}
-		if(results.size() == 1) {
-			return results.get(0);
-		}else{
-			return null;
-		}
-	}
-	
-	private boolean isValidLicenseKey() throws Exception {
-		return license.toString().equals(new String(JAuthHelper.rsaDecrypt(license.getLicenseKey(), publicKey)));
-	}
-	
 	private UDELicense getUdeLicense(){
 		return license;
 	}
 	
-	public Calendar getExpiry(String licenseKey) {
-		return getClientLicense(JAuthHelper.hexToBytes(licenseKey)).getExpiry();
-	}
-	
-	private boolean isValidLicenseKeyExpiry() {
-		if(license.getExpiry() == null){
-			return true;
-		}else{
-			Calendar currentTime;
-			if(license.getNtpHost() == null){
-				currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-			}else{
-				TimeInfo ntpResponse = getNTPTime(license.getNtpHost(), license.getNtpPort());
-				currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-				currentTime.setTime(ntpResponse.getMessage().getTransmitTimeStamp().getDate());
-			}
-			return currentTime.before(license.getExpiry());
-		}
-	}
-	
-	private TimeInfo getNTPTime(String host, Integer port) {
-		NTPUDPClient client = new NTPUDPClient();
-		client.setDefaultTimeout(10000);
-		TimeInfo info = null;
-		try {
-			client.open();
-			try {
-				InetAddress hostAddr = InetAddress.getByName(host);
-				if(port != null){
-					info = client.getTime(hostAddr,port.intValue());
-				}else{
-					info = client.getTime(hostAddr);
-				}
-			} catch (IOException ioe) {
-				ioe.printStackTrace();
-			}
-		} catch (SocketException e) {
-			e.printStackTrace();
-		}
-		client.close();
-		return info;
-	}
+
 	
 	public void setupAudit(){
 		exec = Executors.newSingleThreadScheduledExecutor();
@@ -196,17 +100,17 @@ public class JECore {
 	
 	private void auditSystem(){
 		try {
-			loadKeys(System.getProperty("jsb-keystore"));
-			if(willLicenseKeyExpireInDays(3)){
-				logger.error("ude-license key will expire on : " + getExpiryDate());
-			}else if(willLicenseKeyExpireInDays(7)){
-				logger.warn("ude-license key will expire on : " + getExpiryDate());
-			}else if(willLicenseKeyExpireInDays(14)){
-				logger.info("ude-license key will expire on : " + getExpiryDate());
-			}else if(willLicenseKeyExpireInDays(21)){
-				logger.debug("ude-license key will expire on : " + getExpiryDate());
+			license = authFacade.loadKeys(System.getProperty("jsb-keystore"));
+			if(authFacade.willUdeLicenseKeyExpireInDays(license, 3)){
+				logger.error("ude-license key will expire on : " + authFacade.getUdeExpiryDate(license));
+			}else if(authFacade.willUdeLicenseKeyExpireInDays(license, 7)){
+				logger.warn("ude-license key will expire on : " + authFacade.getUdeExpiryDate(license));
+			}else if(authFacade.willUdeLicenseKeyExpireInDays(license, 14)){
+				logger.info("ude-license key will expire on : " + authFacade.getUdeExpiryDate(license));
+			}else if(authFacade.willUdeLicenseKeyExpireInDays(license, 21)){
+				logger.debug("ude-license key will expire on : " + authFacade.getUdeExpiryDate(license));
 			}
-			if(!isValidLicenseKeyExpiry())shutdown();
+			if(!authFacade.isValidUdeLicenseKeyExpiry(license))shutdown();
 		} catch (IOException e) {
 			logger.error("IOException caught when trying to load license key, shutting down",e);
 			shutdown();
@@ -231,59 +135,7 @@ public class JECore {
 			}
 		}
 	}
-	
-	private String getExpiryDate() {
-		if(license.getExpiry() == null){
-			return "";
-		}else{
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss zzz");
-			return format.format(license.getExpiry().getTime());
-		}
-	}
-	
-	public String getExpiryDate(ClientLicense license) {
-		if(license.getExpiry() == null){
-			return "";
-		}else{
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss zzz");
-			return format.format(license.getExpiry().getTime());
-		}
-	}
 
-	private boolean willLicenseKeyExpireInDays(int days) {
-		if(license.getExpiry() == null){
-			return false;
-		}else{
-			Calendar currentTime;
-			if(license.getNtpHost() == null){
-				currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-			}else{
-				TimeInfo ntpResponse = getNTPTime(license.getNtpHost(), license.getNtpPort());
-				currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-				currentTime.setTime(ntpResponse.getMessage().getTransmitTimeStamp().getDate());
-			}
-			currentTime.add(Calendar.DAY_OF_YEAR, days);
-			return currentTime.after(license.getExpiry());
-		}
-				
-	}
-	
-	public boolean willClientLicenseKeyExpireInDays(ClientLicense license, int days) {
-		if(license.getExpiry() == null){
-			return false;
-		}else{
-			Calendar currentTime;
-			if(license.getNtpHost() == null){
-				currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-			}else{
-				TimeInfo ntpResponse = getNTPTime(license.getNtpHost(), license.getNtpPort());
-				currentTime = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-				currentTime.setTime(ntpResponse.getMessage().getTransmitTimeStamp().getDate());
-			}
-			currentTime.add(Calendar.DAY_OF_YEAR, days);
-			return currentTime.after(license.getExpiry());
-		}		
-	}
 
 	private void shutdown(){
 		logger.info("received shutdown request, shutting down");
@@ -305,163 +157,10 @@ public class JECore {
 		}
 	}
 	
-	public boolean isValidLicenseKey(String userName, String password) {
-		return isUdeAuthenticationValid(userName, password) || isClientAuthenticationValid(userName, password);
-	}
-	
-	public boolean isUdeLicenseKey(String password) {
-		UDELicense ulic = getUdeLicense(JAuthHelper.hexToBytes(password));
-		logger.info("=========Checking if is a UDE on not Null=========\n");
-		logger.info("Is this a UDE License? \n");
-		logger.info("License: " + ulic);
-		if (ulic.getType().toLowerCase().equals("ude")) {
-			logger.info("It's a UDE License\n");
-			return true;
-		}
-		else {
-			logger.info("It's a CLIENT License \n");
-			return false;
-		}
-	}
-	
-	public boolean isUdeAuthenticationValid(String userName, String password) {
-		UDELicense lic = getUdeLicense(JAuthHelper.hexToBytes(password));
-		logger.info("========= isUdeAuthenticationValid =========\n");
-		logger.info("Lic: " + lic + "\n UserName("+ userName + ") = " + lic.getDeploymentId() + ":" + lic.getInstanceId());
-		return (lic != null) && (userName.equals( lic.getDeploymentId() + ":" + lic.getInstanceId()));
-	}
-	
-	public String getUdeInstance(String password) {
-		UDELicense lic = getUdeLicense(JAuthHelper.hexToBytes(password));
-		if(lic == null) return null;
-		return (lic.getDeploymentId() + ":" + lic.getInstanceId());
-	}
-	
 	public String getUdeInstance() {
 		return license.getDeploymentId() + ":" + license.getInstanceId();
 	}
-	
-	public boolean isClientAuthenticationValid(String userName, String password) {		
-		ClientLicense lic = getClientLicense(JAuthHelper.hexToBytes(password));
-		logger.info("========= isClientAuthenticationValid =========\n");
-		logger.info("Lic: " + lic + "\n UserName("+ userName + ") = " + lic.getVendor() + ":" + lic.getAppName() + ":" + lic.getVersion() + ":" + lic.getDeploymentId());
-		return (lic !=null) && (userName.equals( lic.getVendor() + ":" + lic.getAppName() + ":" +
-				                lic.getVersion() + ":" + lic.getDeploymentId())) 
-				            && !willClientLicenseKeyExpireInDays(lic, 0);
-	}
-	
-	public UDELicense getUdeLicense(byte[] bytes) {
-		
-		String password;
-		try {
-			password = new String(JAuthHelper.rsaDecrypt(bytes, publicKey));
-			Gson gson = new Gson();
-			UDELicense lic = gson.fromJson(password, UDELicense.class);
-			return lic;
-		} catch (Exception e) {
-			logger.error("Exception caught when trying to get UDE License Key",e);
-			return null;
-		}
-//		String password;
-//		try {
-//			password = new String(JAuthHelper.rsaDecrypt(bytes, publicKey));
-			
-			/*
-			 * Sample valid jsb license string:
-			 * jsb:jasperLab:0:2012-12-25:time.nrc.ca:8080
-			 */
-//			String[] jsbInfo = password.split(":");
-//	        if(jsbInfo.length < 3) return null;
-//	        if(!jsbInfo[0].equals("jsb")) return null;
-//	        
-//	        String deploymentId = jsbInfo[1];
-//	        int instanceId = Integer.parseInt(jsbInfo[2]);
-//	        Calendar expiry = null;
-//	        if (jsbInfo.length > 3){
-//	        	String[] expiryDate = jsbInfo[3].split("-");
-//	        	if(expiryDate.length >= 3){
-//	        		int year = Integer.parseInt(expiryDate[0]);
-//	        		int month = Integer.parseInt(expiryDate[1])-1;
-//	        		int day = Integer.parseInt(expiryDate[2]);
-//	        		int hour = (expiryDate.length>3) ? Integer.parseInt(expiryDate[3]) : 23;
-//	        		int minute = (expiryDate.length>4) ? Integer.parseInt(expiryDate[4]) : 59;
-//	        		int second = (expiryDate.length>5) ? Integer.parseInt(expiryDate[5]) : 59;
-//	        		expiry = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-//		        	expiry.set(year,month,day,hour,minute,second);
-//	        	}	
-//	        }
-//	        
-//	        String ntpHost = null;
-//	        if (jsbInfo.length > 4) ntpHost = jsbInfo[4];
-//	        
-//	        Integer ntpPort = null;
-//	        if (jsbInfo.length > 5) ntpPort = new Integer(jsbInfo[5]);
-//	        
-//	        return new JSBLicense(deploymentId, instanceId, expiry, ntpHost, ntpPort, null);      
-//		
-//		} catch (Exception e) {
-//			logger.error("Exception caught when trying to get JSBLicense Key",e);
-//			return null;
-//		}
-	}
 
-	public ClientLicense getClientLicense(byte[] bytes) {
-		
-		String password;
-		try {
-			password = new String(JAuthHelper.rsaDecrypt(bytes, publicKey));
-			Gson gson = new Gson();
-			ClientLicense lic = gson.fromJson(password, ClientLicense.class);
-			return lic;
-		} catch (Exception e) {
-			logger.error("Exception caught when trying to get UDE License Key",e);
-			return null;
-		}
-		
-//		String password;
-//		try {
-//			password = new String(JAuthHelper.rsaDecrypt(bytes, publicKey));
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			return null;
-//		}
-		
-		/*
-		 * Sample valid jta license string:
-		 * jta:jasper:sampleApp:1.0:jasperLab:2012-12-25-23-59-59:time.nrc.ca
-		 */
-		
-//		String[] jtaInfo = password.split(":");
-//        if(jtaInfo.length < 5) return null;
-//        if(!jtaInfo[0].equals("jta")) return null;
-//        
-//        String vendor = jtaInfo[1];
-//        String appName = jtaInfo[2];
-//        String version = jtaInfo[3];
-//        String deploymentId = jtaInfo[4];
-//        Calendar expiry = null;
-//        if (jtaInfo.length > 5){
-//        	String[] expiryDate = jtaInfo[5].split("-");
-//        	if(expiryDate.length >= 3){
-//        		int year = Integer.parseInt(expiryDate[0]);
-//        		int month = Integer.parseInt(expiryDate[1])-1;
-//        		int day = Integer.parseInt(expiryDate[2]);
-//        		int hour = (expiryDate.length>3) ? Integer.parseInt(expiryDate[3]) : 23;
-//        		int minute = (expiryDate.length>4) ? Integer.parseInt(expiryDate[4]) : 59;
-//        		int second = (expiryDate.length>5) ? Integer.parseInt(expiryDate[5]) : 59;
-//        		expiry = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-//	        	expiry.set(year,month,day,hour,minute,second);
-//        	}	
-//        }
-//        
-//        String ntpHost = null;
-//        if (jtaInfo.length > 6) ntpHost = jtaInfo[6];
-//        
-//        Integer ntpPort = null;
-//        if (jtaInfo.length > 7) ntpPort = new Integer(jtaInfo[7]);
-//        
-//        return new JTALicense(vendor, appName, version, deploymentId, expiry, ntpHost, ntpPort, null);
-	}
 
 	/**
 	 * @param args
@@ -480,11 +179,12 @@ public class JECore {
     	}
     	
     	JECore core = JECore.getInstance();
-    	 	
-    	core.loadKeys(System.getProperty("jsb-keystore"));
+    	authFacade = AuthenticationFacade.getInstance();
     	
-    	if(core.isValidLicenseKey()){
-    		if(core.isValidLicenseKeyExpiry()){
+    	license = authFacade.loadKeys(System.getProperty("jsb-keystore"));
+    	
+    	if(authFacade.isValidUdeLicenseKey(license)){
+    		if(authFacade.isValidUdeLicenseKeyExpiry(license)){
     			
     			core.broker = new JasperBrokerService();
     			String brokerName = core.getUdeLicense().getDeploymentId() + "_" + core.getUdeLicense().getInstanceId();
