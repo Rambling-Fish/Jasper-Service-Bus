@@ -171,15 +171,11 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
     
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {  
         
-    	logger.info("=========addConnection Event=========\n");
-    	logger.info("Connection INFO" + info); 
         if(info.getClientIp().startsWith("vm://localhost") || info.getClientIp().startsWith("vm://" + context.getBroker().getBrokerName())
                 || info.getClientIp().startsWith("tcp://" + core.getBrokerTransportIp()) && authFacade.isUdeLicenseKey(info.getPassword())){
             super.addConnection(context, info);
-            logger.info("=========LocalConnection=========\n");
             return;
         }
-        logger.info("=========External Connection Event=========");     
         if(!authFacade.isValidLicenseKey(info.getUserName(), info.getPassword())){
             throw (SecurityException)new SecurityException("Invalid license key : " + info.getUserName());
         }
@@ -190,17 +186,13 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
          * is success 
          */
         if(authFacade.isUdeLicenseKey(info.getPassword())){
-        	logger.info("=========Adding UDE=========\n");
         	addUdeConnection(context,info);
         }else{
-        	logger.info("=========Adding Client=========\n");
         	addClientConnection(context,info);
         }
     }
     
     private void addUdeConnection(ConnectionContext context, ConnectionInfo info) throws Exception{
-    	logger.info("=========Remote UDE=========\n");
-    	logger.info("INFO " + info + context+"\n");
        /*
         * During connection setup we validate that the UDE license key provided is valid and
         * matches the stated UDE. UDE info is stored in username and the license key in the password
@@ -222,8 +214,8 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
                logger.info("Peer UDE deploymentId matches that of local UDE : " + info.getUserName().split(":")[0]);
            }
        }else{
-           logger.error("Peer UDE deploymentId does not match that of local JSB. Peer JSB deploymentId : " + info.getUserName().split(":")[0] + " and local deploymentId : " + core.getDeploymentID());
-           throw (SecurityException)new SecurityException("Peer UDE deploymentId does not match that of local JSB. Peer JSB deploymentId : " + info.getUserName().split(":")[0] + " and local deploymentId : " + core.getDeploymentID());
+           logger.error("Peer UDE deploymentId does not match that of local UDE. Peer UDE deploymentId : " + info.getUserName().split(":")[0] + " and local deploymentId : " + core.getDeploymentID());
+           throw (SecurityException)new SecurityException("Peer UDE deploymentId does not match that of local UDE. Peer UDE deploymentId : " + info.getUserName().split(":")[0] + " and local deploymentId : " + core.getDeploymentID());
        }
        
        /*
@@ -260,8 +252,6 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
     
     private void addClientConnection(ConnectionContext context, ConnectionInfo info) throws Exception{
         
-    	logger.info("=========Remote Client=========\n");
-    	logger.info("INFO " + info + context+"\n");
     	/*
          * During connection setup we validate that the Client license key provided is valid and
          * matches the stated Client. Client info is stored in username and the license key in the password
@@ -286,8 +276,8 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
                 logger.info("license key deploymentId matches that of the system : " + info.getUserName().split(":")[3]);
             }
         }else{
-            logger.error("deploymentId does not match that of the system. license key deploymentId : " + info.getUserName().split(":")[3] + " and system deploymentId : " + JECore.getInstance().getDeploymentID());
-            throw (SecurityException)new SecurityException("Client deploymentId does not match that of the system. license key deploymentId : " + info.getUserName().split(":")[3] + " and system deploymentId : " + JECore.getInstance().getDeploymentID());
+            logger.error("deploymentId does not match that of the system. license key deploymentId : " + info.getUserName().split(":")[3] + " and system deploymentId : " + authFacade.getDeploymentId());
+            throw (SecurityException)new SecurityException("Client deploymentId does not match that of the system. license key deploymentId : " + info.getUserName().split(":")[3] + " and system deploymentId : " + authFacade.getDeploymentId());
         }
         
         /*
@@ -304,34 +294,32 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
         		isLicenseKeyAvailable = true;
         		break;
         	}else{
-        		String jsb = lookupJsb(info.getPassword());
-        		logger.warn("license key is not available it is currently being used by " + jsb);
+        		String ude = lookupUde(info.getPassword());
+        		logger.warn("license key is not available it is currently being used by " + ude);
         		Thread.sleep(250);
         	}
         }
         
         if(isLicenseKeyAvailable){
         	registeredLicenseKeys.put(core.getUdeDeploymentAndInstance(), info.getPassword());
-            jtaConnectionContextMap.put(info.getPassword(), context);
-
+        	jtaConnectionContextMap.put(info.getPassword(), context);        
             super.addConnection(context, info);
             broadcastAdminEvent("printMap");
             
             if(logger.isInfoEnabled()){
-                logger.info(info.getUserName() + " registered") ;
+                logger.info(info.getUserName() + " registered");
             }
-            //TODO Get Type for JSC
             if(!info.getUserName().contains("jsc")) notifyDelegate(Command.jta_connect, info.getUserName());
         }else{
-        	String errorMsg = "license key already registered on " + lookupJsb(info.getPassword());
+        	String errorMsg = "license key already registered on " + lookupUde(info.getPassword());
             logger.error(info.getUserName() + " registration failed due to " + errorMsg);
             throw (SecurityException)new SecurityException(errorMsg);
         }
     }
 
-	private String lookupJsb(String licenseKey) {
-    	for(String jsb:registeredLicenseKeys.keySet()){
-    		if(registeredLicenseKeys.get(jsb).contains(licenseKey))return jsb;
+	private String lookupUde(String licenseKey) {
+    	for(String ude:registeredLicenseKeys.keySet()){
+    		if(registeredLicenseKeys.get(ude).contains(licenseKey))return ude;
     	}
     	return null;
 	}
@@ -376,7 +364,7 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
             logger.error("Exception caught while notifying peers: ", e);
         }
     }
-    
+    	
     private String getPrintableRegisteredLicenseKeysMap(){
     	StringBuilder sb = new StringBuilder();
     	sb.append("\n----------------------------------------");

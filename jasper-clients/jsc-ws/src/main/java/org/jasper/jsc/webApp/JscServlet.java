@@ -65,8 +65,8 @@ public class JscServlet extends HttpServlet {
 			
 		} catch (IOException e) {
 			log.error("error loading jsc properties file.", e);
-		}  		
-    	return prop;
+		}
+		return prop;
 	}
     
     private void loadOntologyMapper() {
@@ -167,7 +167,7 @@ public class JscServlet extends HttpServlet {
         String jscResponse = jsc.get(jasperQuery.toString());
         
 		if(jscResponse == null){
-			response.getWriter().write("{\"error\"=\"null response from jsc for reqeust : " + jasperQuery + "\"}");
+			response.getWriter().write("{\"error\":\"null response from jsc for request : " + jasperQuery + "\"}");
 			log.warn("null response for from jsc for request : " + jasperQuery);			
 		}else{
 			response.getWriter().write(jscResponse);

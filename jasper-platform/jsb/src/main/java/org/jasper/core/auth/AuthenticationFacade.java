@@ -22,6 +22,7 @@ import org.jasper.jLib.jAuth.util.JAuthHelper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.annotations.Expose;
 
 public class AuthenticationFacade {
 	
@@ -44,10 +45,6 @@ public class AuthenticationFacade {
 		return authFacade;
 	}
 	
-	private String getDeploymentId(){
-		return deploymentId;
-	}
-	
 	public UDELicense loadKeys(String keyStore) throws IOException {
 		File licenseKeyFile = getLicenseKeyFile(keyStore);
 		if(licenseKeyFile == null){
@@ -56,7 +53,7 @@ public class AuthenticationFacade {
 		publicKey = JAuthHelper.getPublicKeyFromFile(keyStore);
 		UDELicense udeLic = JAuthHelper.loadUDELicenseFromFile(keyStore + licenseKeyFile.getName());
 		if (isUdeLicenseKey(udeLic)){
-			// Set deploymentID
+			// Setting deploymentID for current Instance
 			deploymentId = udeLic.getDeploymentId();
 			return udeLic;
 		}else return null; 		
@@ -81,25 +78,31 @@ public class AuthenticationFacade {
 		}
 	}
 	
+	public String getDeploymentId(){
+		return deploymentId;
+	}
+	
+	public boolean isSystemDeploymentId(String id) {
+		return authFacade.getDeploymentId().equals(id);
+	}
+	
+	public boolean isValidLicenseKey(String userName, String password) {
+		return isUdeAuthenticationValid(userName, password) || isClientAuthenticationValid(userName, password);
+	}
+	
+	public boolean isValidUdeLicenseKey(UDELicense license) throws Exception {
+		return license.toString().equals(new String(JAuthHelper.rsaDecrypt(license.getLicenseKey(), publicKey)));
+	}
+
+	
     public String getUdeDeploymentAndInstance(String password) {
         UDELicense lic = getUdeLicense(JAuthHelper.hexToBytes(password));
         if(lic == null) return null;
         return (lic.getDeploymentId() + ":" + lic.getInstanceId());
     }
 	
-	public boolean isSystemDeploymentId(String id) {
-		return authFacade.getDeploymentId().equals(id);
-	}
 	
-	
-	public Calendar getExpiry(String licenseKey) {
-		return getClientLicense(JAuthHelper.hexToBytes(licenseKey)).getExpiry();
-	}
-	
-	public boolean isValidUdeLicenseKey(UDELicense license) throws Exception {
-		return license.toString().equals(new String(JAuthHelper.rsaDecrypt(license.getLicenseKey(), publicKey)));
-	}
-	
+		
 	public boolean isValidUdeLicenseKeyExpiry(UDELicense license) {
 		if(license.getExpiry() == null){
 			return true;
@@ -148,15 +151,6 @@ public class AuthenticationFacade {
 		}
 	}
 	
-	public String getClientExpiryDate(ClientLicense license) {
-		if(license.getExpiry() == null){
-			return "";
-		}else{
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss zzz");
-			return format.format(license.getExpiry().getTime());
-		}
-	}
-
 	public boolean willUdeLicenseKeyExpireInDays(UDELicense license, int days) {
 		if(license.getExpiry() == null){
 			return false;
@@ -173,6 +167,61 @@ public class AuthenticationFacade {
 			return currentTime.after(license.getExpiry());
 		}
 				
+	}
+
+	public boolean isUdeLicenseKey(String password) {
+		UDELicense ulic = getUdeLicense(JAuthHelper.hexToBytes(password));
+		if (ulic.getType().toLowerCase().equals("ude")) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public boolean isUdeLicenseKey(UDELicense lic) {
+		if (lic.getType().toLowerCase().equals("ude")) 	return true;
+		else return false;
+	}
+	
+	public boolean isUdeAuthenticationValid(String userName, String password) {
+		UDELicense lic = getUdeLicense(JAuthHelper.hexToBytes(password));
+		return (lic != null) && (userName.equals( lic.getDeploymentId() + ":" + lic.getInstanceId()));
+	}
+	
+	public String getUdeInstance(String password) {
+		UDELicense lic = getUdeLicense(JAuthHelper.hexToBytes(password));
+		if(lic == null) return null;
+		return (lic.getDeploymentId() + ":" + lic.getInstanceId());
+	}
+
+	public String getUdeType(String password){
+		return getUdeLicense(JAuthHelper.hexToBytes(password)).getType();
+	}
+	
+	public String getUdeVersion(String password){
+		return getUdeLicense(JAuthHelper.hexToBytes(password)).getVersion();
+	}
+	
+	public Integer getUdeNumPublishers(String password){
+		return getUdeLicense(JAuthHelper.hexToBytes(password)).getNumOfPublishers();
+	}
+	
+	public Integer getUdeNumConsumers(String password){
+		return getUdeLicense(JAuthHelper.hexToBytes(password)).getNumOfConsumers();
+	}
+	
+//	public Calendar getExpiry(String licenseKey) {
+//		return getClientLicense(JAuthHelper.hexToBytes(licenseKey)).getExpiry();
+//	}
+
+	public String getClientExpiryDate(ClientLicense license) {
+		if(license.getExpiry() == null){
+			return "";
+		}else{
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss zzz");
+			return format.format(license.getExpiry().getTime());
+		}
 	}
 	
 	public boolean willClientLicenseKeyExpireInDays(ClientLicense license, int days) {
@@ -191,54 +240,43 @@ public class AuthenticationFacade {
 			return currentTime.after(license.getExpiry());
 		}		
 	}
-	
-	public boolean isValidLicenseKey(String userName, String password) {
-		return isUdeAuthenticationValid(userName, password) || isClientAuthenticationValid(userName, password);
-	}
-	
-	public boolean isUdeLicenseKey(String password) {
-		UDELicense ulic = getUdeLicense(JAuthHelper.hexToBytes(password));
-		logger.info("=========Checking if is a UDE on not Null=========\n");
-		logger.info("Is this a UDE License? \n");
-		logger.info("License: " + ulic);
-		if (ulic.getType().toLowerCase().equals("ude")) {
-			logger.info("It's a UDE License\n");
-			return true;
-		}
-		else {
-			logger.info("It's a CLIENT License \n");
-			return false;
-		}
-	}
-	
-	public boolean isUdeLicenseKey(UDELicense lic) {
-		if (lic.getType().toLowerCase().equals("ude")) {
-			logger.info("It's a UDE License\n");
-			return true;
-		} else return false;
-	}
-	
-	public boolean isUdeAuthenticationValid(String userName, String password) {
-		UDELicense lic = getUdeLicense(JAuthHelper.hexToBytes(password));
-		logger.info("========= isUdeAuthenticationValid =========\n");
-		logger.info("Lic: " + lic + "\n UserName("+ userName + ") = " + lic.getDeploymentId() + ":" + lic.getInstanceId());
-		return (lic != null) && (userName.equals( lic.getDeploymentId() + ":" + lic.getInstanceId()));
-	}
-	
-	public String getUdeInstance(String password) {
-		UDELicense lic = getUdeLicense(JAuthHelper.hexToBytes(password));
-		if(lic == null) return null;
-		return (lic.getDeploymentId() + ":" + lic.getInstanceId());
-	}
-	
+		
 	public boolean isClientAuthenticationValid(String userName, String password) {		
 		ClientLicense lic = getClientLicense(JAuthHelper.hexToBytes(password));
-		logger.info("========= isClientAuthenticationValid =========\n");
-		logger.info("Lic: " + lic + "\n UserName("+ userName + ") = " + lic.getVendor() + ":" + lic.getAppName() + ":" + lic.getVersion() + ":" + lic.getDeploymentId());
 		return (lic !=null) && (userName.equals( lic.getVendor() + ":" + lic.getAppName() + ":" +
 				                lic.getVersion() + ":" + lic.getDeploymentId())) 
 				            && !willClientLicenseKeyExpireInDays(lic, 0);
 	}
+	
+	public String getClientType(String password){
+		return getClientLicense(JAuthHelper.hexToBytes(password)).getType();
+	}
+	
+	public Integer getClientInstanceId(String password){
+		return getClientLicense(JAuthHelper.hexToBytes(password)).getinstanceId();
+	}
+	
+	public String getClientVersion(String password){
+		return getClientLicense(JAuthHelper.hexToBytes(password)).getVersion();
+	}
+	
+	public Integer getClientNumPublishers(String password){
+		return getClientLicense(JAuthHelper.hexToBytes(password)).getNumOfPublishers();
+	}
+	
+	public Integer getClientNumConsumers(String password){
+		return getClientLicense(JAuthHelper.hexToBytes(password)).getNumOfConsumers();
+	}
+	
+	public String getClientAdminQueue(String password){
+		return getClientLicense(JAuthHelper.hexToBytes(password)).getAdminQueue();
+	}
+	
+	public String getClientDeploymentId(String password){
+		return getClientLicense(JAuthHelper.hexToBytes(password)).getDeploymentId();
+	}
+	
+	// Methods for getting UDE/Client licenses from password 
 	
 	public UDELicense getUdeLicense(byte[] bytes) throws JsonSyntaxException {
 		

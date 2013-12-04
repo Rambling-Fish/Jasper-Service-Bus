@@ -9,7 +9,6 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.security.InvalidParameterException;
-import java.security.PublicKey;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
@@ -45,12 +44,9 @@ public class JECore {
 	
 	private BrokerService broker;
 	private static UDELicense license;
-	private PublicKey publicKey;
 	private static int numDelegates;
-	private static int defaultNumDelegates = 5;
-	
+	private static int defaultNumDelegates = 5;	
 	private ScheduledExecutorService exec;
-
 	private boolean clusterEnabled;
 
 	private static String brokerTransportIp;
@@ -81,7 +77,7 @@ public class JECore {
         return JAuthHelper.bytesToHex(license.getLicenseKey()).equals(password);
     }
 	
-	private UDELicense getUdeLicense(){
+	public UDELicense getUdeLicense(){
 		return license;
 	}
 	

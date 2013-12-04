@@ -73,8 +73,8 @@ public class DataConsumer implements Runnable {
 	}
 	
 	private void processInvalidRequest(String errorMsg) throws Exception {
-		if(logger.isInfoEnabled())logger.info("processingInvalidReqeust, errorMsg = " + errorMsg + " for request " + statefulData.getRequest() + " from " + statefulData.getReplyTo());
-		String msgText = "{".concat(errorMsg).concat("}");
+		if(logger.isInfoEnabled())logger.info("processingInvalidRequest, errorMsg = " + errorMsg + " for request " + statefulData.getRequest() + " from " + statefulData.getReplyTo());
+		String msgText = "{\"error\":\"".concat(errorMsg).concat("\"}");
         Message message = delegate.createTextMessage(msgText);
         
         if(statefulData.getCorrelationID() == null){
@@ -96,7 +96,6 @@ public class DataConsumer implements Runnable {
   	    dtaParms = statefulData.getDtaParms();
 		sharedData = PersistenceFacade.getInstance().getMap("sharedData");
 		output = statefulData.getOutput();
-
   	    
   	    if(statefulData.isNotificationRequest()){ 
   	    	polling = statefulData.getTriggers().get(0).getPolling();
@@ -146,7 +145,7 @@ public class DataConsumer implements Runnable {
     	
 	}
 
-	private JsonArray getResponse(String ruri, String body) throws JMSException {
+	private JsonArray getResponse(String ruri, String body) throws JMSException {		
 		JsonArray result = new JsonArray();
 		Map<String,String> paramsMap = getParams(body);
         JsonArray queuesAndParams = jOntology.getQandParams(ruri, paramsMap);
@@ -192,7 +191,7 @@ public class DataConsumer implements Runnable {
   			}
   			
   			if(!isResolveable){
-				if(logger.isInfoEnabled()) logger.info("the valuePair map doesn't have all the params the JTA needs, therefore we will not send reqeust to JTA");
+				if(logger.isInfoEnabled()) logger.info("the valuePair map doesn't have all the params the DTA needs, therefore we will not send request to DTA");
 				continue;
   			}
   			
