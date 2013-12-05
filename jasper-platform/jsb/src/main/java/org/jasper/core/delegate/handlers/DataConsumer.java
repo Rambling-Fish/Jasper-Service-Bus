@@ -107,12 +107,12 @@ public class DataConsumer implements Runnable {
   	    			}
   	    			else if(isNotificationExpired()){
   	    				processInvalidRequest("notification: " + statefulData.getNotification() + " has expired");
-  	    				break;
+  	    				return;
   	    			}
   	    		}
   	    		else if(isNotificationExpired()){
   	    			processInvalidRequest("notification: " + statefulData.getNotification() + " has expired");
-  	    			break;
+  	    			return;
   	    		}
   	    	Thread.sleep(polling);
   	    	}
