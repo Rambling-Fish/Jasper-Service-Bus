@@ -31,7 +31,7 @@ import javax.jms.Topic;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Logger;
-import org.jasper.jLib.jAuth.JTALicense;
+import org.jasper.jLib.jAuth.ClientLicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
@@ -296,9 +296,9 @@ public class JasperConnector implements MuleContextAware
     public void connect() throws ConnectionException {
     	try {
 	    	// validate the license
-	    	JTALicense license = getValidLicenseKey();
+	    	ClientLicense license = getValidLicenseKey();
 	    	if (license == null || licenseExpiresInDays(license, 0))
-				throw new Exception("Invalid Jasper licens key");
+				throw new Exception("Invalid Jasper license key");
 	    	
 	    	// create the connection
 			deploymentId = license.getDeploymentId();
@@ -524,11 +524,12 @@ public class JasperConnector implements MuleContextAware
      * 
      * @return a license key if valid one is found, otherwise null
      */
-    private JTALicense getValidLicenseKey() throws Exception {
+    private ClientLicense getValidLicenseKey() throws Exception {
 		String file = System.getProperty("jta-keystore");
 		file += "/" + vendor + "_" + application + "_" + version;
-		file += JAuthHelper.JTA_LICENSE_FILE_SUFFIX;
-		JTALicense license = JAuthHelper.loadJTALicenseFromFile(file);
+		file += JAuthHelper.CLIENT_LICENSE_FILE_SUFFIX;
+		ClientLicense license = JAuthHelper.loadClientLicenseFromFile(file);
+		
 		if (license.getVendor().equals(vendor) && 
     		license.getAppName().equals(application) &&
     		license.getVersion().equals(version))
@@ -543,7 +544,7 @@ public class JasperConnector implements MuleContextAware
      * @param days The number of day till expiry
      * @return true if the license expires after given number of days; otherwise false
      */
-    private boolean licenseExpiresInDays(JTALicense license, int days) {
+    private boolean licenseExpiresInDays(ClientLicense license, int days) {
 		if(license.getExpiry() == null){
 			return false;
 		}else{

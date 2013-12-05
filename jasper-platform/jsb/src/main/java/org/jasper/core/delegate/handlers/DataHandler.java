@@ -90,8 +90,10 @@ public class DataHandler implements Runnable {
   	    parseRequest(request);
   	    
   	    // create object that contains stateful data
-  	    statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, txtMsg.getJMSReplyTo(),
-  	    		false, JECore.getInstance().getJSBDeploymentAndInstance(), output);
+  	  statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, txtMsg.getJMSReplyTo(),
+              false, JECore.getInstance().getUdeDeploymentAndInstance(), output);
+  	    
+  	    logger.debug("*****\nstatefulData created on " + statefulData.getUDEInstance());
   	    
   	    if(triggerList != null){
   	    	statefulData.setTriggers(triggerList);

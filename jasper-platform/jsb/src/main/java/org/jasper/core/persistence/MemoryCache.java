@@ -45,6 +45,10 @@ public class MemoryCache {
 		return hazelcastInstance;
 	}
 	
+	public void setHazelcastInstance(HazelcastInstance hz) {
+		hazelcastInstance = hz;
+	}
+	
 	public MultiMap getMultiMap(String name) {
 		createHazelcastInstance();
 		return hazelcastInstance.getMultiMap(name);
