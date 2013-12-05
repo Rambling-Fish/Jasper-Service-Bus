@@ -136,7 +136,8 @@ public class Delegate implements Runnable, MessageListener {
 						delegateHandlers.submit(new SparqlHandler(this,jOntology, jmsRequest));
 						globalSession.commit();
 					} else if (text != null) {
-						delegateHandlers.submit(new DataHandler(this, jmsRequest, globalSession));
+						delegateHandlers.submit(new DataHandler(this, jmsRequest));
+						globalSession.commit();
 
 					} else {
 						logger.error("Incoming text message has null payload - ignoring " + jmsRequest);

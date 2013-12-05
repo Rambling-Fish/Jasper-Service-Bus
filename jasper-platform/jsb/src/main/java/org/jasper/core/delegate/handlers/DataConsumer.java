@@ -59,7 +59,7 @@ public class DataConsumer implements Runnable {
 					statefulData.setUDEInstance(JECore.getInstance().getUdeDeploymentAndInstance());
 					if(logger.isDebugEnabled()){
 						logger.debug("**************************************");
-						logger.debug("  GOT IT on " +  statefulData.getUDEInstance());
+						logger.debug("  RECEIVED MSG on " +  statefulData.getUDEInstance());
 						logger.debug("**************************************");
 					}
 					processRequest(statefulData);

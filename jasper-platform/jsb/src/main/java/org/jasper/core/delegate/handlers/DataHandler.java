@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 import javax.jms.Message;
-import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.commons.httpclient.URIException;
@@ -14,7 +13,6 @@ import org.apache.commons.httpclient.util.URIUtil;
 import org.apache.log4j.Logger;
 import org.jasper.core.JECore;
 import org.jasper.core.delegate.Delegate;
-import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.notification.triggers.TriggerFactory;
 import org.jasper.core.persistence.PersistedObject;
@@ -35,16 +33,14 @@ public class DataHandler implements Runnable {
 	private Map<String,PersistedObject> sharedData;
 	private String key;
 	private BlockingQueue<PersistedObject> workQueue;
-	private Session delegateSession;
 	
 	private static Logger logger = Logger.getLogger(DataHandler.class.getName());
 
 
 
-	public DataHandler(Delegate delegate, Message jmsRequest, Session session) {
+	public DataHandler(Delegate delegate, Message jmsRequest) {
 		this.delegate = delegate;
 		this.jmsRequest = jmsRequest;
-		this.delegateSession = session;
 	}
 
 	public void run() {
@@ -92,9 +88,7 @@ public class DataHandler implements Runnable {
   	    // create object that contains stateful data
   	  statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, txtMsg.getJMSReplyTo(),
               false, JECore.getInstance().getUdeDeploymentAndInstance(), output);
-  	    
-  	    logger.debug("*****\nstatefulData created on " + statefulData.getUDEInstance());
-  	    
+  	   
   	    if(triggerList != null){
   	    	statefulData.setTriggers(triggerList);
   	    	statefulData.setNotification(notification);
@@ -104,7 +98,6 @@ public class DataHandler implements Runnable {
 
   	    sharedData.put(key, statefulData);
   	    workQueue.offer(statefulData);
-  	    delegateSession.commit();
     	
 	}
 	
