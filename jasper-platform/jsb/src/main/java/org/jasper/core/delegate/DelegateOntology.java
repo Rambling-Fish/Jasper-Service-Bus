@@ -238,9 +238,14 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	             "       }" +
 	             "   }" ;
 		
-		Query query = QueryFactory.create(queryString) ;
-		QueryExecution qexec = QueryExecutionFactory.create(query, model);
-		return qexec.execAsk();
+		try{
+			Query query = QueryFactory.create(queryString) ;
+			QueryExecution qexec = QueryExecutionFactory.create(query, model);
+			return qexec.execAsk();
+		}catch(Exception ex){
+			logger.error("Exception caught while parsing request " + ex);
+			return false;
+		}
 	}
 	
 	public String queryModel(String queryString,String output){
