@@ -20,7 +20,7 @@
 
 # Application
 APP_NAME="jsbWrapper"
-APP_LONG_NAME="JSB Server"
+APP_LONG_NAME="UDE Server"
 
 # Wrapper
 #WRAPPER_CMD="../lib/boot/exec/wrapper"
@@ -178,7 +178,7 @@ REALDIR=`cd "${REALDIR}"; pwd`
 
 
 ######################################################################
-# Customized for JSB
+# Customized for UDE
 ######################################################################
 
 # Check for JSB_HOME
@@ -197,7 +197,7 @@ WRAPPER_CONF="$JSB_HOME/config/jsb.conf"
 # command
 JSB_HOME=`echo ${JSB_HOME} | sed -e 's/\/$//'`
 export JSB_HOME
-echo "JSB_HOME is set to ${JSB_HOME}"
+echo "UDE_HOME is set to ${JSB_HOME}"
 
 
 # If the PIDDIR is relative, set its value relative to the full REALPATH to avoid problems if
@@ -906,7 +906,7 @@ startwait() {
             exit 1
         else
             eval echo `gettext ' Wrapper running: PID:$pid'`
-            eval echo `gettext ' JSB running: PID:$jpid'`
+            eval echo `gettext ' UDE running: PID:$jpid'`
         fi
     else 
         echo ""

@@ -23,7 +23,7 @@ function get_m_pid
 
 unzipFiles()
 {
-    cd JTAs
+    cd DTAs
     find . -maxdepth 1 -name "*.zip" | while read filename; do unzip -o -d "`echo $filename | rev | cut -c 5- | rev | cut -c 3-`" "$filename"; done;
     rm *.zip
     cd ..
@@ -33,23 +33,23 @@ deploy()
 {
     unzipFiles
     clear
-    PS3='Please select JTA to deploy: '
-    echo "JTA deployment"
+    PS3='Please select DTA to deploy: '
+    echo "DTA deployment"
     echo "---------------"
     echo
-    JTAList=`ls JTAs`
+    DTAList=`ls DTAs`
     LicenseSuffix="jta-license.key"
     LicensePrefix=""
     LicenseFilename=""
     ValidLicense="n"
     get_m_pid 
     if [ -z "$M_PID" ]; then
-              echo "Cannot deploy when JTA Server is not running. Use './jasper.sh start jta'"
+              echo "Cannot deploy when DTA Server is not running. Use './jasper.sh start dta'"
               read -p "Press any key to continue"
               menuScreen
               break
     fi
-    select CHOICE in ${JTAList[*]} Back
+    select CHOICE in ${DTAList[*]} Back
     do
         case "$CHOICE" in
         "")
@@ -74,7 +74,7 @@ deploy()
             echo ""
             echo "$CHOICE is being deployed...please wait"
             sleep 10s
-            mv JTAs/"$CHOICE" jsb-core/mule-standalone-3.4.0/apps/"$CHOICE" 
+            mv DTAs/"$CHOICE" jsb-core/mule-standalone-3.4.0/apps/"$CHOICE" 
             sleep 5s
             deploy
             break
@@ -87,22 +87,22 @@ undeploy()
 {
     unzipFiles
     clear
-    PS3='Please select JTA to undeploy: '
-    echo "JTA undeployment"
+    PS3='Please select DTA to undeploy: '
+    echo "DTA undeployment"
     echo "-----------------"
     echo
     cd jsb-core/mule-standalone-3.4.0/apps/
-    JTAList=`find . -maxdepth 1 -name "*-anchor.txt" | grep -v default-anchor.txt | rev | cut -c 12- | rev | cut -c 3-`
+    DTAList=`find . -maxdepth 1 -name "*-anchor.txt" | grep -v default-anchor.txt | rev | cut -c 12- | rev | cut -c 3-`
     cd ../../../
     get_m_pid
     if [ -z "$M_PID" ]; then
-              echo "Cannot undeploy when JTA Server is not running. Use './jasper.sh start jta'"
+              echo "Cannot undeploy when DTA Server is not running. Use './jasper.sh start dta'"
               read -p "Press any key to continue"
               menuScreen
               break
     fi
     
-    select CHOICE in ${JTAList[*]} Back
+    select CHOICE in ${DTAList[*]} Back
     do
         case "$CHOICE" in
         "")
@@ -117,7 +117,7 @@ undeploy()
            echo ""
            echo "$CHOICE is being undeployed...please wait"
            sleep 10s
-           cp -rf jsb-core/mule-standalone-3.4.0/apps/"$CHOICE" JTAs/"$CHOICE"
+           cp -rf jsb-core/mule-standalone-3.4.0/apps/"$CHOICE" DTAs/"$CHOICE"
            rm jsb-core/mule-standalone-3.4.0/apps/"$CHOICE"-anchor.txt
            sleep 5s
            undeploy
@@ -130,13 +130,13 @@ undeploy()
 configure()
 {
     clear
-    PS3='Please select JTA to configure: '
-    echo "JTA configuration"
+    PS3='Please select DTA to configure: '
+    echo "DTA configuration"
     echo "------------------"
     echo
-    JTAList=`ls JTAs`
+    DTAList=`ls DTAs`
     
-    select CHOICE in ${JTAList[*]} Back
+    select CHOICE in ${DTAList[*]} Back
     do
         case "$CHOICE" in
         "")
@@ -148,14 +148,14 @@ configure()
             break
             ;;
         *)
-            configure_JTA
+            configure_DTA
             break
         ;;
         esac
     done    
 }
 
-configure_JTA()
+configure_DTA()
 {
     clear
     PS3='Please select property to configure: '
@@ -164,7 +164,7 @@ configure_JTA()
     echo
     echo "Current configuration"
     echo "---------------------"
-    FILENAME="JTAs/$CHOICE/mule-app.properties"
+    FILENAME="DTAs/$CHOICE/mule-app.properties"
     grep -v '#' $FILENAME
     echo
     params=`grep -v '#' $FILENAME | cut -d "=" -f 1`
@@ -191,7 +191,7 @@ configure_JTA()
             if echo $newValue | grep ["="] > /dev/null
             then
                 read -p "Sorry '=' is not allowed"
-                configure_JTA
+                configure_DTA
                 break
             fi
             if [ `echo $parm | grep -c  "jasperEngineURL" ` -gt 0 ]; then
@@ -210,7 +210,7 @@ configure_JTA()
             A="`echo | tr '\012' '\001' `"
             sed -i -e "s$A$pattern=$propvalue$A$pattern=$replacement$A" $FILENAME
             rm "$FILENAME-e"
-            configure_JTA
+            configure_DTA
             break
         ;;
         esac
@@ -219,12 +219,12 @@ configure_JTA()
 
 configure_global_JasperEngineURL() {
    clear
-   echo "Configure jasperEngineURL in all JTAs"
+   echo "Configure jasperEngineURL in all DTAs"
    echo "-------------------------------------"
    echo
-   JTAList=`ls JTAs`
-   if [ -z "$JTAList" ]; then
-      select CHOICE in ${JTAList[*]} Back
+   DTAList=`ls DTAs`
+   if [ -z "$DTAList" ]; then
+      select CHOICE in ${DTAList[*]} Back
          do
             case "$CHOICE" in
             Back)
@@ -247,15 +247,15 @@ configure_global_JasperEngineURL() {
 
    formatURIs
 
-   echo "Set jasperEngineURL as $replacement in all JTAs? (y/n/q)"
+   echo "Set jasperEngineURL as $replacement in all DTAs? (y/n/q)"
    read choice
    if [ "$choice" == "n" ];then
       configure_global_JasperEngineURL
    else
       if [ "$choice" == "y" ]; then
-         for f in $JTAList
+         for f in $DTAList
             do 
-               FILENAME="JTAs/$f/mule-app.properties"
+               FILENAME="DTAs/$f/mule-app.properties"
                echo "Processing $FILENAME"
                propvalue=`sed '/^\#/d' $FILENAME | grep $pattern | tail -n 1 | sed 's/^.*=//;s/^[[:space:]]*//;s/[[:space:]]*$//'`
                A="`echo | tr '\012' '\001' `"
@@ -278,7 +278,7 @@ checkLicense()
 {
    LicensePrefix=`echo "$CHOICE" | rev | cut -c 4- | rev`
    LicenseFilename="$LicensePrefix$LicenseSuffix"
-   if [ -f JTAs/"$CHOICE"/"$LicenseFilename" ]; then
+   if [ -f DTAs/"$CHOICE"/"$LicenseFilename" ]; then
       ValidLicense='y'
    else
       ValidLicense='n'
@@ -317,26 +317,26 @@ menuScreen()
 {
     clear
     PS3='Please enter your choice: '
-    echo "JTA Management"
+    echo "DTA Management"
     echo "---------------"
     echo
-    options=("Deploy JTA" "Undeploy JTA" "Configure JTA" "Configure Jasper Engine URL for all JTAs" "Quit")
+    options=("Deploy DTA" "Undeploy DTA" "Configure DTA" "Configure Jasper Engine URL for all DTAs" "Quit")
     select opt in "${options[@]}"
     do
         case $opt in
-            "Deploy JTA")
+            "Deploy DTA")
                 deploy
                 break
                 ;;
-            "Undeploy JTA")
+            "Undeploy DTA")
                 undeploy
                 break
                 ;;
-            "Configure JTA")
+            "Configure DTA")
                 configure
                 break
                 ;;
-            "Configure Jasper Engine URL for all JTAs")
+            "Configure Jasper Engine URL for all DTAs")
                 configure_global_JasperEngineURL
                 break
                 ;;
@@ -356,7 +356,7 @@ if [ $# -eq 0 ]; then
 else
    clear
    if [ $1 = "-l" ]; then
-     cd JTAs
+     cd DTAs
      for file in *
         do
            if [ -x "$file" ]; then
@@ -367,22 +367,22 @@ else
    fi
    if [ $1 = "-ld" ]; then
       cd jsb-core/mule-standalone-3.4.0/apps/
-      JTAList=`find . -maxdepth 1 -name "*-anchor.txt" | rev | cut -c 12- | rev | cut -c 3-`
+      DTAList=`find . -maxdepth 1 -name "*-anchor.txt" | rev | cut -c 12- | rev | cut -c 3-`
       cd ../../../
-      echo "$JTAList"
+      echo "$DTAList"
    fi
    if [ $1 = "-d" ]; then
       if [ -z $2 ]; then
          echo "Usage: $0 -d[eploy] {appName}" 
       else
-         mv JTAs/"$2" jsb-core/mule-standalone-3.4.0/apps/"$2"
+         mv DTAs/"$2" jsb-core/mule-standalone-3.4.0/apps/"$2"
       fi
    fi
    if [ $1 = "-u" ];then
       if [ -z $2 ]; then
          echo "Usage: $0 -u[ndeploy] {appName}"
       else
-         mv jsb-core/mule-standalone-3.4.0/apps/"$2" JTAs 
+         mv jsb-core/mule-standalone-3.4.0/apps/"$2" DTAs 
         rm jsb-core/mule-standalone-3.4.0/apps/"$2-anchor.txt"
       fi
    fi

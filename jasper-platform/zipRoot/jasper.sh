@@ -1,23 +1,23 @@
 #!/bin/bash
 
 J_PID=""
-JSB_PID_FILE="jsb-core/bin/jsb.java.pid"
+UDE_PID_FILE="jsb-core/bin/jsb.java.pid"
 JW_PID=""
-JSBwrapper_PID_FILE="jsb-core/bin/jsbWrapper.pid"
+UDEwrapper_PID_FILE="jsb-core/bin/jsbWrapper.pid"
 M_PID=""
 UNAME=`uname`
 OS="$UNAME"
-JSB=""
-JTA=""
+UDE=""
+DTA=""
 
 function get_j_pid {
-    if [ -e "$JSB_PID_FILE" ]
+    if [ -e "$UDE_PID_FILE" ]
      then 
-        J_PID=`cat "$JSB_PID_FILE"`
+        J_PID=`cat "$UDE_PID_FILE"`
     fi
-    if [ -e "$JSBwrapper_PID_FILE" ]
+    if [ -e "$UDEwrapper_PID_FILE" ]
      then     
-        JW_PID=`cat "$JSBwrapper_PID_FILE"`
+        JW_PID=`cat "$UDEwrapper_PID_FILE"`
     fi
 }
 
@@ -37,13 +37,13 @@ function get_m_pid {
 function stop_j {
    get_j_pid
    if [ -z "$J_PID" ]; then
-      echo "JSB is not running." 
+      echo "UDE is not running." 
    else
-      echo "Stopping JSB.."
+      echo "Stopping UDE.."
       cd jsb-core/bin/ 
-      ./jsb stop
+      ./ude stop
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-2.1/jsbAutoStart
+         rm /opt/jasper/jasper-2.1/udeAutoStart
       fi
       echo ".. Done."
    fi
@@ -52,14 +52,14 @@ function stop_j {
 function stop_m {
    get_m_pid
    if [ -z "$M_PID" ]; then
-      echo "JTA Server is not running." 
+      echo "DTA Server is not running." 
    else
-      echo -n "Stopping JTA Server.."
+      echo -n "Stopping DTA Server.."
       cd jsb-core/mule-standalone-3.4.0/bin
       ./mule stop
       cd ../../../
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-2.1/jtaAutoStart
+         rm /opt/jasper/jasper-2.1/dtaAutoStart
       fi 
       sleep 1
       echo ".. Done."
@@ -69,13 +69,13 @@ function stop_m {
 function force_stop_j {
    get_j_pid
    if [ -z "$J_PID" ]; then
-      echo "JSB is not running." 
+      echo "UDE is not running." 
    else
-      echo "Stopping JSB.."
+      echo "Stopping UDE.."
       kill $J_PID 
       sleep 1
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-2.1/jsbAutoStart
+         rm /opt/jasper/jasper-2.1/udeAutoStart
       fi
       echo ".. Done."
    fi
@@ -84,12 +84,12 @@ function force_stop_j {
 function force_stop_m {
    get_m_pid
    if [ -z "$M_PID" ]; then
-      echo "JTA Server is not running." 
+      echo "DTA Server is not running." 
    else
-      echo -n "Stopping JTA Server.."
+      echo -n "Stopping DTA Server.."
       kill $M_PID
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-2.1/jtaAutoStart
+         rm /opt/jasper/jasper-2.1/dtaAutoStart
       fi 
       sleep 1
       echo ".. Done."
@@ -97,35 +97,35 @@ function force_stop_m {
 }
 
 function start_j {
-   if ! [ -x jsb-core/bin/jsb ]; then
-      JSB='y'
+   if ! [ -x jsb-core/bin/ude ]; then
+      UDE='y'
       display_warning
       exit 0
    fi
    get_j_pid
   if [ -z "$J_PID" ]; then
       cd jsb-core/bin
-      ./jsb start
+      ./ude start
       cd ../../
       if [ "$OS" == 'Linux' ]; then
-         if [ ! -L /opt/jasper/jasper-2.1/jsbAutoStart ]; then
-            ln -s /opt/jasper/jasper-2.1/jsb-core/jsbAutoStart /opt/jasper/jasper-2.1/jsbAutoStart
+         if [ ! -L /opt/jasper/jasper-2.1/udeAutoStart ]; then
+            ln -s /opt/jasper/jasper-2.1/jsb-core/udeAutoStart /opt/jasper/jasper-2.1/udeAutoStart
          fi
       fi
       else
-      echo "JSB is already running, PID=$J_PID"
+      echo "UDE is already running, PID=$J_PID"
    fi
 }
 
 function start_m {
    if ! [ -d jsb-core/mule-standalone-3.4.0 ]; then
-      JTA='y'
+      DTA='y'
       display_warning
       exit 0
   fi
    get_m_pid
 if [ -z "$M_PID" ]; then
-      echo  "Starting JTA Server.."
+      echo  "Starting DTA Server.."
       cd jsb-core/mule-standalone-3.4.0/bin
       ./mule start
       cd ../../../
@@ -133,30 +133,30 @@ if [ -z "$M_PID" ]; then
       get_m_pid
       echo "Done. PID=$M_PID" 
       if [ "$OS" == 'Linux' ]; then
-         if [ ! -L /opt/jasper/jasper-2.1/jtaAutoStart ]; then
-            ln -s /opt/jasper/jasper-2.1/jsb-core/jtaAutoStart /opt/jasper/jasper-2.1/jtaAutoStart
+         if [ ! -L /opt/jasper/jasper-2.1/dtaAutoStart ]; then
+            ln -s /opt/jasper/jasper-2.1/jsb-core/dtaAutoStart /opt/jasper/jasper-2.1/dtaAutoStart
          fi
       fi     
    else
-      echo "JTA Server is already running, PID=$M_PID"
+      echo "DTA Server is already running, PID=$M_PID"
    fi
 }
 
 function status_j {
    get_j_pid
    if [ -z  "$J_PID" ]; then
-      echo "JSB is not running." 
+      echo "UDE is not running." 
    else
-      echo "JSB is running, wrapper PID=$JW_PID process PID=$J_PID"
+      echo "UDE is running, wrapper PID=$JW_PID process PID=$J_PID"
    fi
 }
 
 function status_m {
    get_m_pid
    if [ -z  "$M_PID" ]; then
-      echo "JTA Server is not running." 
+      echo "DTA Server is not running." 
    else
-      echo "JTA Server is running, PID=$M_PID"
+      echo "DTA Server is running, PID=$M_PID"
    fi
 }
 
@@ -190,20 +190,20 @@ function status {
 function display_warning {
       echo ""
       echo "***********************************************"
-      if [ "$JSB" == 'y' ]; then
-         echo "***       Warning: JSB not setup            ***"
+      if [ "$UDE" == 'y' ]; then
+         echo "***       Warning: UDE not setup            ***"
       else
-         if [ "$JTA" == 'y' ]; then
-            echo "***       Warning: JTA not setup            ***"
+         if [ "$DTA" == 'y' ]; then
+            echo "***       Warning: DTA not setup            ***"
          fi
       fi
-      echo "***     To run JSB server only:             ***"
-      echo "***     './setup.sh jsb'                    ***"
-      echo "***     'jasper.sh start jsb'               ***"
+      echo "***     To run UDE server only:             ***"
+      echo "***     './setup.sh ude'                    ***"
+      echo "***     'jasper.sh start ude'               ***"
       echo "***                                         ***"
-      echo "***     To run JTA server only:             ***"
-      echo "***     './setup.sh jta'                    ***"
-      echo "***     'jasper.sh start jta'               ***"
+      echo "***     To run DTA server only:             ***"
+      echo "***     './setup.sh dta'                    ***"
+      echo "***     'jasper.sh start dta'               ***"
       echo "***                                         ***"
       echo "***     To run both:                        ***"
       echo "***     './setup.sh all'                    ***"
@@ -216,10 +216,10 @@ function display_warning {
 case "$1" in
     start)
         case "$2" in
-        jsb)
+        ude)
             start_j
         ;;
-        jta)
+        dta)
             start_m
         ;;
         *)
@@ -229,10 +229,10 @@ case "$1" in
     ;;            
     stop)
         case "$2" in
-        jsb)
+        ude)
             stop_j
         ;;
-        jta)
+        dta)
             stop_m
         ;;
         *)
@@ -242,10 +242,10 @@ case "$1" in
     ;;
     kill)
         case "$2" in
-        jsb)
+        ude)
             force_stop_j
         ;;
-        jta)
+        dta)
             force_stop_m
         ;;
         *)
@@ -255,10 +255,10 @@ case "$1" in
     ;;
     status)
         case "$2" in
-        jsb)
+        ude)
             status_j
         ;;
-        jta)
+        dta)
             status_m
         ;;
         *)
@@ -266,6 +266,6 @@ case "$1" in
         ;;
         esac
     ;;
-    *) echo "Usage: $0 {start|stop|kill|status} [jsb|jta]"
+    *) echo "Usage: $0 {start|stop|kill|status} [ude|dta]"
 ;;    
 esac

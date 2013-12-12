@@ -2,12 +2,12 @@
 
 CDIR=`pwd`
 
-function setup_jsb {
+function setup_ude {
 mkdir -p logs
 cd jsb-core
-chmod 755 bin/jsb
+chmod 755 bin/ude
 chmod 755 exec/wrapper*
-chmod 755 jsbAutoStart
+chmod 755 udeAutoStart
 chmod 600 config/jsb.jmxremote.password
 mv *.jar libs/
 mkdir activemq-data
@@ -30,14 +30,14 @@ function setup_jmc_discovery {
   fi  
 }
 
-function setup_jta {
+function setup_dta {
 if [ ! -e ../jmp ]; then
   setup_jmc_discovery
 fi  
-mkdir -p JTAs
+mkdir -p DTAs
 mkdir -p logs
 cd jsb-core
-chmod 755 jtaAutoStart
+chmod 755 dtaAutoStart
 if ! [ -d mule-standalone-3.4.0 ]; then
    tar xvfz mule-standalone-3.4.0.tar.gz
    rm mule-standalone-3.4.0.tar.gz
@@ -45,7 +45,7 @@ if ! [ -d mule-standalone-3.4.0 ]; then
    mv default mule-standalone-3.4.0/apps/
    rm default.tar.gz
    cd mule-standalone-3.4.0
-   ln -s ../keystore/JTAs keystore
+   ln -s ../keystore/DTAs keystore
 fi
 }
 
@@ -53,7 +53,7 @@ function setup_all {
 if [ ! -e ../jmp ]; then
   setup_jmc_discovery
 fi
-mkdir -p JTAs
+mkdir -p DTAs
 mkdir -p logs
 cd jsb-core
 if ! [ -d mule-standalone-3.4.0 ]; then
@@ -63,15 +63,15 @@ if ! [ -d mule-standalone-3.4.0 ]; then
    mv default mule-standalone-3.4.0/apps/
    rm default.tar.gz
    cd mule-standalone-3.4.0
-   ln -s ../keystore/JTAs keystore
+   ln -s ../keystore/DTAs keystore
    cd ..
    chmod 600 config/jsb.jmxremote.password
    mv *.jar libs/
 fi
-chmod 755 bin/jsb
+chmod 755 bin/ude
 chmod 755 exec/wrapper*
-chmod 755 jsbAutoStart
-chmod 755 jtaAutoStart
+chmod 755 udeAutoStart
+chmod 755 dtaAutoStart
 mkdir activemq-data
 if [ ! -L exec/activemq-data ]
   then  
@@ -82,15 +82,15 @@ fi
 }
 
 case "$1" in
-    jsb)
-        setup_jsb
+    ude)
+        setup_ude
         ;;
-    jta)
-        setup_jta
+    dta)
+        setup_dta
         ;;
     all)
         setup_all
         ;;
-    *) echo "Usage: $0 {jsb|jta|all}"
+    *) echo "Usage: $0 {ude|dta|all}"
 ;;    
 esac
