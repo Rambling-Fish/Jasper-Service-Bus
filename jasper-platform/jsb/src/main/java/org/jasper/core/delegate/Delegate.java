@@ -25,7 +25,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.log4j.Logger;
-import org.jasper.core.JECore;
+import org.jasper.core.UDE;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.delegate.handlers.AdminHandler;
 import org.jasper.core.delegate.handlers.DataConsumer;
@@ -38,6 +38,7 @@ import com.hp.hpl.jena.rdf.model.Model;
 
 public class Delegate implements Runnable, MessageListener {
 
+	
 	private boolean isShutdown;
 	private Session globalSession;
 	private Queue globalQueue;
@@ -53,18 +54,22 @@ public class Delegate implements Runnable, MessageListener {
 	private Map<String, Object> locks;
 	private DelegateOntology jOntology;
 	
+	
 	public String defaultOutput;
 	public int maxExpiry;
 	public int maxPollingInterval;
 	public int minPollingInterval;
 	Properties prop = new Properties();
+	private UDE ude;
 
 	static Logger logger = Logger.getLogger(Delegate.class.getName());
 	static private AtomicInteger count = new AtomicInteger(0);
 
-	public Delegate(Connection connection, Model model,DelegateOntology jOntology) throws JMSException{
+	public Delegate(UDE ude, Connection connection, Model model,DelegateOntology jOntology) throws JMSException{
 		this.isShutdown = false;
 
+		this.ude = ude;
+		
 		this.responseMessages = new ConcurrentHashMap<String, Message>();
 		this.locks = new ConcurrentHashMap<String, Object>();
 
@@ -82,11 +87,11 @@ public class Delegate implements Runnable, MessageListener {
 		producer.setDeliveryMode(DeliveryMode.PERSISTENT);
 		producer.setTimeToLive(30000);
 
-		delegateQ = jtaSession.createQueue("jms.delegate." + JECore.getInstance().getBrokerTransportIp() + "." + count.getAndIncrement() + ".queue");
+		delegateQ = jtaSession.createQueue("jms.delegate." + ude.getBrokerTransportIp() + "." + count.getAndIncrement() + ".queue");
 		responseConsumer = jtaSession.createConsumer(delegateQ);
 		responseConsumer.setMessageListener(this);
 		
-		dataConsumer.execute(new DataConsumer(this,jOntology,locks,responseMessages));
+		dataConsumer.execute(new DataConsumer(ude, this,jOntology,locks,responseMessages));
 		
 		 try {
 	          //load properties file
@@ -136,7 +141,7 @@ public class Delegate implements Runnable, MessageListener {
 						delegateHandlers.submit(new SparqlHandler(this,jOntology, jmsRequest));
 						globalSession.commit();
 					} else if (text != null) {
-						delegateHandlers.submit(new DataHandler(this, jmsRequest));
+						delegateHandlers.submit(new DataHandler(ude, this, jmsRequest));
 						globalSession.commit();
 
 					} else {

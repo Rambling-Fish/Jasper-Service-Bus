@@ -18,6 +18,7 @@ import org.apache.jena.atlas.json.JsonString;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.log4j.Logger;
 import org.jasper.core.JECore;
+import org.jasper.core.UDE;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.notification.triggers.Trigger;
@@ -39,10 +40,12 @@ public class DataConsumer implements Runnable {
 	private String key;
 	private BlockingQueue<PersistedObject> workQueue;
 	private boolean isShutdown;
+	private UDE ude;
 	
 	private static Logger logger = Logger.getLogger(DataHandler.class.getName());
 
-	public DataConsumer(Delegate delegate, DelegateOntology jOntology, Map<String,Object> locks, Map<String,Message> responses) {
+	public DataConsumer(UDE ude, Delegate delegate, DelegateOntology jOntology, Map<String,Object> locks, Map<String,Message> responses) {
+		this.ude = ude;
 		this.delegate = delegate;
 		this.jOntology = jOntology;
 		this.locks = locks;
@@ -52,11 +55,11 @@ public class DataConsumer implements Runnable {
 
 	public void run() {
 		try{
-			workQueue  = PersistenceFacade.getInstance().getQueue("tasks");
+			workQueue  = ude.getCachingSys().getQueue("tasks");
 			do{
 				statefulData = workQueue.take();
 				if(statefulData != null){
-					statefulData.setUDEInstance(JECore.getInstance().getUdeDeploymentAndInstance());
+					statefulData.setUDEInstance(ude.getUdeDeploymentAndInstance());
 					if(logger.isDebugEnabled()){
 						logger.debug("**************************************");
 						logger.debug("  RECEIVED MSG on " +  statefulData.getUDEInstance());
@@ -94,7 +97,7 @@ public class DataConsumer implements Runnable {
   	    key = statefulData.getKey();
   	    String ruri = statefulData.getRURI();
   	    dtaParms = statefulData.getDtaParms();
-		sharedData = PersistenceFacade.getInstance().getMap("sharedData");
+		sharedData = ude.getCachingSys().getMap("sharedData");
 		output = statefulData.getOutput();
   	    
   	    if(statefulData.isNotificationRequest()){ 

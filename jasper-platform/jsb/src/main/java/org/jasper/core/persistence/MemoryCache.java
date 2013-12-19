@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.log4j.Logger;
-import org.jasper.core.JECore;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
@@ -20,17 +19,14 @@ public class MemoryCache {
 	private GroupConfig groupConfig;
 	private Config config;
 	
-	public MemoryCache() {
+	public MemoryCache(String localIP, String groupName, String groupPassword) {
 		
-        // TODO the deploymentID will be retrieved from the licenseKey subsystem not directly from core
 		config = new Config();
-		String groupName = JECore.getInstance().getDeploymentID();
-		String localIP = JECore.getInstance().getBrokerTransportIp();
 		
 		NetworkConfig network = config.getNetworkConfig();
 		network.getInterfaces().setEnabled(true).addInterface(localIP);
 		
-		groupConfig = new GroupConfig(groupName, groupName + "_password_nov_20_2013_1520");
+		groupConfig = new GroupConfig(groupName, groupPassword);
 		createHazelcastInstance();
 	}
 
@@ -49,7 +45,7 @@ public class MemoryCache {
 		hazelcastInstance = hz;
 	}
 	
-	public MultiMap getMultiMap(String name) {
+	public MultiMap<?,?> getMultiMap(String name) {
 		createHazelcastInstance();
 		return hazelcastInstance.getMultiMap(name);
 	}

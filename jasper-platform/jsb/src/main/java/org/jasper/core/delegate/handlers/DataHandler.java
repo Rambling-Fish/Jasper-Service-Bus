@@ -12,6 +12,7 @@ import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.URIUtil;
 import org.apache.log4j.Logger;
 import org.jasper.core.JECore;
+import org.jasper.core.UDE;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.notification.triggers.TriggerFactory;
@@ -33,20 +34,22 @@ public class DataHandler implements Runnable {
 	private Map<String,PersistedObject> sharedData;
 	private String key;
 	private BlockingQueue<PersistedObject> workQueue;
+	private UDE ude;
 	
 	private static Logger logger = Logger.getLogger(DataHandler.class.getName());
 
 
 
-	public DataHandler(Delegate delegate, Message jmsRequest) {
+	public DataHandler(UDE ude, Delegate delegate, Message jmsRequest) {
+		this.ude = ude;
 		this.delegate = delegate;
 		this.jmsRequest = jmsRequest;
 	}
 
 	public void run() {
 		try{
-			sharedData = PersistenceFacade.getInstance().getMap("sharedData");
-			workQueue  = PersistenceFacade.getInstance().getQueue("tasks");
+			sharedData = ude.getCachingSys().getMap("sharedData");
+			workQueue  = ude.getCachingSys().getQueue("tasks");
 			processRequest( (TextMessage) jmsRequest);
 		}catch (Exception e){
 			logger.error("Exception caught in handler " + e);
@@ -87,7 +90,7 @@ public class DataHandler implements Runnable {
   	    
   	    // create object that contains stateful data
   	  statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, txtMsg.getJMSReplyTo(),
-              false, JECore.getInstance().getUdeDeploymentAndInstance(), output);
+              false, ude.getUdeDeploymentAndInstance(), output);
   	   
   	    if(triggerList != null){
   	    	statefulData.setTriggers(triggerList);

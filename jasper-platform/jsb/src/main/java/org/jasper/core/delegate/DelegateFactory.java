@@ -4,7 +4,7 @@ import javax.jms.Connection;
 import javax.jms.JMSException;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.jasper.core.JECore;
+import org.jasper.core.UDE;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JasperOntologyConstants;
 
@@ -16,11 +16,13 @@ public class DelegateFactory{
 	private Connection connection;
     private Model model;
     private DelegateOntology jOntology;
+	private UDE ude;
 
-    public DelegateFactory(boolean distributed, JECore core) throws JMSException{ 	
+    public DelegateFactory(UDE ude) throws JMSException{
+    	this.ude = ude;
     	initializeModel();   	
     	
-		jOntology = new DelegateOntology(this, model);
+		jOntology = new DelegateOntology(ude.getCachingSys(), model);
 		
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
         // Create a Connection
@@ -31,7 +33,7 @@ public class DelegateFactory{
 	}
 	
 	public Delegate createDelegate() throws JMSException{
-		return new Delegate(connection, model, jOntology);
+		return new Delegate(ude, connection, model, jOntology);
 	}
 	
     private void initializeModel() {

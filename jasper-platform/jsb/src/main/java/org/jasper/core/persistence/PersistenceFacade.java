@@ -1,28 +1,27 @@
 package org.jasper.core.persistence;
 
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 
 import com.hazelcast.core.MultiMap;
 
 public class PersistenceFacade {
 	
-	private static MemoryCache memCache;
-	private static PersistenceFacade facade;
+	private MemoryCache memCache;
 	
-	private PersistenceFacade(){
-		
+	public PersistenceFacade(Properties prop){
+		String localIP = prop.getProperty("persisitence.localIp");
+		String groupName  = prop.getProperty("persisitence.groupName");
+		String groupPassword  = prop.getProperty("persisitence.groupPassword");
+		memCache = new MemoryCache(localIP, groupName, groupPassword);
 	}
 	
-	public static PersistenceFacade getInstance(){
-		if(facade == null){
-			facade = new PersistenceFacade();
-			memCache = new MemoryCache();
-		}
-		return facade;
+	public PersistenceFacade(String localIP, String groupName, String groupPassword){
+		memCache = new MemoryCache(localIP, groupName, groupPassword);
 	}
 	
-	public MultiMap getMultiMap(String name) {
+	public MultiMap<?,?> getMultiMap(String name) {
 		return memCache.getMultiMap(name);
 	}
 	

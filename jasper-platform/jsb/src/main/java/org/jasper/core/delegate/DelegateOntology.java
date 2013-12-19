@@ -38,9 +38,9 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	public static final String PARAMS = "params";
 	public static final String PROVIDES = "provides";
 	
-	public DelegateOntology(DelegateFactory factory, Model model){
+	public DelegateOntology(PersistenceFacade cachingSys, Model model){
 		this.model = model;
-		jtaStatements = PersistenceFacade.getInstance().getMultiMap("jtaStatements");
+		jtaStatements = (MultiMap<String, String[]>) cachingSys.getMultiMap("jtaStatements");
 		jtaStatements.addEntryListener(this, true);
 		
 		for(String key:jtaStatements.keySet()){
