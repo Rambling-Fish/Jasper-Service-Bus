@@ -23,7 +23,6 @@ import org.apache.activemq.broker.BrokerFilter;
 import org.apache.activemq.broker.ConnectionContext;
 import org.apache.activemq.command.ConnectionInfo;
 import org.apache.log4j.Logger;
-import org.jasper.core.constants.JtaInfo;
 import org.jasper.jLib.jAuth.JTALicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
@@ -32,9 +31,6 @@ import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
 
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.ITopic;
-import com.hazelcast.core.MessageListener;
 import com.hazelcast.core.MultiMap;
  
 public class JasperBroker extends BrokerFilter implements EntryListener, javax.jms.MessageListener {
@@ -299,7 +295,9 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
         }
         
         if(isLicenseKeyAvailable){
-        	registeredLicenseKeys.put(core.getJSBDeploymentAndInstance(), info.getPassword());
+        	synchronized(registeredLicenseKeys){
+        		registeredLicenseKeys.put(core.getJSBDeploymentAndInstance(), info.getPassword());
+        	}
             jtaConnectionContextMap.put(info.getPassword(), context);
 
             super.addConnection(context, info);
@@ -327,7 +325,9 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
 
     	String key = info.getPassword();
     	if(jtaConnectionContextMap.containsKey(key)){
-    		registeredLicenseKeys.remove(core.getJSBDeploymentAndInstance(), key);
+    		synchronized(registeredLicenseKeys){
+    			registeredLicenseKeys.remove(core.getJSBDeploymentAndInstance(), key);
+    		}
     		ConnectionContext jtaConnectionContext = jtaConnectionContextMap.remove(key);
     		
             if(jtaConnectionContext !=null && !info.getUserName().contains("jsc")) notifyDelegate(Command.jta_disconnect, info.getUserName());     
@@ -335,8 +335,10 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
     		if(logger.isInfoEnabled()) logger.info("connection for " + info.getUserName() + " removed, updated local and remote maps");
     		
     	}else if(jsbConnectionInfoMap.containsKey(key) && !((JasperBrokerService)this.getBrokerService()).isStopping()){
-    		jsbConnectionInfoMap.remove(key);    		
-        	registeredLicenseKeys.remove(core.getJSBDeploymentAndInstance(key));
+    		jsbConnectionInfoMap.remove(key);
+    		synchronized(registeredLicenseKeys){
+        		registeredLicenseKeys.remove(core.getJSBDeploymentAndInstance(key));
+    		}
     		if(logger.isInfoEnabled()) logger.info("connection for jsb " + info.getUserName() + " removed, updated local and remote maps");    		
     	}
         super.removeConnection(context, info, error);
@@ -377,18 +379,19 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
     	sb.append("\nregistered clients \n{");
     	
     	int count = 0;
-    	
-    	for(String jsb:registeredLicenseKeys.keySet()){
-    		sb.append("\n\t" + jsb + "{ ");
-    		for(String jtaKey:registeredLicenseKeys.get(jsb)){
-    			JTALicense jtaLic = core.getJTALicense(JAuthHelper.hexToBytes(jtaKey));
-    			sb.append("\n\t\t" + jtaLic.getVendor());
-    			sb.append(": " + jtaLic.getAppName());
-    			sb.append(": " + jtaLic.getVersion());
-    			sb.append(": " + jtaLic.getDeploymentId());
+    	synchronized(registeredLicenseKeys){
+    		for(String jsb:registeredLicenseKeys.keySet()){
+    			sb.append("\n\t" + jsb + "{ ");
+    			for(String jtaKey:registeredLicenseKeys.get(jsb)){
+    				JTALicense jtaLic = core.getJTALicense(JAuthHelper.hexToBytes(jtaKey));
+    				sb.append("\n\t\t" + jtaLic.getVendor());
+    				sb.append(": " + jtaLic.getAppName());
+    				sb.append(": " + jtaLic.getVersion());
+    				sb.append(": " + jtaLic.getDeploymentId());
+    			}
+    			sb.append("\n\t} total system keys = " + registeredLicenseKeys.get(jsb).size());
+    			count += registeredLicenseKeys.get(jsb).size();
     		}
-    		sb.append("\n\t} total system keys = " + registeredLicenseKeys.get(jsb).size());
-    		count += registeredLicenseKeys.get(jsb).size();
     	}
     	sb.append("\n} total cluster keys = " + count);
     	sb.append("\n----------------------------------------");
