@@ -33,9 +33,8 @@ import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 
-public class TestDelegate  extends TestCase {
+public class TestDelegate{ //  extends TestCase {
 //
 //	private static final String TEST_JTA_A_ADMIN_QUEUE = "jms.TestJTA-A.admin.queue";
 //	private static final String TEST_JTA_B_ADMIN_QUEUE = "jms.TestJTA-B.admin.queue";

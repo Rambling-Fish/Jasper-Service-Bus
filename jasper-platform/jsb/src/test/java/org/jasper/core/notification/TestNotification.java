@@ -31,7 +31,7 @@ import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 //
-public class TestNotification  extends TestCase {
+public class TestNotification{//  extends TestCase {
 //
 //	private static final String RURI = "http://coralcea.ca/jasper/environmentalSensor/roomTemperature";
 //	private static final String COMPARE_INT = "compareint";

@@ -37,7 +37,7 @@ import com.hazelcast.config.GroupConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 //
-public class TestDataHandler  extends TestCase {
+public class TestDataHandler{//  extends TestCase {
 
 //	private static final String TEST_JTA_ADMIN_QUEUE = "jms.TestJTA.admin.queue";
 //	private static final String TEST_JTA_NAME = "TestJTA";
