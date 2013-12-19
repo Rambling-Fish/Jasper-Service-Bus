@@ -296,7 +296,9 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
         }
         
         if(isLicenseKeyAvailable){
-        	registeredLicenseKeys.put(ude.getUdeDeploymentAndInstance(), info.getPassword());
+        	synchronized(registeredLicenseKeys){
+        		registeredLicenseKeys.put(ude.getUdeDeploymentAndInstance(), info.getPassword());
+        	}
         	jtaConnectionContextMap.put(info.getPassword(), context);        
             super.addConnection(context, info);
             broadcastAdminEvent("printMap");
@@ -323,7 +325,9 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
 
     	String key = info.getPassword();
     	if(jtaConnectionContextMap.containsKey(key)){
-    		registeredLicenseKeys.remove(ude.getUdeDeploymentAndInstance(), key);
+        	synchronized(registeredLicenseKeys){
+        		registeredLicenseKeys.remove(ude.getUdeDeploymentAndInstance(), key);
+        	}
     		ConnectionContext jtaConnectionContext = jtaConnectionContextMap.remove(key);
     		
             if(jtaConnectionContext !=null && !info.getUserName().contains("jsc")) notifyDelegate(Command.jta_disconnect, info.getUserName());     
@@ -331,8 +335,10 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
     		if(logger.isInfoEnabled()) logger.info("connection for " + info.getUserName() + " removed, updated local and remote maps");
     		
     	}else if(jsbConnectionInfoMap.containsKey(key) && !((JasperBrokerService)this.getBrokerService()).isStopping()){
-    		jsbConnectionInfoMap.remove(key);    		
-        	registeredLicenseKeys.remove(licenseKeySys.getUdeDeploymentAndInstance(key));
+    		jsbConnectionInfoMap.remove(key);
+        	synchronized(registeredLicenseKeys){
+        		registeredLicenseKeys.remove(licenseKeySys.getUdeDeploymentAndInstance(key));
+        	}
         	ude.auditMap(licenseKeySys.getUdeDeploymentAndInstance(key));
     		if(logger.isInfoEnabled()) logger.info("connection for UDE " + info.getUserName() + " removed, updated local and remote maps");    		
     	}
@@ -375,17 +381,19 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
     	
     	int count = 0;
     	
-    	for(String jsb:registeredLicenseKeys.keySet()){
-    		sb.append("\n\t" + jsb + "{ ");
-    		for(String jtaKey:registeredLicenseKeys.get(jsb)){
-    			ClientLicense jtaLic = licenseKeySys.getClientLicense(JAuthHelper.hexToBytes(jtaKey));
-    			sb.append("\n\t\t" + jtaLic.getVendor());
-    			sb.append(": " + jtaLic.getAppName());
-    			sb.append(": " + jtaLic.getVersion());
-    			sb.append(": " + jtaLic.getDeploymentId());
-    		}
-    		sb.append("\n\t} total system keys = " + registeredLicenseKeys.get(jsb).size());
-    		count += registeredLicenseKeys.get(jsb).size();
+    	synchronized(registeredLicenseKeys){
+	    	for(String jsb:registeredLicenseKeys.keySet()){
+	    		sb.append("\n\t" + jsb + "{ ");
+	    		for(String jtaKey:registeredLicenseKeys.get(jsb)){
+	    			ClientLicense jtaLic = licenseKeySys.getClientLicense(JAuthHelper.hexToBytes(jtaKey));
+	    			sb.append("\n\t\t" + jtaLic.getVendor());
+	    			sb.append(": " + jtaLic.getAppName());
+	    			sb.append(": " + jtaLic.getVersion());
+	    			sb.append(": " + jtaLic.getDeploymentId());
+	    		}
+	    		sb.append("\n\t} total system keys = " + registeredLicenseKeys.get(jsb).size());
+	    		count += registeredLicenseKeys.get(jsb).size();
+	    	}
     	}
     	sb.append("\n} total cluster keys = " + count);
     	sb.append("\n----------------------------------------");
