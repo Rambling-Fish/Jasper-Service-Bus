@@ -13,9 +13,9 @@ public class Range extends Trigger implements Serializable{
 	private String left;
 	private String minString;
 	private String maxString;
-	private int min;
-	private int max;
-	private int x;
+	private float min;
+	private float max;
+	private float x;
 	static Logger logger = Logger.getLogger(Range.class.getName());
 
 	
@@ -27,10 +27,10 @@ public class Range extends Trigger implements Serializable{
 
 		try{
 			if(!left.startsWith("http")){
-				this.x = Integer.parseInt(left);
+				this.x = Float.parseFloat(left);
 			}
-			this.min = Integer.parseInt(min);
-			this.max = Integer.parseInt(max);
+			this.min = Float.parseFloat(min);
+			this.max = Float.parseFloat(max);
 		} catch(NumberFormatException e){
 			logger.error("Exception processing trigger parameters: " + e);
 		}

@@ -13,8 +13,8 @@ public class CompareInt extends Trigger implements Serializable{
 	private String left;
 	private String right;
 	private String operand;
-	private int x;
-	private int y;
+	private float x;
+	private float y;
 	static Logger logger = Logger.getLogger(CompareInt.class.getName());
 	
 	public CompareInt(int expiry, int polling, String left, String operand, String right) {
@@ -25,10 +25,10 @@ public class CompareInt extends Trigger implements Serializable{
 
 		try{
 			if(!left.startsWith("http")){
-				this.x = Integer.parseInt(left);
+				this.x = Float.parseFloat(left);
 			}
 			if(!right.startsWith("http")){
-				this.y = Integer.parseInt(right);
+				this.y = Float.parseFloat(right);
 			}
 		} catch(NumberFormatException e){
 			logger.error("Exception processing trigger parameters: " + e);
