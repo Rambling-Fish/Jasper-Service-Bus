@@ -5,8 +5,6 @@
     <version>2.1</version>
     <packaging>pom</packaging>
     <modules>
-        <module>jLib</module>
-        <module>jTransport</module>
         <module>jasper-platform</module>
         <module>jasper-clients</module>
     </modules>
