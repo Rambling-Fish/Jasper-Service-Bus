@@ -17,13 +17,11 @@ import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonString;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.log4j.Logger;
-import org.jasper.core.JECore;
 import org.jasper.core.UDE;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.persistence.PersistedObject;
-import org.jasper.core.persistence.PersistenceFacade;
 
 public class DataConsumer implements Runnable {
 
@@ -70,7 +68,10 @@ public class DataConsumer implements Runnable {
 				if (isShutdown) break;
 			} while (!isShutdown);
 		}catch (Exception e){
-			logger.error("Exception caught in handler " + e);
+			// Fix for JASPER-516 to prevent exception each time UDE is stopped
+			if(!(e instanceof com.hazelcast.core.HazelcastInstanceNotActiveException)){
+				logger.error("Exception caught in handler " + e);
+			}
 		}
 
 	}

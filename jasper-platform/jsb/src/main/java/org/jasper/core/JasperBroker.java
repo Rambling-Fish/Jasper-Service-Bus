@@ -117,12 +117,19 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
      }
      
      public void stop() throws Exception {
-         jtaAuditExec.shutdown();
-         consumer.close();
-         producer.close();
-         session.close();
-         connection.close();         
-         next.stop();         
+         try{
+        	 jtaAuditExec.shutdown();
+        	 consumer.close();
+        	 producer.close();
+        	 session.close();
+        	 connection.close();         
+        	 next.stop();   
+         }catch (Exception e){
+        	 // Fix for JASPER-516 to prevent exception each time UDE is stopped
+        	 if(!(e.getMessage().contains("org.apache.activemq.transport.RequestTimedOutIOException"))){
+        		 logger.error("Exception caught while shutting down JasperBroker " + e);
+        	 }
+         }
      }
       
     private void setupClientLicenseKeyAudit(){
