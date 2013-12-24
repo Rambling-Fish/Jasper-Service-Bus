@@ -428,8 +428,10 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
 			if(msg instanceof TextMessage && "printMap".equals(((TextMessage)msg).getText()) ){
 		        logger.warn(getPrintableRegisteredLicenseKeysMap());	
 			}
-		} catch (JMSException e) {
-			logger.error("jms exception caught when processing onMessage", e);
+		} catch (Exception e) {
+			if(!(e instanceof com.hazelcast.core.HazelcastInstanceNotActiveException)){
+				logger.error("jms exception caught when processing onMessage", e);
+			}
 		}
 	}
 }
