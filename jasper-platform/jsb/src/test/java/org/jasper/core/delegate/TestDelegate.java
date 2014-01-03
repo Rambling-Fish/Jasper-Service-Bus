@@ -447,5 +447,10 @@ public class TestDelegate{ //  extends TestCase {
 //		return triples.toArray(new String[][]{});
 //		
 //	}
+	@Test
+	public void testPlaceHolder() throws Exception {
+		boolean test = true;
+		TestCase.assertEquals(test, true);
+	}
 	
 }
