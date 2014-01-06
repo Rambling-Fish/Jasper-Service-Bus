@@ -18,7 +18,7 @@ import junit.framework.TestCase;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject;
-import org.jasper.core.JECore;
+import org.jasper.core.UDEMain;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateFactory;
@@ -59,7 +59,7 @@ public class TestDataHandler{//  extends TestCase {
 //	private MessageProducer adminProducer;
 //	private ExecutorService executorService;
 //	private Delegate delegate;
-//	private JECore core;
+//	private UDEMain core;
 //	private boolean dtaRegistered = false;
 //	private HazelcastInstance hz;
 //	private String tmp = "{ http://coralcea.ca/jasper/environmentalSensor/roomTemperature : 25 ,\n" +
@@ -264,7 +264,7 @@ public class TestDataHandler{//  extends TestCase {
 //		 System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
 //		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 //		 
-//		 core = JECore.getInstance();
+//		 core = UDEMain.getInstance();
 //		 
 //		 Config cfg = new Config();
 //		 GroupConfig groupConfig = new GroupConfig("testNotificationJunitTestingSuite", "testNotificationJunitTestingSuite_" + System.currentTimeMillis());

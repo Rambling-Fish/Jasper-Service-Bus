@@ -14,7 +14,7 @@ import junit.framework.TestCase;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.jena.atlas.json.JsonArray;
-import org.jasper.core.JECore;
+import org.jasper.core.UDEMain;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateFactory;
@@ -47,7 +47,7 @@ public class TestNotification{//  extends TestCase {
 //	private MessageProducer producer;
 //	private ExecutorService executorService;
 //	private Delegate delegate;
-//	private JECore core;
+//	private UDEMain core;
 //	private HazelcastInstance hz;
 //	private String tmp = "{ http://coralcea.ca/jasper/environmentalSensor/roomTemperature : 25 ,\n" +
 //		    "http://coralcea.ca/jasper/timeStamp : 2013-10-14 02:18:45.0903 EDT }";
@@ -195,7 +195,7 @@ public class TestNotification{//  extends TestCase {
 //		 System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
 //		 connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 //		 
-//		 core = JECore.getInstance();
+//		 core = UDEMain.getInstance();
 //		 
 //		 Config cfg = new Config();
 //		 GroupConfig groupConfig = new GroupConfig("testNotificationJunitTestingSuite", "testNotificationJunitTestingSuite_" + System.currentTimeMillis());

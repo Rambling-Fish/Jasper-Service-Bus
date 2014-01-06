@@ -11,7 +11,7 @@ import javax.jms.TextMessage;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.URIUtil;
 import org.apache.log4j.Logger;
-import org.jasper.core.JECore;
+import org.jasper.core.UDEMain;
 import org.jasper.core.UDE;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.notification.triggers.Trigger;

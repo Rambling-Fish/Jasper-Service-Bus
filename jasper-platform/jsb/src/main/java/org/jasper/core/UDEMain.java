@@ -7,9 +7,9 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 
-public class JECore {
+public class UDEMain {
 	
-	static Logger logger = Logger.getLogger(JECore.class.getName());
+	static Logger logger = Logger.getLogger(UDEMain.class.getName());
 	private static UDE ude;		
 	
 	private static Properties getPropeties(){

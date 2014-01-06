@@ -22,7 +22,7 @@ import junit.framework.TestCase;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.jena.atlas.json.JsonObject;
-import org.jasper.core.JECore;
+import org.jasper.core.UDEMain;
 import org.jasper.core.UDE;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JtaInfo;
