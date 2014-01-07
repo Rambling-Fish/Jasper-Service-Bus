@@ -48,7 +48,8 @@ public class Delegate implements Runnable, MessageListener {
 	private Destination delegateQ;
 	private MessageConsumer responseConsumer;
 	private ExecutorService delegateHandlers;
-	private ExecutorService dataConsumer;
+	private ExecutorService dataConsumerService;
+	private DataConsumer[] dataConsumers;
 
 	private Map<String, Message> responseMessages;
 	private Map<String, Object> locks;
@@ -59,6 +60,8 @@ public class Delegate implements Runnable, MessageListener {
 	public int maxExpiry;
 	public int maxPollingInterval;
 	public int minPollingInterval;
+	// used to engineer the number of data consumers to start per delegate
+	private static int numDataConsumers = 1;
 	Properties prop = new Properties();
 	private UDE ude;
 
@@ -74,7 +77,7 @@ public class Delegate implements Runnable, MessageListener {
 		this.locks = new ConcurrentHashMap<String, Object>();
 
 		delegateHandlers = Executors.newFixedThreadPool(2);
-		dataConsumer = Executors.newCachedThreadPool();
+		dataConsumerService = Executors.newCachedThreadPool();
 		this.jOntology = jOntology;
 
 
@@ -91,8 +94,12 @@ public class Delegate implements Runnable, MessageListener {
 		responseConsumer = jtaSession.createConsumer(delegateQ);
 		responseConsumer.setMessageListener(this);
 		
-		dataConsumer.execute(new DataConsumer(ude, this,jOntology,locks,responseMessages));
+		dataConsumers = new DataConsumer[numDataConsumers];
 		
+		for(int i=0;i<dataConsumers.length;i++){
+			dataConsumers[i] = new DataConsumer(ude, this,jOntology,locks,responseMessages);
+			dataConsumerService.execute(dataConsumers[i]);
+		}
 		 try {
 	          //load properties file
 	    		prop.load(new FileInputStream(System.getProperty("delegate-property-file")));
@@ -107,7 +114,14 @@ public class Delegate implements Runnable, MessageListener {
 
 	public void shutdown() throws JMSException {
 		isShutdown = true;
-		dataConsumer.shutdown();
+		for(DataConsumer d:dataConsumers){
+			try {
+				d.shutdown();
+			} catch (JMSException ex) {
+				logger.error("jmsconnection caught while shutting down data consumers",ex);
+			}
+		}
+		dataConsumerService.shutdown();
 		producer.close();
 		responseConsumer.close();
 		jtaSession.close();
