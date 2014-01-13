@@ -401,7 +401,13 @@ fi
 if [ "$DIST_OS" = "linux" ]
 then
     if [ -e "/usr/lib/jvm/jdk1.7.0" ]; then
+        # UBUNTU
         JAVA_HOME="/usr/lib/jvm/jdk1.7.0"; export JAVA_HOME
+        JAVA="/bin/java"; export JAVA
+    fi
+    if [ -e "/usr/java/default" ]; then
+        # CENTOS/REDHAT
+        JAVA_HOME="/usr/java/default"; export JAVA_HOME
         JAVA="/bin/java"; export JAVA
     fi
 else
