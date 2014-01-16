@@ -27,6 +27,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.google.gson.Gson;
+
 public class JscFunctionalTests {
 
 	private Jsc jscUnderTest;
@@ -132,7 +134,10 @@ public class JscFunctionalTests {
 				}
 				
 				try {
-					Message response = session.createTextMessage("{\"response\" : \"sucess\"}");
+					
+					Response resp = new Response(200, "OK", "{\"response\" : \"sucess\"}".getBytes());
+					String responseJsonString = (new Gson()).toJson(resp);
+					Message response = session.createTextMessage(responseJsonString);
 					response.setJMSCorrelationID(msg.getJMSCorrelationID());
 					delegateProducerSim.send(msg.getJMSReplyTo(), response );
 					System.out.println("delegateSim sent resp");
@@ -144,10 +149,11 @@ public class JscFunctionalTests {
 		});
 		
 		System.out.println("jsc-ws sim send msg");
-		String response = jscUnderTest.get("http://jasper.com/testRequest");
+		Response response = jscUnderTest.get(new Request(Method.GET, "http://jasper.com/testRequest", null));
+		String responseString = new String(response.getPayload());
 		System.out.println("jsc-ws sim recv resp");
 
-		assertEquals(response, "{\"response\" : \"sucess\"}");		
+		assertEquals(responseString, "{\"response\" : \"sucess\"}");		
 	}
 
 }
