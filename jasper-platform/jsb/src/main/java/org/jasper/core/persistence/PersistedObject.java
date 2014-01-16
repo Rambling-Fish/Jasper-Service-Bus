@@ -22,17 +22,23 @@ public class PersistedObject implements Serializable{
 	private String dtaParms;
 	private String UDEInstance;
 	private String output;
+	private String version;
+	private String contentType;
 	
-	public PersistedObject(String key, String correlationID, String request, String ruri, Destination replyTo,
-			boolean isNotificationRequest, String UDEInstance, String output) {
+	public PersistedObject(String key, String correlationID, String request, String ruri, String dtaParms,
+			Destination replyTo, boolean isNotificationRequest, String UDEInstance, String output,
+			String version, String contentType) {
 		this.key = key;
 		this.correlationID = correlationID;
 		this.request = request;
 		this.ruri = ruri;
+		this.dtaParms = dtaParms;
 		this.replyTo = replyTo;
 		this.isNotificationRequest = isNotificationRequest;
 		this.UDEInstance = UDEInstance;
 		this.output = output;
+		this.version = version;
+		this.contentType = contentType;
 	}
 	
 	public PersistedObject() {
@@ -125,5 +131,21 @@ public class PersistedObject implements Serializable{
 	
 	public boolean isNotificationRequest(){
 		return isNotificationRequest;
+	}
+	
+	public String getVersion(){
+		return version;
+	}
+	
+	public void setVersion(String version){
+		this.version = version;
+	}
+	
+	public String getContentType(){
+		return contentType;
+	}
+	
+	public void setContentType(String contentType){
+		this.contentType = contentType;
 	}
 }

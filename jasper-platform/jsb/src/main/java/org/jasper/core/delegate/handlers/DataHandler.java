@@ -1,6 +1,7 @@
 package org.jasper.core.delegate.handlers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -8,16 +9,15 @@ import java.util.concurrent.BlockingQueue;
 import javax.jms.Message;
 import javax.jms.TextMessage;
 
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.util.URIUtil;
 import org.apache.log4j.Logger;
-import org.jasper.core.UDEMain;
 import org.jasper.core.UDE;
+import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.notification.triggers.TriggerFactory;
 import org.jasper.core.persistence.PersistedObject;
-import org.jasper.core.persistence.PersistenceFacade;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class DataHandler implements Runnable {
 
@@ -26,8 +26,12 @@ public class DataHandler implements Runnable {
 	private String notification;
 	private String output;
 	private String dtaParms;
-	private int expiry;
-	private int polling;
+	private String ruri;
+	private String method;
+	private String version;
+	private String contentType;
+	private int expires;
+	private int pollPeriod;
 	private List<Trigger> triggerList;
 	private static final int MILLISECONDS = 1000;
 	private PersistedObject statefulData;
@@ -35,6 +39,7 @@ public class DataHandler implements Runnable {
 	private String key;
 	private BlockingQueue<PersistedObject> workQueue;
 	private UDE ude;
+	private String errorTxt;
 	
 	private static Logger logger = Logger.getLogger(DataHandler.class.getName());
 
@@ -56,10 +61,13 @@ public class DataHandler implements Runnable {
 		}
 	}
 	
-	private void processInvalidRequest(TextMessage msg, String errorMsg) throws Exception {
-		if(logger.isInfoEnabled())logger.info("processingInvalidReqeust, errorMsg = " + errorMsg + " for request " + msg.getText() + " from " + msg.getJMSReplyTo());
-		String msgText = "{".concat(errorMsg).concat("}");
-        Message message = delegate.createTextMessage(msgText);
+	private void processInvalidRequest(TextMessage msg, JasperConstants.responseCodes responseCode, String responseMsg) throws Exception {
+		if(logger.isInfoEnabled()){
+			logger.info("processingInvalidRequest, errorMsg = " + responseMsg + " for request " + msg.getText() + " from " + msg.getJMSReplyTo());
+		}
+		String response = delegate.createJasperResponse(responseCode, responseMsg, null, contentType, version);
+        Message message = delegate.createTextMessage(response);
+
         
         if(msg.getJMSCorrelationID() == null){
             message.setJMSCorrelationID(msg.getJMSMessageID());
@@ -70,33 +78,39 @@ public class DataHandler implements Runnable {
         delegate.sendMessage(msg.getJMSReplyTo(),message);
         removeSharedData(key);
 	}
-	
+
 	private void processRequest(TextMessage txtMsg) throws Exception {
   	    String request = txtMsg.getText();
-  	    key = txtMsg.getJMSCorrelationID();
+  	    boolean requestOK = false;
+  	    key = txtMsg.getJMSCorrelationID();   
 
   	    if(request == null || request.length() == 0){
-  	    	processInvalidRequest(txtMsg, "Invalid request received, request is null or empty string");
+  	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, "Invalid request received - request is null or empty string");
   	    	return;
   	    }
   	    
-  	    String ruri = getRuri(request);
+//  	    JSONObject myOBJ = zbuildObjectForTextONLY(); // TODO cleanup - delete this line when Abe delivers
+  	    
+  	    requestOK =  parseJasperRequest(request); // TODO cleanup - uncomment when Abe delivers and delete next line
+//  	    requestOK = parseJasperRequest(myOBJ.toString());
+  	    if (!requestOK){
+  	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, errorTxt);
+  	    	return;
+  	    }
+  	    
   	    if(ruri == null){
-  	    	processInvalidRequest(txtMsg, "Invalid request received, request does not contain a URI");
+  	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, "Invalid request received - request does not contain a URI");
   	    	return;
   	    }
-  	    
-  	    parseRequest(request);
   	    
   	    // create object that contains stateful data
-  	  statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, txtMsg.getJMSReplyTo(),
-              false, ude.getUdeDeploymentAndInstance(), output);
+  	    statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, dtaParms,
+  			  txtMsg.getJMSReplyTo(), false, ude.getUdeDeploymentAndInstance(), output, version, contentType);
   	   
   	    if(triggerList != null){
   	    	statefulData.setTriggers(triggerList);
   	    	statefulData.setNotification(notification);
   	    	statefulData.setIsNotificationRequest(true);
-  	    	statefulData.setDtaParms(dtaParms);
   	    }
 
   	    sharedData.put(key, statefulData);
@@ -104,14 +118,27 @@ public class DataHandler implements Runnable {
     	
 	}
 	
-	/*
-	 * assumes the request will be in the format of ruri?param1=val1
-	 */
-	private String getRuri(String request) {
-		if(request == null)return null;
-		String ruri = request.split("\\?")[0];
-		if(ruri.isEmpty()) return null;
-		return ruri;
+	// TODO cleanup - remove when Abe delivers
+	private JSONObject zbuildObjectForTextONLY(){
+		String str1 = "{\"method\":\"GET\",\"version\":\"1.0\",\"ruri\":\"http://coralcea.ca/jasper/hrData\"}";
+//		String str1 = "{\"method\":\"GET\",\"version\":\"1.0\",\"ruri\":\"http://coralcea.ca/jasper/bpData\"}";
+		String str2 = "{\"compareint\":\"(http://coralcea.ca/jasper/environmentalSensor/roomTemperature,gt,15)\"}";
+  	    JSONObject myOBJ = new JSONObject(str1);
+  	    Map<String,String> m1 = new HashMap<String,String>();
+  	    m1.put("http://coralcea.ca/jasper/hrSID", "1");
+//  	    m1.put("http://coralcea.ca/jasper/bpSID", "bp1");
+  	    JSONObject parms = new JSONObject(m1);
+  	    m1.clear();
+  	    m1.put("expires" , "15");
+  	    m1.put("poll-period", "1");
+  	    m1.put("content-type", "application/json");
+  	    JSONObject headers = new JSONObject(m1);
+
+  	    myOBJ.put(JasperConstants.PARAMETERS_LABEL, parms);
+  	    myOBJ.put(JasperConstants.HEADERS_LABEL, headers);
+//  	    myOBJ.put(JasperConstants.RULES, new JSONObject(str2));
+  	    
+  	    return myOBJ;
 	}
 	
 	/*
@@ -137,7 +164,7 @@ public class DataHandler implements Runnable {
 		String[] triggerParms;
 		for(int i=0; i<functions.length;i++){
 			triggerParms = parms[i].split(",");
-			trigger = factory.createTrigger(functions[i], expiry, polling, triggerParms);
+			trigger = factory.createTrigger(functions[i], expires, pollPeriod, triggerParms);
 			if(trigger != null){
 				trigger.setNotificationExpiry();
 				triggerList.add(trigger);
@@ -152,67 +179,98 @@ public class DataHandler implements Runnable {
 		sharedData.remove(key);
 	}
 	
-	private void parseRequest(String text) {
-		String[] result = null;
-		notification = null;
-		expiry = -1;
-		polling = -1;
-		
-		result = text.split("\\?");
-		
-		if(result.length < 1) return;
+	private boolean parseJasperRequest(String req) {
+		boolean validMsg = false;
+		expires = -1;
+		pollPeriod = -1;
+		JSONObject parms = new JSONObject();
+		JSONObject headers = new JSONObject();
+		StringBuilder sb = new StringBuilder();
 		
 		try {
-			for(int i=1;i<result.length;i++){
-				result[i] = URIUtil.decode(result[i]);
-				if(result[i].toLowerCase().contains("trigger=")){
-					notification = result[i].replaceFirst("trigger=", "");
-					triggerList = new ArrayList<Trigger>();
-				}
-				else if(result[i].toLowerCase().contains("output=")){
-					output = result[i].toLowerCase().replaceFirst("output=", "");
-				}
-				else if(result[i].toLowerCase().contains("expiry=")){
-					String tmp = result[i].toLowerCase().replaceFirst("expiry=",  "");
-					try{
-						expiry = Integer.parseInt(tmp);
-						expiry = (expiry * MILLISECONDS); // convert from seconds to milliseconds
-					}catch (NumberFormatException ex) {
-						// give one shot at getting data on error since we do
-						// know what to set expiry to
-						expiry = 0;
+			JSONObject jsonObj = new JSONObject(req);
+			// parse out mandatory parameters
+			ruri = jsonObj.getString(JasperConstants.REQUEST_URI_LABEL);
+			version = jsonObj.getString(JasperConstants.VERSION_LABEL);
+			method = jsonObj.getString(JasperConstants.METHOD_LABEL);
+			
+			if(ruri != null && version != null && method != null) {
+				validMsg = true;
+			}		
+
+			if((!method.equalsIgnoreCase("get")) && (!method.equalsIgnoreCase("post"))){
+				validMsg = false;
+				errorTxt = ("Invalid request type: " + method);
+			}
+			
+			if(jsonObj.has(JasperConstants.PARAMETERS_LABEL)) {
+				parms = (JSONObject)jsonObj.getJSONObject(JasperConstants.PARAMETERS_LABEL);
+				int len = parms.length();
+				for(Object o:parms.keySet()){
+					sb.append(o.toString());
+					sb.append("=");
+					sb.append(parms.get(o.toString()));
+					if(len > 1) {
+						sb.append("&");
+						len--;
 					}
 				}
-				else if(result[i].toLowerCase().contains("polling=")){
-					String tmpPoll = result[i].toLowerCase().replaceFirst("polling=",  "");
-					try{
-						polling = Integer.parseInt(tmpPoll);
-						polling = (polling * MILLISECONDS); // convert from seconds to milliseconds
-						
-					}catch (NumberFormatException ex) {
-		    			polling = delegate.maxPollingInterval;
+			
+				dtaParms = sb.toString();
+			}
+			
+			if(jsonObj.has(JasperConstants.HEADERS_LABEL)){
+				headers = (JSONObject)jsonObj.getJSONObject(JasperConstants.HEADERS_LABEL);
+				for(Object o:headers.keySet()){
+					switch (o.toString().toLowerCase()) {
+					case JasperConstants.POLL_PERIOD_LABEL :
+						try{
+							pollPeriod = headers.getInt(o.toString());
+							pollPeriod = (pollPeriod * MILLISECONDS); // convert to milliseconds
+						}catch(JSONException ex){
+							pollPeriod = delegate.maxPollingInterval;
+						}
+						break;
+					case JasperConstants.EXPIRES_LABEL :
+						try{
+							expires = headers.getInt(o.toString());
+							expires = (expires * MILLISECONDS); // convert to milliseconds
+						} catch(JSONException ex){
+							expires = delegate.maxExpiry;
+						}
+						break;
+					case JasperConstants.CONTENT_TYPE_LABEL :
+						contentType = headers.getString(o.toString());
+						break;
 					}
-				}
-				else{
-					dtaParms = result[i];
 				}
 			}
 			
+			if(jsonObj.has(JasperConstants.RULE_LABEL)){
+				notification = jsonObj.getString(JasperConstants.RULE_LABEL);
+				triggerList = new ArrayList<Trigger>();
+			}
+			
 			if(notification != null){
-				if(expiry == -1) expiry = delegate.maxExpiry; // if not supplied set to max
-				if(expiry > delegate.maxExpiry) expiry = delegate.maxExpiry;
-				if(polling == -1) polling = delegate.maxPollingInterval; // if not supplied set to max
-				if(polling < delegate.minPollingInterval) polling = delegate.minPollingInterval;
-				if(polling > delegate.maxPollingInterval) polling = delegate.maxPollingInterval;
-				if(polling > expiry) polling = (int) expiry;
+				if(expires == -1) expires = delegate.maxExpiry; // if not supplied set to max
+				if(expires > delegate.maxExpiry) expires = delegate.maxExpiry;
+				if(pollPeriod == -1) pollPeriod = delegate.maxPollingInterval; // if not supplied set to max
+				if(pollPeriod < delegate.minPollingInterval) pollPeriod = delegate.minPollingInterval;
+				if(pollPeriod > delegate.maxPollingInterval) pollPeriod = delegate.maxPollingInterval;
+				if(pollPeriod > expires) pollPeriod = (int) expires;
 				if(output == null) output =  delegate.defaultOutput;
 				
 				parseTrigger(notification);
 			}
 			
-		} catch (URIException e) {
-			logger.error("Exception when decoding encoded notification request " ,e);
+		} catch (JSONException e) {
+			logger.error("Exception caught while creating JSONObject " + e);
+			validMsg = false;
+			errorTxt = "Invalid / Malformed JSON object received";
 		}
+		
+		return validMsg;
+		
 	}
-
+	
 }

@@ -18,6 +18,7 @@ import org.apache.jena.atlas.json.JsonString;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.log4j.Logger;
 import org.jasper.core.UDE;
+import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.notification.triggers.Trigger;
@@ -39,6 +40,8 @@ public class DataConsumer implements Runnable {
 	private BlockingQueue<PersistedObject> workQueue;
 	private boolean isShutdown;
 	private UDE ude;
+	private String version;
+	private String contentType;
 	
 	private static Logger logger = Logger.getLogger(DataHandler.class.getName());
 
@@ -76,9 +79,11 @@ public class DataConsumer implements Runnable {
 
 	}
 	
-	private void processInvalidRequest(String errorMsg) throws Exception {
-		if(logger.isInfoEnabled())logger.info("processingInvalidRequest, errorMsg = " + errorMsg + " for request " + statefulData.getRequest() + " from " + statefulData.getReplyTo());
-		String msgText = "{\"error\":\"".concat(errorMsg).concat("\"}");
+	private void processInvalidRequest(JasperConstants.responseCodes respCode, String respMsg) throws Exception {
+		if(logger.isInfoEnabled()){
+			logger.info("processingInvalidRequest, errorMsg = " + respMsg + " for request " + statefulData.getRequest() + " from " + statefulData.getReplyTo());
+		}
+		String msgText = delegate.createJasperResponse(respCode, respMsg, null, contentType, version);
         Message message = delegate.createTextMessage(msgText);
         
         if(statefulData.getCorrelationID() == null){
@@ -100,6 +105,8 @@ public class DataConsumer implements Runnable {
   	    dtaParms = statefulData.getDtaParms();
 		sharedData = ude.getCachingSys().getMap("sharedData");
 		output = statefulData.getOutput();
+		contentType = statefulData.getContentType();
+		version = statefulData.getVersion();
   	    
   	    if(statefulData.isNotificationRequest()){ 
   	    	polling = statefulData.getTriggers().get(0).getPolling();
@@ -110,29 +117,29 @@ public class DataConsumer implements Runnable {
   	    				break;
   	    			}
   	    			else if(isNotificationExpired()){
-  	    				processInvalidRequest("notification: " + statefulData.getNotification() + " has expired");
+  	    				processInvalidRequest(JasperConstants.responseCodes.TIMEOUT, statefulData.getNotification() + " has expired");
   	    				return;
   	    			}
   	    		}
   	    		else if(isNotificationExpired()){
-  	    			processInvalidRequest("notification: " + statefulData.getNotification() + " has expired");
+  	    			processInvalidRequest(JasperConstants.responseCodes.TIMEOUT, statefulData.getNotification() + " has expired");
   	    			return;
   	    		}
   	    	Thread.sleep(polling);
   	    	}
   	    }
   	    else{
-  	    	response = getResponse(ruri,request);
+  	    	response = getResponse(ruri,dtaParms);
   	    }
 
   	    if(response == null){
   	    	if(!statefulData.isNotificationRequest()){
-  	    		processInvalidRequest(ruri +" is not supported");
+  	    		processInvalidRequest(JasperConstants.responseCodes.NOTFOUND, ruri +" is not supported");
   	    		return;
   	    	}
   	    	else{
   	    		if(isNotificationExpired()){
-  	    			processInvalidRequest("notification " + statefulData.getNotification() + " has expired");
+  	    			processInvalidRequest(JasperConstants.responseCodes.TIMEOUT, statefulData.getNotification() + " has expired");
   	    			return;
   	    		}
   	    	}
@@ -272,7 +279,9 @@ public class DataConsumer implements Runnable {
 	}
 	
 	private void sendResponse(String response) throws JMSException {
-        Message message = delegate.createTextMessage(response);      
+		JasperConstants.responseCodes code = JasperConstants.responseCodes.OK;
+		String jsonResponse = delegate.createJasperResponse(code, "Success", response, contentType, version);
+        Message message = delegate.createTextMessage(jsonResponse);      
         String correlationID = statefulData.getCorrelationID();
         if(correlationID == null) correlationID = statefulData.getKey();
         message.setJMSCorrelationID(correlationID);

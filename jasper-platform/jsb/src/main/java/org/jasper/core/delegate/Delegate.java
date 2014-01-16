@@ -3,6 +3,8 @@ package org.jasper.core.delegate;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,12 +29,15 @@ import javax.jms.TextMessage;
 import org.apache.log4j.Logger;
 import org.jasper.core.UDE;
 import org.jasper.core.constants.JasperConstants;
+import org.jasper.core.constants.JasperConstants.responseCodes;
 import org.jasper.core.delegate.handlers.AdminHandler;
 import org.jasper.core.delegate.handlers.DataConsumer;
 import org.jasper.core.delegate.handlers.DataHandler;
 import org.jasper.core.delegate.handlers.SparqlHandler;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.hp.hpl.jena.rdf.model.Model;
 
@@ -217,5 +222,44 @@ public class Delegate implements Runnable, MessageListener {
 			mapMsg.setObject(key, map.get(key));
 		}
 		return mapMsg;
+	}
+	
+	public String createJasperResponse(responseCodes respCode, String respMsg, String response, String contentType, String version) {
+		JSONObject jasperResponse = new JSONObject();
+		Map<String,String> map = new HashMap<String,String>();
+		
+		jasperResponse.put(JasperConstants.CODE_LABEL,  respCode.getCode());
+		jasperResponse.put(JasperConstants.REASON_LABEL,  respCode.getDescription());
+		jasperResponse.put(JasperConstants.DESCRIPTION_LABEL,  respMsg);
+		
+		if(version != null){
+			jasperResponse.put(JasperConstants.VERSION_LABEL,  version);
+		}
+		else{
+			jasperResponse.put(JasperConstants.VERSION_LABEL,  "unknown");
+		}
+		if(contentType != null){
+			map.put(JasperConstants.CONTENT_TYPE_LABEL, contentType);
+		}
+		else{
+			map.put(JasperConstants.CONTENT_TYPE_LABEL, "application/json");
+		}
+		JSONObject headers = new JSONObject(map);
+		jasperResponse.put(JasperConstants.HEADERS_LABEL, map);
+		
+		if(response != null){
+			byte[] bytes;
+			try {
+				bytes = response.getBytes(JasperConstants.ENCODING_LABEL);
+				JSONArray payloadArray = new JSONArray(bytes);
+				jasperResponse.put(JasperConstants.PAYLOAD_LABEL, payloadArray);
+			} catch (UnsupportedEncodingException e) {
+				logger.error("Exception occurred while encoding response " + e);
+				return null;
+			}
+		}
+		
+		return jasperResponse.toString();
+		
 	}
 }

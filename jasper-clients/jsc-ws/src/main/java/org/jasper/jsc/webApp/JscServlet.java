@@ -122,17 +122,17 @@ public class JscServlet extends HttpServlet {
 		Request jReq = new Request(Method.GET, ruri, headers, parameters, rule, payload);
     	
 		Response jscResponse = jsc.get(jReq);
-        String jscJsonResponseString = new String(jscResponse.getPayload());
        
 		String contentType = (jscResponse.getHeaders().containsKey(ResponseHeaders.CONTENT_TYPE))?jscResponse.getHeaders().get(ResponseHeaders.CONTENT_TYPE):"application/json";
 		response.setContentType(contentType );
         response.setCharacterEncoding("UTF-8");
 		
         if(jscResponse.getCode() >= 200 && jscResponse.getCode() <= 299){
+        	String jscJsonResponseString = new String(jscResponse.getPayload());
 			response.getWriter().write(jscJsonResponseString);
         }else{
 			response.getWriter().write("{\"error\":\"" + jscResponse.getCode() + " " + jscResponse.getReason()  + " -  " + jscResponse.getDescription() + "\"}");
-			log.warn("non 2xx response recieved : " + jscResponse.getCode() + " " + jscResponse.getReason()  + " -  " + jscResponse.getDescription());			
+			log.warn("non 2xx response received : " + jscResponse.getCode() + " " + jscResponse.getReason()  + " -  " + jscResponse.getDescription());			
         }
     }
 
