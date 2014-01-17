@@ -115,6 +115,7 @@ public class JscServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
     	
     	String ruri = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):null;
+    	if(uriMapper.containsKey(ruri)) ruri = uriMapper.get(ruri); // check if short form is being used and switch to long form URI
 		Map<String, String> headers = getHeaders(request);
 		Map<String, String> parameters = getParameters(request);
 		String rule = getRule(request);
@@ -178,6 +179,12 @@ public class JscServlet extends HttpServlet {
     			{
     			continue;
     			}else{
+    				String[] arr = str.split("=");
+    				// Convert to long form URI if short form was passed in
+    				if(uriMapper.containsKey(arr[0])){
+    					str = uriMapper.get(arr[0]);
+    					str = str.concat("=").concat(arr[1]);
+    				}
     				params = str;
     			}
     		}
