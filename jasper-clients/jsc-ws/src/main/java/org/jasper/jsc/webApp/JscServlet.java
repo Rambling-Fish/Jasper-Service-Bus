@@ -169,9 +169,12 @@ public class JscServlet extends HttpServlet {
 	private Map<String, String> getParameters(HttpServletRequest request) {
     	
 		String params = null;
+		StringBuilder sb = new StringBuilder();
     	if(request.getQueryString() !=null){
     		String[] result = request.getQueryString().split("\\?");
-    		for(String str:result){
+    		String[] results = result[0].split("&");
+    		
+    		for(String str:results){
     			if(str.startsWith("output=")       || str.startsWith(RequestHeaders.RESPONSE_TYPE) ||
     			    str.startsWith("expiry=")  || str.startsWith(RequestHeaders.EXPIRES)       ||
     			    str.startsWith("polling=") || str.startsWith(RequestHeaders.POOL_PERIOD)   ||
@@ -182,12 +185,22 @@ public class JscServlet extends HttpServlet {
     				String[] arr = str.split("=");
     				// Convert to long form URI if short form was passed in
     				if(uriMapper.containsKey(arr[0])){
-    					str = uriMapper.get(arr[0]);
-    					str = str.concat("=").concat(arr[1]);
+    					sb.append(uriMapper.get(arr[0]));
     				}
-    				params = str;
+    				else{
+    					sb.append(arr[0]);
+    				}
+    					sb.append("=");
+    					sb.append(arr[1]);
+    					sb.append("&");
     			}
     		}
+
+			if ((sb.length() - 1) == (sb.lastIndexOf("&"))){
+				sb.deleteCharAt(sb.lastIndexOf("&"));
+			}
+			
+    		params = sb.toString();
     	}
     	
     	if(params == null) return null;
