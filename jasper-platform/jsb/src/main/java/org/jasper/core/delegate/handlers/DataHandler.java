@@ -53,7 +53,7 @@ public class DataHandler implements Runnable {
 
 	public void run() {
 		try{
-			sharedData = ude.getCachingSys().getMap("sharedData");
+			sharedData = (Map<String, PersistedObject>) ude.getCachingSys().getMap("sharedData");
 			workQueue  = ude.getCachingSys().getQueue("tasks");
 			processRequest( (TextMessage) jmsRequest);
 		}catch (Exception e){

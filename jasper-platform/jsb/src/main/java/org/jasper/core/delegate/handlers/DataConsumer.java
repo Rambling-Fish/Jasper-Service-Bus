@@ -103,7 +103,7 @@ public class DataConsumer implements Runnable {
   	    key = statefulData.getKey();
   	    String ruri = statefulData.getRURI();
   	    dtaParms = statefulData.getDtaParms();
-		sharedData = ude.getCachingSys().getMap("sharedData");
+		sharedData = (Map<String, PersistedObject>) ude.getCachingSys().getMap("sharedData");
 		output = statefulData.getOutput();
 		contentType = statefulData.getContentType();
 		version = statefulData.getVersion();

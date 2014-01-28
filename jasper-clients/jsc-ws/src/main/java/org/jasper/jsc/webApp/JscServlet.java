@@ -196,9 +196,11 @@ public class JscServlet extends HttpServlet {
     			}
     		}
 
-			if ((sb.length() - 1) == (sb.lastIndexOf("&"))){
-				sb.deleteCharAt(sb.lastIndexOf("&"));
-			}
+    		if(sb.length() > 0){
+    			if ((sb.length() - 1) == (sb.lastIndexOf("&"))){
+    				sb.deleteCharAt(sb.lastIndexOf("&"));
+    			}
+    		}
 			
     		params = sb.toString();
     	}
