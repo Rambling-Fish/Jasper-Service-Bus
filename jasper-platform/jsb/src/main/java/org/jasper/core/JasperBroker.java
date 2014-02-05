@@ -135,8 +135,8 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
         	 connection.close();         
         	 next.stop();   
          }catch (Exception e){
+        	 if(!(e instanceof org.apache.activemq.transport.RequestTimedOutIOException)){
         	 // Fix for JASPER-516 to prevent exception each time UDE is stopped
-        	 if(!(e.getMessage().contains("org.apache.activemq.transport.RequestTimedOutIOException"))){
         		 logger.error("Exception caught while shutting down JasperBroker " + e);
         	 }
          }
@@ -522,8 +522,8 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
     	}
     	
     	Integer totalProducers = new Integer(-1);
-    	int activeProducers;
-    	int activeConsumers;
+    	int activeProducers = 0;
+    	int activeConsumers = 0;
     	int maxConsumers = 0;
     	String producersString = "Unlimited";
     	
