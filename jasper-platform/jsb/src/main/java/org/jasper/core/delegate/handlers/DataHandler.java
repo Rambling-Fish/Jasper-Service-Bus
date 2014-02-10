@@ -96,7 +96,7 @@ public class DataHandler implements Runnable {
   	    	return;
   	    }
   	    
-  	    if(ruri == null){
+  	    if(ruri == null || ruri.length() == 0){
   	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, "Invalid request received - request does not contain a URI");
   	    	return;
   	    }
