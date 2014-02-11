@@ -39,10 +39,20 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
      
     private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
     private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
+    private static final String MAX_CONSUMERS         = "maxconsumers";
+    private static final String MAX_PRODUCERS         = "maxproducers";
+    private static final String ACTIVE_CONSUMERS      = "activeconsumers";
+    private static final String ACTIVE_PRODUCERS      = "activeproducers";
      
     public static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
      
     private MultiMap<String,String> registeredLicenseKeys;
+    private Map<String,Integer> registeredResources;
+    private Map<String,String> dtaResources;
+    private int clusterMaxProducers = 0;
+    private int clusterMaxConsumers = 0;
+    private int currentProducers    = 0;
+    private int currentConsumers    = 0;
      
     /*
      * Map will store know connection context information so that we can manipulate the connections, we currently use
@@ -81,8 +91,8 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
         jtaConnectionContextMap = new ConcurrentHashMap<String, ConnectionContext>();
         registeredLicenseKeys = (MultiMap<String, String>) cachingSys.getMultiMap("registeredLicenseKeys");
         registeredLicenseKeys.addEntryListener (this, true);
-        
-        
+        registeredResources = (Map<String,Integer>) cachingSys.getMap("registeredResources");
+        dtaResources = (Map<String,String>) cachingSys.getMap("dtaResources");
         
     }
       
@@ -125,8 +135,8 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
         	 connection.close();         
         	 next.stop();   
          }catch (Exception e){
+        	 if(!(e instanceof org.apache.activemq.transport.RequestTimedOutIOException)){
         	 // Fix for JASPER-516 to prevent exception each time UDE is stopped
-        	 if(!(e.getMessage().contains("org.apache.activemq.transport.RequestTimedOutIOException"))){
         		 logger.error("Exception caught while shutting down JasperBroker " + e);
         	 }
          }
@@ -172,7 +182,7 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
     }
     
     public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {  
-        
+    
         if(info.getClientIp().startsWith("vm://localhost") || info.getClientIp().startsWith("vm://" + context.getBroker().getBrokerName())
                 || info.getClientIp().startsWith("tcp://" + ude.getBrokerTransportIp()) && licenseKeySys.isUdeLicenseKey(info.getPassword())){
             super.addConnection(context, info);
@@ -235,6 +245,7 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
        if(!(jsbConnectionInfoMap.containsKey(info.getPassword()))){
            jsbConnectionInfoMap.put(info.getPassword(), info);
            super.addConnection(context, info);
+           calculateClusterResourceTotals();
            broadcastAdminEvent("printMap");
 
            if(logger.isInfoEnabled()){
@@ -291,12 +302,13 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
          * the license key is already in use and we fail the registration.
          */
         boolean isLicenseKeyAvailable = false;
+        String key = info.getPassword();
         for(int count = 0; count < 5; count++){
-        	if(!(registeredLicenseKeys.containsValue(info.getPassword()))){
-        		isLicenseKeyAvailable = true;
+        	if(!(registeredLicenseKeys.containsValue(key))){
+        		isLicenseKeyAvailable = updateResources(key, true);
         		break;
         	}else{
-        		String ude = lookupUde(info.getPassword());
+        		String ude = lookupUde(key);
         		logger.warn("license key is not available it is currently being used by " + ude);
         		Thread.sleep(250);
         	}
@@ -304,9 +316,9 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
         
         if(isLicenseKeyAvailable){
         	synchronized(registeredLicenseKeys){
-        		registeredLicenseKeys.put(ude.getUdeDeploymentAndInstance(), info.getPassword());
+        		registeredLicenseKeys.put(ude.getUdeDeploymentAndInstance(), key);
         	}
-        	jtaConnectionContextMap.put(info.getPassword(), context);        
+        	jtaConnectionContextMap.put(key, context);        
             super.addConnection(context, info);
             broadcastAdminEvent("printMap");
             
@@ -315,27 +327,133 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
             }
             if(!info.getUserName().contains("jsc")) notifyDelegate(Command.jta_connect, info.getUserName());
         }else{
-        	String errorMsg = "license key already registered on " + lookupUde(info.getPassword());
+        	String errorMsg = "license key already registered on " + lookupUde(key);
             logger.error(info.getUserName() + " registration failed due to " + errorMsg);
             throw (SecurityException)new SecurityException(errorMsg);
         }
     }
 
 	private String lookupUde(String licenseKey) {
-    	for(String ude:registeredLicenseKeys.keySet()){
-    		if(registeredLicenseKeys.get(ude).contains(licenseKey))return ude;
+		synchronized(registeredLicenseKeys){
+			for(String ude:registeredLicenseKeys.keySet()){
+				if(registeredLicenseKeys.get(ude).contains(licenseKey))return ude;
+			}
+			return null;
+		}
+	}
+	
+	private void calculateClusterResourceTotals(){
+		
+		// Get consumers and producers for this (local) UDE
+		int localConsumers = ude.getUdeLicense().getNumOfConsumers();
+		int localProducers = ude.getUdeLicense().getNumOfPublishers();
+		
+		// Add producers and consumers from remote UDEs
+		for(String key:jsbConnectionInfoMap.keySet()){
+    		int remoteConsumers = licenseKeySys.getUdeNumConsumers(key);
+    		int remoteProducers = licenseKeySys.getUdeNumPublishers(key);
+    		localConsumers += remoteConsumers;
+    		localProducers += remoteProducers;
+		}
+		
+    	if(localConsumers > clusterMaxConsumers){
+    		clusterMaxConsumers = localConsumers;
     	}
-    	return null;
+    	if(localProducers > clusterMaxProducers){
+    		clusterMaxProducers = localProducers;
+    	}
+    	if(localProducers < 0){
+    		clusterMaxProducers = -1;
+    	}
+	
+    	synchronized(registeredResources){
+    		if(registeredResources.size() > 0){
+    			currentConsumers = registeredResources.get(ACTIVE_CONSUMERS);
+    			currentProducers = registeredResources.get(ACTIVE_PRODUCERS);
+    		}
+    		registeredResources.put(MAX_CONSUMERS, clusterMaxConsumers);
+    		registeredResources.put(MAX_PRODUCERS, clusterMaxProducers);
+    		registeredResources.put(ACTIVE_CONSUMERS, currentConsumers);
+        	registeredResources.put(ACTIVE_PRODUCERS, currentProducers);
+    	}
+	}
+	
+	private boolean updateResources(String password, boolean addConnection){
+		if(registeredResources.size() == 0){ // not a cluster, just a single UDE
+			return true;
+		}
+
+		int dtaConsumers = licenseKeySys.getClientNumConsumers(password);
+		int dtaProducers = licenseKeySys.getClientNumPublishers(password);
+		
+		if(addConnection){
+			if(dtaResources.containsKey(password)) return true; // already registered - this is a fail over
+			synchronized(registeredResources){
+				currentConsumers = registeredResources.get(ACTIVE_CONSUMERS);
+				currentProducers = registeredResources.get(ACTIVE_PRODUCERS);
+				clusterMaxConsumers = registeredResources.get(MAX_CONSUMERS);
+				clusterMaxProducers = registeredResources.get(MAX_PRODUCERS);
+				currentProducers = (currentProducers + dtaProducers);
+			
+				if(clusterMaxProducers > -1){ // enforce limits if > -1 since -1 indicates unlimited producers
+					if(currentProducers <= clusterMaxProducers){
+						registeredResources.put(ACTIVE_PRODUCERS, currentProducers);
+					}
+					else{
+						logger.error("Cannot add connection as producer limit for cluster has been reached");
+						return false;
+					}
+				}
+				else{ //we update total producers but do not enforce limit
+					registeredResources.put(ACTIVE_PRODUCERS, currentProducers);
+				}
+			
+				currentConsumers = (currentConsumers + dtaConsumers);
+				if(currentConsumers <= clusterMaxConsumers){
+					registeredResources.put(ACTIVE_CONSUMERS, currentConsumers);
+				}
+				else{
+					logger.error("Cannot add connection as consumer limit for cluster has been reached");
+					return false;
+				}
+			}
+			
+			synchronized(dtaResources){
+				dtaResources.put(password, "registered");
+			}
+			
+			return true;
+		}
+		else{ // removing a DTA connection
+			if(dtaResources.containsKey(password)){
+				synchronized(registeredResources){
+					currentConsumers = registeredResources.get(ACTIVE_CONSUMERS);
+					currentProducers = registeredResources.get(ACTIVE_PRODUCERS);
+					currentConsumers = (currentConsumers - dtaConsumers);
+					currentProducers = (currentProducers - dtaProducers);
+					registeredResources.put(ACTIVE_PRODUCERS, currentProducers);
+					registeredResources.put(ACTIVE_CONSUMERS, currentConsumers);
+				}
+		
+				synchronized(dtaResources){
+					dtaResources.remove(password);
+				}
+			}
+			
+			return true;
+			
+		}			
 	}
 
 	public void removeConnection(ConnectionContext context, ConnectionInfo info, Throwable error)throws Exception{
-
     	String key = info.getPassword();
+
     	if(jtaConnectionContextMap.containsKey(key)){
         	synchronized(registeredLicenseKeys){
         		registeredLicenseKeys.remove(ude.getUdeDeploymentAndInstance(), key);
         	}
     		ConnectionContext jtaConnectionContext = jtaConnectionContextMap.remove(key);
+    		updateResources(key, false);
     		
             if(jtaConnectionContext !=null && !info.getUserName().contains("jsc")) notifyDelegate(Command.jta_disconnect, info.getUserName());     
     		
@@ -402,6 +520,34 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
 	    		count += registeredLicenseKeys.get(jsb).size();
 	    	}
     	}
+    	
+    	Integer totalProducers = new Integer(-1);
+    	int activeProducers = 0;
+    	int activeConsumers = 0;
+    	int maxConsumers = 0;
+    	String producersString = "Unlimited";
+    	
+    	sb.append("\nregistered resources");
+    	
+    	
+    	synchronized(registeredResources){
+    			activeProducers = registeredResources.get(ACTIVE_PRODUCERS);
+    			activeConsumers = registeredResources.get(ACTIVE_CONSUMERS);
+    			totalProducers  = registeredResources.get(MAX_PRODUCERS);
+    			maxConsumers    = registeredResources.get(MAX_CONSUMERS);
+    	}
+
+    	if(totalProducers != -1){
+    		producersString = totalProducers.toString();
+    	}
+    	
+    	sb.append("\n\t{");
+    	sb.append("\n\tNumber of Producers: " + activeProducers);
+    	sb.append("\n\tNumber of Consumers: " + activeConsumers);
+    	sb.append("\n\tTotal Producers allowed: " + producersString);
+    	sb.append("\n\tTotal Consumers allowed: " + maxConsumers);
+    	sb.append("\n\t}");
+    	
     	sb.append("\n} total cluster keys = " + count);
     	sb.append("\n----------------------------------------");
     	return sb.toString();

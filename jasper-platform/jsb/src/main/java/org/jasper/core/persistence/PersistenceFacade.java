@@ -25,7 +25,7 @@ public class PersistenceFacade {
 		return memCache.getMultiMap(name);
 	}
 	
-	public Map<String,PersistedObject> getMap(String name) {
+	public Map<?,?> getMap(String name) {
 		return memCache.getMap(name);
 	}
 	

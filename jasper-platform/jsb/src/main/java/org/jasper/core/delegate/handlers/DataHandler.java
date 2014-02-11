@@ -53,7 +53,7 @@ public class DataHandler implements Runnable {
 
 	public void run() {
 		try{
-			sharedData = ude.getCachingSys().getMap("sharedData");
+			sharedData = (Map<String, PersistedObject>) ude.getCachingSys().getMap("sharedData");
 			workQueue  = ude.getCachingSys().getQueue("tasks");
 			processRequest( (TextMessage) jmsRequest);
 		}catch (Exception e){
@@ -88,17 +88,15 @@ public class DataHandler implements Runnable {
   	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, "Invalid request received - request is null or empty string");
   	    	return;
   	    }
-  	    
-//  	    JSONObject myOBJ = zbuildObjectForTextONLY(); // TODO cleanup - delete this line when Abe delivers
-  	    
-  	    requestOK =  parseJasperRequest(request); // TODO cleanup - uncomment when Abe delivers and delete next line
-//  	    requestOK = parseJasperRequest(myOBJ.toString());
+  	     	    
+  	    requestOK =  parseJasperRequest(request);
+
   	    if (!requestOK){
   	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, errorTxt);
   	    	return;
   	    }
   	    
-  	    if(ruri == null){
+  	    if(ruri == null || ruri.length() == 0){
   	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, "Invalid request received - request does not contain a URI");
   	    	return;
   	    }
@@ -116,29 +114,6 @@ public class DataHandler implements Runnable {
   	    sharedData.put(key, statefulData);
   	    workQueue.offer(statefulData);
     	
-	}
-	
-	// TODO cleanup - remove when Abe delivers
-	private JSONObject zbuildObjectForTextONLY(){
-		String str1 = "{\"method\":\"GET\",\"version\":\"1.0\",\"ruri\":\"http://coralcea.ca/jasper/hrData\"}";
-//		String str1 = "{\"method\":\"GET\",\"version\":\"1.0\",\"ruri\":\"http://coralcea.ca/jasper/bpData\"}";
-		String str2 = "{\"compareint\":\"(http://coralcea.ca/jasper/environmentalSensor/roomTemperature,gt,15)\"}";
-  	    JSONObject myOBJ = new JSONObject(str1);
-  	    Map<String,String> m1 = new HashMap<String,String>();
-  	    m1.put("http://coralcea.ca/jasper/hrSID", "1");
-//  	    m1.put("http://coralcea.ca/jasper/bpSID", "bp1");
-  	    JSONObject parms = new JSONObject(m1);
-  	    m1.clear();
-  	    m1.put("expires" , "15");
-  	    m1.put("poll-period", "1");
-  	    m1.put("content-type", "application/json");
-  	    JSONObject headers = new JSONObject(m1);
-
-  	    myOBJ.put(JasperConstants.PARAMETERS_LABEL, parms);
-  	    myOBJ.put(JasperConstants.HEADERS_LABEL, headers);
-//  	    myOBJ.put(JasperConstants.RULES, new JSONObject(str2));
-  	    
-  	    return myOBJ;
 	}
 	
 	/*

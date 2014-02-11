@@ -232,7 +232,7 @@ public class UDE {
 	public void auditMap(String udeInstance){
 		Map<String,PersistedObject> sharedData;
 		BlockingQueue<PersistedObject> workQueue;
-		sharedData = cachingSys.getMap("sharedData");
+		sharedData = (Map<String, PersistedObject>) cachingSys.getMap("sharedData");
 		workQueue = cachingSys.getQueue("tasks");
 		PersistedObject statefulData;
 

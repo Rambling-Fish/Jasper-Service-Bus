@@ -103,7 +103,7 @@ public class DataConsumer implements Runnable {
   	    key = statefulData.getKey();
   	    String ruri = statefulData.getRURI();
   	    dtaParms = statefulData.getDtaParms();
-		sharedData = ude.getCachingSys().getMap("sharedData");
+		sharedData = (Map<String, PersistedObject>) ude.getCachingSys().getMap("sharedData");
 		output = statefulData.getOutput();
 		contentType = statefulData.getContentType();
 		version = statefulData.getVersion();
@@ -206,8 +206,8 @@ public class DataConsumer implements Runnable {
 				continue;
   			}
   			
-  			JsonObject reponse = JSON.parse(getResponseFromQueue(q,valuePair));
-  			JsonValue r = (reponse.get(provides)==null)?reponse:reponse.get(provides);
+  			JsonObject response = JSON.parse(getResponseFromQueue(q,valuePair));
+  			JsonValue r = (response.get(provides)==null)?response:response.get(provides);
   			if( r !=null && !(r instanceof JsonNull) )result.add(r);
       	}
       	return result;

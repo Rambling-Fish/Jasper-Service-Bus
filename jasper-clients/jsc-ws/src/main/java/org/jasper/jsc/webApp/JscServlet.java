@@ -115,6 +115,7 @@ public class JscServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
     	
     	String ruri = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):null;
+    	if(uriMapper.containsKey(ruri)) ruri = uriMapper.get(ruri); // check if short form is being used and switch to long form URI
 		Map<String, String> headers = getHeaders(request);
 		Map<String, String> parameters = getParameters(request);
 		String rule = getRule(request);
@@ -141,22 +142,24 @@ public class JscServlet extends HttpServlet {
     	
     	String contentType = (request.getContentType() != null)?request.getContentType():"application/json";
 		map.put(RequestHeaders.CONTENT_TYPE, contentType );
+ 
+		if(request.getQueryString() !=null){
+			String[] result = request.getQueryString().split("\\?");
     	
-    	String[] result = request.getQueryString().split("\\?");
-    	
-    	for(String str:result){
-    		if(str.startsWith("output=")){
-				map.put(RequestHeaders.RESPONSE_TYPE, str.replaceFirst("output=", ""));
-			}else if(str.startsWith(RequestHeaders.RESPONSE_TYPE)){
-				map.put(RequestHeaders.RESPONSE_TYPE, str.replaceFirst(RequestHeaders.RESPONSE_TYPE, ""));
-			}else if(str.startsWith("expiry=")){
-				map.put(RequestHeaders.EXPIRES, str.replaceFirst("expiry=", ""));
-			}else if(str.startsWith(RequestHeaders.EXPIRES)){
-				map.put(RequestHeaders.EXPIRES, str.replaceFirst(RequestHeaders.EXPIRES, ""));
-			}else if(str.startsWith("polling=")){
-				map.put(RequestHeaders.POOL_PERIOD, str.replaceFirst("polling=", ""));
-			}else if(str.startsWith(RequestHeaders.POOL_PERIOD)){
-				map.put(RequestHeaders.POOL_PERIOD, str.replaceFirst(RequestHeaders.POOL_PERIOD, ""));
+			for(String str:result){
+				if(str.startsWith("output=")){
+					map.put(RequestHeaders.RESPONSE_TYPE, str.replaceFirst("output=", ""));
+				}else if(str.startsWith(RequestHeaders.RESPONSE_TYPE)){
+					map.put(RequestHeaders.RESPONSE_TYPE, str.replaceFirst(RequestHeaders.RESPONSE_TYPE, ""));
+				}else if(str.startsWith("expiry=")){
+					map.put(RequestHeaders.EXPIRES, str.replaceFirst("expiry=", ""));
+				}else if(str.startsWith(RequestHeaders.EXPIRES)){
+					map.put(RequestHeaders.EXPIRES, str.replaceFirst(RequestHeaders.EXPIRES, ""));
+				}else if(str.startsWith("polling=")){
+					map.put(RequestHeaders.POOL_PERIOD, str.replaceFirst("polling=", ""));
+				}else if(str.startsWith(RequestHeaders.POOL_PERIOD)){
+					map.put(RequestHeaders.POOL_PERIOD, str.replaceFirst(RequestHeaders.POOL_PERIOD, ""));
+				}
 			}
     	}
     	
@@ -165,19 +168,42 @@ public class JscServlet extends HttpServlet {
 
 	private Map<String, String> getParameters(HttpServletRequest request) {
     	
-    	String[] result = request.getQueryString().split("\\?");
-    	String params = null;
-    	for(String str:result){
-    		if(str.startsWith("output=")       || str.startsWith(RequestHeaders.RESPONSE_TYPE) ||
+		String params = null;
+		StringBuilder sb = new StringBuilder();
+    	if(request.getQueryString() !=null){
+    		String[] result = request.getQueryString().split("\\?");
+    		String[] results = result[0].split("&");
+    		
+    		for(String str:results){
+    			if(str.startsWith("output=")       || str.startsWith(RequestHeaders.RESPONSE_TYPE) ||
     			    str.startsWith("expiry=")  || str.startsWith(RequestHeaders.EXPIRES)       ||
     			    str.startsWith("polling=") || str.startsWith(RequestHeaders.POOL_PERIOD)   ||
     			    str.startsWith("trigger=") || str.startsWith("rule=") )
-    		{
+    			{
     			continue;
-		    }else{
-    			params = str;
-		    }
-		}
+    			}else{
+    				String[] arr = str.split("=");
+    				// Convert to long form URI if short form was passed in
+    				if(uriMapper.containsKey(arr[0])){
+    					sb.append(uriMapper.get(arr[0]));
+    				}
+    				else{
+    					sb.append(arr[0]);
+    				}
+    					sb.append("=");
+    					sb.append(arr[1]);
+    					sb.append("&");
+    			}
+    		}
+
+    		if(sb.length() > 0){
+    			if ((sb.length() - 1) == (sb.lastIndexOf("&"))){
+    				sb.deleteCharAt(sb.lastIndexOf("&"));
+    			}
+    		}
+			
+    		params = sb.toString();
+    	}
     	
     	if(params == null) return null;
     	
@@ -193,14 +219,16 @@ public class JscServlet extends HttpServlet {
 	}
 
 	private String getRule(HttpServletRequest request) {
-		String[] result = request.getQueryString().split("\\?");
-    	String rule = null;
-    	for(String str:result){
-    		if(str.startsWith("trigger=")){
-    			rule = str.replaceFirst("trigger=", "");
-    		}else if (str.startsWith("rule=") )    		{
-    			rule = str.replaceFirst("rule=", "");
-		    }
+		String rule = null;
+		if(request.getQueryString() != null){
+			String[] result = request.getQueryString().split("\\?");
+    		for(String str:result){
+    			if(str.startsWith("trigger=")){
+    				rule = str.replaceFirst("trigger=", "");
+    			}else if (str.startsWith("rule=") )    		{
+    				rule = str.replaceFirst("rule=", "");
+    			}
+    		}
 		}
     	
     	return rule;
