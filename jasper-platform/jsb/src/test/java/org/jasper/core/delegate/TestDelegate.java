@@ -14,6 +14,7 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
+import javax.jms.TextMessage;
 import javax.jms.Queue;
 import javax.jms.Session;
 
@@ -110,7 +111,8 @@ public class TestDelegate extends TestCase {
 	}	
 	
 	/*
-	 * This tests the Delegate createTextMessage and createObjectMessage methods
+	 * This tests the Delegate createTextMessage and createObjectMessage 
+	 * and createMapMessage methods
 	 */
 	@Test
 	public void testDelegateCreateMessages() throws Exception {
@@ -125,6 +127,9 @@ public class TestDelegate extends TestCase {
 		classUnderTest = new Delegate(mockUDE, connection, model, mockJOntology);
 		ObjectMessage objMsg = classUnderTest.createObjectMessage(JASPER_ADMIN_PASSWORD);
 		TestCase.assertNotNull(objMsg);
+		
+		TextMessage txtMsg = classUnderTest.createTextMessage("text");
+		TestCase.assertNotNull(txtMsg);
 		
 		Map<String, Serializable> map = new HashMap<String,Serializable>();
 		map.put("key", "value");
