@@ -1,9 +1,8 @@
 package org.jasper.core;
 
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 import java.net.InetAddress;
 
@@ -50,6 +49,7 @@ public class TestJasperBroker extends TestCase {
 	 */
 	@Test
 	public void testAddUDEConnection() throws Exception {
+		doReturn(true).when(mockLicenseKeySys).isUdeLicenseKey(password);
 		when(mockLicenseKeySys.getUdeDeploymentAndInstance(password)).thenReturn("testLab:0");
 		classUnderTest.start();
 		classUnderTest.addConnection(mockConnectionContext, mockConnectionInfo);
@@ -177,7 +177,6 @@ public class TestJasperBroker extends TestCase {
 	public void testDTASecurityExceptions() throws Exception{
 		testAddUDEConnection();
 		byte[] value = new byte[1024];
-		mockDTALicense = mock(ClientLicense.class);
 		value = JAuthHelper.hexToBytes(dtaKey);
 		doReturn(false).when(mockLicenseKeySys).isUdeLicenseKey(password);
 		when(mockLicenseKeySys.isClientAuthenticationValid(dtaName,dtaKey)).thenReturn(false);
@@ -218,7 +217,6 @@ public class TestJasperBroker extends TestCase {
 	public void testRemoveDTAConnection() throws Exception {
 		testAddUDEConnection();
 		byte[] value = new byte[1024];
-		mockDTALicense = mock(ClientLicense.class);
 		value = JAuthHelper.hexToBytes(dtaKey);
 		doReturn(false).when(mockLicenseKeySys).isUdeLicenseKey(password);
 		when(mockLicenseKeySys.isClientAuthenticationValid(dtaName,dtaKey)).thenReturn(true);
@@ -250,7 +248,6 @@ public class TestJasperBroker extends TestCase {
 	public void testAddDuplicateDTA() throws Exception{
 		testAddUDEConnection();
 		byte[] value = new byte[1024];
-		mockDTALicense = mock(ClientLicense.class);
 		value = JAuthHelper.hexToBytes(dtaKey);
 		doReturn(false).when(mockLicenseKeySys).isUdeLicenseKey(password);
 		when(mockLicenseKeySys.isClientAuthenticationValid(dtaName,dtaKey)).thenReturn(true);
@@ -285,9 +282,8 @@ public class TestJasperBroker extends TestCase {
 	public void testMaxThresholdsExceeded() throws Exception{
 		testAddUDEConnection();
 		byte[] value = new byte[1024];
-		mockDTALicense = mock(ClientLicense.class);
 		value = JAuthHelper.hexToBytes(dtaKey);
-		doReturn(false).when(mockLicenseKeySys).isUdeLicenseKey(password);
+		when(mockLicenseKeySys.isUdeLicenseKey(password)).thenReturn(false);
 		when(mockLicenseKeySys.isClientAuthenticationValid(dtaName,dtaKey)).thenReturn(true);
 		when(mockConnectionInfo.getUserName()).thenReturn(dtaName);
 		when(mockConnectionInfo.getPassword()).thenReturn(dtaKey);
@@ -326,7 +322,6 @@ public class TestJasperBroker extends TestCase {
 	public void testAddInvalidClientConnection() throws Exception{
 		testAddUDEConnection();
 		byte[] value = new byte[1024];
-		mockDTALicense = mock(ClientLicense.class);
 		value = JAuthHelper.hexToBytes(dtaKey);
 		doReturn(false).when(mockLicenseKeySys).isUdeLicenseKey(password);
 		when(mockLicenseKeySys.isClientAuthenticationValid(dtaName,dtaKey)).thenReturn(true);
@@ -362,7 +357,6 @@ public class TestJasperBroker extends TestCase {
 		
 		when(mockUDE.getBrokerTransportIp()).thenReturn(ipAddr);
 		when(mockConnectionInfo.getPassword()).thenReturn(password);
-		doReturn(true).when(mockLicenseKeySys).isUdeLicenseKey(password);
 		when(mockConnectionInfo.getClientIp()).thenReturn(ipAddr);
 		when(mockConnectionContext.getBroker()).thenReturn(mockBroker);
 		when(mockConnectionContext.getBroker().getBrokerName()).thenReturn("testBroker");
