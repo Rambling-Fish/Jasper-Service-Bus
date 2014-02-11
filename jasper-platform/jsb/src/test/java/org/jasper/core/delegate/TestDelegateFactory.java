@@ -1,30 +1,25 @@
 package org.jasper.core.delegate;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.net.InetAddress;
 
-import javax.jms.Destination;
-import javax.jms.TextMessage;
-
 import junit.framework.TestCase;
 
 import org.jasper.core.UDE;
-import org.jasper.core.constants.JasperConstants;
-import org.jasper.core.delegate.Delegate;
 import org.jasper.core.persistence.PersistenceFacade;
 import org.junit.After;
 import org.junit.Before;
 //
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 //
 public class TestDelegateFactory extends TestCase {
-	
-	private DelegateFactory classUnderTest;
-	private UDE mockUDE;
+	@Mock private UDE mockUDE;
 	private PersistenceFacade cachingSys;
 	private Delegate delegate;
+	private DelegateFactory classUnderTest;
 
 	
 	/*
@@ -44,11 +39,11 @@ public class TestDelegateFactory extends TestCase {
 
 	@Before
 	public void setUp() throws Exception {
-		 System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
-		 String ipAddr = InetAddress.getLocalHost().getHostAddress();
-		 mockUDE      = mock(UDE.class);
-		 cachingSys   = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
-		 when(mockUDE.getCachingSys()).thenReturn(cachingSys);
+		MockitoAnnotations.initMocks(this);
+		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
+		String ipAddr = InetAddress.getLocalHost().getHostAddress();
+		cachingSys   = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
+		when(mockUDE.getCachingSys()).thenReturn(cachingSys);
 	}
 
 	@After

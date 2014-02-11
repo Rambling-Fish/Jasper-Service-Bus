@@ -1,10 +1,8 @@
 package org.jasper.core.delegate.handlers;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,7 +14,6 @@ import javax.jms.TextMessage;
 import junit.framework.TestCase;
 
 import org.apache.jena.atlas.json.JsonArray;
-import org.apache.jena.atlas.json.JsonObject;
 import org.jasper.core.UDE;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JasperOntologyConstants;
@@ -27,22 +24,23 @@ import org.junit.After;
 import org.junit.Before;
 //
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 //
 public class TestDataConsumer extends TestCase {
-	
+	@Mock private UDE mockUDE;
+	@Mock private Delegate mockDelegate;
+	@Mock private TextMessage mockRequest;
+	@Mock private TextMessage mockResp;
+	@Mock private Destination mockDest;
 	private DataConsumer classUnderTest;
 	private DataHandler dataHandler;
-	private UDE mockUDE;
 	private PersistenceFacade cachingSys;
-	private Delegate mockDelegate;
-	private DelegateOntology mockJOntology;
 	private Model model;
-	private TextMessage mockRequest;
-	private TextMessage mockResp;
-	private Destination mockDest;
+	private DelegateOntology jOntology;
 	private String ipAddr;
 	private String ruri = "http://coralcea.ca/jasper/hrData";
 	private String corrID = "1234";
@@ -123,48 +121,43 @@ public class TestDataConsumer extends TestCase {
 		classUnderTest.run();
 	}
 	
-	private String[][] createTriples(){
-		ArrayList<String[]> triples = new ArrayList<String[]>();
-		triples.add(new String[]{"http://coralcea.ca/jasper/jtaD", "http://coralcea.ca/jasper/vocabulary/queue", "jms.jasper.demo-heart-rate-monitor-D.1.0.jasperLab.0.queue"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/jtaD", "http://coralcea.ca/jasper/vocabulary/provides", "http://coralcea.ca/jasper/hrData"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/jtaD", "http://coralcea.ca/jasper/vocabulary/param", "http://coralcea.ca/jasper/hrSID"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/jtaD", "http://coralcea.ca/jasper/vocabulary/is", "http://coralcea.ca/jasper/vocabulary/jta"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/hrData", "http://coralcea.ca/jasper/vocabulary/subClassOf", "http://coralcea.ca/jasper/msData"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/hrData", "http://coralcea.ca/jasper/vocabulary/has", "http://coralcea.ca/jasper/hrDataBpm"});
-		triples.add(new String[]{"http://coralcea.ca/jasper/hrData", "http://coralcea.ca/jasper/vocabulary/has", "http://coralcea.ca/jasper/vocabulary/timeStamp"});
-		
-		return triples.toArray(new String[][]{});
-	}
-	
-	private void loadOntologyModel(String[][] triples){
-		String jtaId = "jasper:demo-heart-rate-monitor-D:1.0:testLab";
-		for(String[] triple:triples){
-			mockJOntology.add(jtaId, triple);
-		}
-	}
+//	private String[][] createTriples(){
+//		ArrayList<String[]> triples = new ArrayList<String[]>();
+//		triples.add(new String[]{"http://coralcea.ca/jasper/jtaD", "http://coralcea.ca/jasper/vocabulary/queue", "jms.jasper.demo-heart-rate-monitor-D.1.0.jasperLab.0.queue"});
+//		triples.add(new String[]{"http://coralcea.ca/jasper/jtaD", "http://coralcea.ca/jasper/vocabulary/provides", "http://coralcea.ca/jasper/hrData"});
+//		triples.add(new String[]{"http://coralcea.ca/jasper/jtaD", "http://coralcea.ca/jasper/vocabulary/param", "http://coralcea.ca/jasper/hrSID"});
+//		triples.add(new String[]{"http://coralcea.ca/jasper/jtaD", "http://coralcea.ca/jasper/vocabulary/is", "http://coralcea.ca/jasper/vocabulary/jta"});
+//		triples.add(new String[]{"http://coralcea.ca/jasper/hrData", "http://coralcea.ca/jasper/vocabulary/subClassOf", "http://coralcea.ca/jasper/msData"});
+//		triples.add(new String[]{"http://coralcea.ca/jasper/hrData", "http://coralcea.ca/jasper/vocabulary/has", "http://coralcea.ca/jasper/hrDataBpm"});
+//		triples.add(new String[]{"http://coralcea.ca/jasper/hrData", "http://coralcea.ca/jasper/vocabulary/has", "http://coralcea.ca/jasper/vocabulary/timeStamp"});
+//		
+//		return triples.toArray(new String[][]{});
+//	}
+//	
+//	private void loadOntologyModel(String[][] triples){
+//		String jtaId = "jasper:demo-heart-rate-monitor-D:1.0:testLab";
+//		for(String[] triple:triples){
+//			jOntology.add(jtaId, triple);
+//		}
+//	}
 
 	@Before
 	public void setUp() throws Exception {
-		 ipAddr        = InetAddress.getLocalHost().getHostAddress();
-		 model = ModelFactory.createDefaultModel();
-	     for(String prefix:JasperOntologyConstants.PREFIX_MAP.keySet()){
-	    	 model.setNsPrefix(prefix, JasperOntologyConstants.PREFIX_MAP.get(prefix));
-	     }
-		 mockDelegate  = mock(Delegate.class);
-		 mockUDE       = mock(UDE.class);
-		 mockRequest   = mock(TextMessage.class);
-		 mockResp      = mock(TextMessage.class);
-		 mockDest      = mock(Destination.class);
-		 cachingSys    = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
-		 mockJOntology = new DelegateOntology(cachingSys, model);
-		 when(mockRequest.getJMSCorrelationID()).thenReturn(corrID);
-		 when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
-		 when(mockUDE.getCachingSys()).thenReturn(cachingSys);
-		 when(mockUDE.getUdeDeploymentAndInstance()).thenReturn(deploymentAndInstance);
+		MockitoAnnotations.initMocks(this);
+		ipAddr        = InetAddress.getLocalHost().getHostAddress();
+		model = ModelFactory.createDefaultModel();
+		for(String prefix:JasperOntologyConstants.PREFIX_MAP.keySet()){
+			model.setNsPrefix(prefix, JasperOntologyConstants.PREFIX_MAP.get(prefix));
+		}
+		cachingSys    = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
+		jOntology = new DelegateOntology(cachingSys, model);
+		when(mockRequest.getJMSCorrelationID()).thenReturn(corrID);
+		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
+		when(mockUDE.getCachingSys()).thenReturn(cachingSys);
+		when(mockUDE.getUdeDeploymentAndInstance()).thenReturn(deploymentAndInstance);
 		 
-		 classUnderTest = new DataConsumer(mockUDE, mockDelegate, mockJOntology, locks, responses);
-		 dataHandler    = new DataHandler(mockUDE, mockDelegate, mockRequest);
-		 
+		classUnderTest = new DataConsumer(mockUDE, mockDelegate, jOntology, locks, responses);
+		dataHandler    = new DataHandler(mockUDE, mockDelegate, mockRequest); 
 	}
 
 	@After

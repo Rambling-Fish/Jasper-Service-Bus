@@ -21,19 +21,21 @@ import org.jasper.jLib.jAuth.util.JAuthHelper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 //
 //
 public class TestJasperBroker extends TestCase {
 	private JasperBroker classUnderTest;
-	private UDE mockUDE;
+	@Mock private UDE mockUDE;
+	@Mock private AuthenticationFacade mockLicenseKeySys;
+	@Mock private Broker mockBroker;
+	@Mock private ConnectionInfo mockConnectionInfo;
+	@Mock private ConnectionContext mockConnectionContext;
+	@Mock private UDELicense mockUDELicense;
+	@Mock private ClientLicense mockDTALicense;
 	private PersistenceFacade cachingSys;
-	private AuthenticationFacade mockLicenseKeySys;
-	private Broker mockBroker;
-	private ConnectionInfo mockConnectionInfo;
-	private ConnectionContext mockConnectionContext;
-	private UDELicense mockUDELicense;
-	private ClientLicense mockDTALicense;
 	private String password = "passwd";
 	private String ipAddr;
 	private String deploymentId = "testLab";
@@ -72,7 +74,6 @@ public class TestJasperBroker extends TestCase {
 	public void testAddClientConnection() throws Exception{
 		testAddUDEConnection();
 		byte[] value = new byte[1024];
-		mockDTALicense = mock(ClientLicense.class);
 		value = JAuthHelper.hexToBytes(dtaKey);
 		doReturn(false).when(mockLicenseKeySys).isUdeLicenseKey(password);
 		when(mockLicenseKeySys.isClientAuthenticationValid(dtaName,dtaKey)).thenReturn(true);
@@ -355,13 +356,8 @@ public class TestJasperBroker extends TestCase {
 
 	@Before
 	public void setUp() throws Exception {
+		MockitoAnnotations.initMocks(this);
 		ipAddr = InetAddress.getLocalHost().getHostAddress();
-		mockBroker        = mock(Broker.class);
-		mockUDE           = mock(UDE.class);
-		mockLicenseKeySys = mock(AuthenticationFacade.class);
-		mockConnectionContext = mock(ConnectionContext.class);
-		mockConnectionInfo    = mock(ConnectionInfo.class);
-		mockUDELicense        = mock(UDELicense.class);
 		cachingSys = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
 		
 		when(mockUDE.getBrokerTransportIp()).thenReturn(ipAddr);

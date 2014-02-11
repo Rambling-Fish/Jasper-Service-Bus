@@ -1,6 +1,5 @@
 package org.jasper.core.delegate.handlers;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.net.InetAddress;
@@ -18,16 +17,18 @@ import org.junit.After;
 import org.junit.Before;
 //
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 //
 public class TestDataHandler extends TestCase {
 	
 	private DataHandler classUnderTest;
-	private UDE mockUDE;
+	@Mock private UDE mockUDE;
+	@Mock private Delegate mockDelegate;
+	@Mock private TextMessage mockRequest;
+	@Mock private TextMessage mockResp;
+	@Mock private Destination mockDest;
 	private PersistenceFacade cachingSys;
-	private Delegate mockDelegate;
-	private TextMessage mockRequest;
-	private TextMessage mockResp;
-	private Destination mockDest;
 	private String ipAddr;
 	private String corrID = "1234";
 	private String errorResp = "{400: Bad Request, msg : Invalid request received - request is null or empty string, version : 2.1}";
@@ -214,21 +215,16 @@ public class TestDataHandler extends TestCase {
 
 	@Before
 	public void setUp() throws Exception {
-		 System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
-		 ipAddr = InetAddress.getLocalHost().getHostAddress();
-		 mockDelegate = mock(Delegate.class);
-		 mockUDE      = mock(UDE.class);
-		 mockRequest  = mock(TextMessage.class);
-		 mockResp     = mock(TextMessage.class);
-		 mockDest     = mock(Destination.class);
-		 cachingSys   = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
-		 when(mockRequest.getJMSCorrelationID()).thenReturn(corrID);
-		 when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
-		 when(mockUDE.getCachingSys()).thenReturn(cachingSys);
-		 when(mockUDE.getUdeDeploymentAndInstance()).thenReturn(deploymentAndInstance);
+		MockitoAnnotations.initMocks(this);
+		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
+		ipAddr = InetAddress.getLocalHost().getHostAddress();
+		cachingSys   = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
+		when(mockRequest.getJMSCorrelationID()).thenReturn(corrID);
+		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
+		when(mockUDE.getCachingSys()).thenReturn(cachingSys);
+		when(mockUDE.getUdeDeploymentAndInstance()).thenReturn(deploymentAndInstance);
 		 
-		 classUnderTest = new DataHandler(mockUDE, mockDelegate, mockRequest);
-		 
+		classUnderTest = new DataHandler(mockUDE, mockDelegate, mockRequest); 
 	}
 
 	@After
