@@ -59,8 +59,16 @@ public class TestDelegate extends TestCase {
 		System.out.println("======================");
 		System.out.println("RUNNING DELEGATE TESTS");
 		System.out.println("======================");
-	
-		classUnderTest = new Delegate(mockUDE, mockConnection, model, mockJOntology);
+		
+		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
+		Connection connection;
+
+        // Create a Connection
+        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
+        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+        connection = connectionFactory.createConnection();
+
+		classUnderTest = new Delegate(mockUDE, connection, model, mockJOntology);
 		classUnderTest.shutdown();	
 	}
 	
