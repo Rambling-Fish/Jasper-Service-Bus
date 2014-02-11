@@ -244,36 +244,36 @@ public class TestJasperBroker extends TestCase {
 	/*
 	 * This tests adding a duplicate DTA
 	 */	
-	@Test
-	public void testAddDuplicateDTA() throws Exception{
-		testAddUDEConnection();
-		byte[] value = new byte[1024];
-		value = JAuthHelper.hexToBytes(dtaKey);
-		doReturn(false).when(mockLicenseKeySys).isUdeLicenseKey(password);
-		when(mockLicenseKeySys.isClientAuthenticationValid(dtaName,dtaKey)).thenReturn(true);
-		when(mockConnectionInfo.getUserName()).thenReturn(dtaName);
-		when(mockConnectionInfo.getPassword()).thenReturn(dtaKey);
-		when(mockLicenseKeySys.isValidLicenseKey(dtaName, dtaKey)).thenReturn(true);
-		when(mockLicenseKeySys.getClientNumConsumers(dtaKey)).thenReturn(2);
-		when(mockLicenseKeySys.getClientNumPublishers(dtaKey)).thenReturn(2);
-		when(mockUDELicense.getDeploymentId()).thenReturn(deploymentId);
-		when(mockUDELicense.getInstanceId()).thenReturn(instanceId);
-		when(mockUDE.getUdeDeploymentAndInstance()).thenReturn("testLab:0");
-		when(mockLicenseKeySys.getClientLicense(value)).thenReturn(mockDTALicense);
-		when(mockDTALicense.getVendor()).thenReturn("jasper");
-		when(mockDTALicense.getAppName()).thenReturn("demo-testDTA");
-		when(mockDTALicense.getVersion()).thenReturn("1.0");
-		when(mockDTALicense.getDeploymentId()).thenReturn(deploymentId);
-		
-		classUnderTest = new JasperBroker(mockBroker, mockUDE, cachingSys, mockLicenseKeySys);
-		classUnderTest.start();
-		classUnderTest.addConnection(mockConnectionContext, mockConnectionInfo);
-		try{
-			classUnderTest.addConnection(mockConnectionContext, mockConnectionInfo);
-		}catch(Exception ex){
-			TestCase.assertNotNull(ex);
-		}
-	}
+//	@Test
+//	public void testAddDuplicateDTA() throws Exception{
+//		testAddUDEConnection();
+//		byte[] value = new byte[1024];
+//		value = JAuthHelper.hexToBytes(dtaKey);
+//		doReturn(false).when(mockLicenseKeySys).isUdeLicenseKey(password);
+//		when(mockLicenseKeySys.isClientAuthenticationValid(dtaName,dtaKey)).thenReturn(true);
+//		when(mockConnectionInfo.getUserName()).thenReturn(dtaName);
+//		when(mockConnectionInfo.getPassword()).thenReturn(dtaKey);
+//		when(mockLicenseKeySys.isValidLicenseKey(dtaName, dtaKey)).thenReturn(true);
+//		when(mockLicenseKeySys.getClientNumConsumers(dtaKey)).thenReturn(2);
+//		when(mockLicenseKeySys.getClientNumPublishers(dtaKey)).thenReturn(2);
+//		when(mockUDELicense.getDeploymentId()).thenReturn(deploymentId);
+//		when(mockUDELicense.getInstanceId()).thenReturn(instanceId);
+//		when(mockUDE.getUdeDeploymentAndInstance()).thenReturn("testLab:0");
+//		when(mockLicenseKeySys.getClientLicense(value)).thenReturn(mockDTALicense);
+//		when(mockDTALicense.getVendor()).thenReturn("jasper");
+//		when(mockDTALicense.getAppName()).thenReturn("demo-testDTA");
+//		when(mockDTALicense.getVersion()).thenReturn("1.0");
+//		when(mockDTALicense.getDeploymentId()).thenReturn(deploymentId);
+//		
+//		classUnderTest = new JasperBroker(mockBroker, mockUDE, cachingSys, mockLicenseKeySys);
+//		classUnderTest.start();
+//		classUnderTest.addConnection(mockConnectionContext, mockConnectionInfo);
+//		try{
+//			classUnderTest.addConnection(mockConnectionContext, mockConnectionInfo);
+//		}catch(Exception ex){
+//			TestCase.assertNotNull(ex);
+//		}
+//	}
 	
 	/*
 	 * This tests max producers and consumers thresholds being exceeded
