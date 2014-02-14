@@ -78,7 +78,6 @@ public class TestDelegate extends TestCase {
 	@Test
 	public void testDelegateOnMessage() throws Exception {
 		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
-		Destination globalQueue;
 		Connection connection;
 
         // Create a Connection
@@ -153,12 +152,19 @@ public class TestDelegate extends TestCase {
 	@Test
 	public void testDelegateCreateJasperResponse() throws Exception {
 		JasperConstants.responseCodes code = JasperConstants.responseCodes.OK;
-		when(mockSession.createQueue("jms.delegate." + mockUDE.getBrokerTransportIp() + "." + 4 + ".queue")).thenReturn(mockQueue);
+		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
+		Connection connection;
 
-		classUnderTest = new Delegate(mockUDE, mockConnection, model, mockJOntology);
+        // Create a Connection
+        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
+        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+        connection = connectionFactory.createConnection();
+
+		classUnderTest = new Delegate(mockUDE, connection, model, mockJOntology);
+
 		String result = classUnderTest.createJasperResponse(code, "respMsg", "response", "application/json", "1.0");
-		TestCase.assertNotNull(result);
 		String result2 = classUnderTest.createJasperResponse(code, "respMsg", "response", null, null);
+		TestCase.assertNotNull(result);
 		TestCase.assertNotNull(result2);
 		classUnderTest.shutdown();
 	}	
