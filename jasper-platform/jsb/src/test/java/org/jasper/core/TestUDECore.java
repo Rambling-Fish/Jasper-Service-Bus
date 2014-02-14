@@ -44,8 +44,8 @@ public class TestUDECore extends TestCase {
 	@Before
 	public void setUp() throws Exception {
 		MockitoAnnotations.initMocks(this);
+		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
 		String ipAddr = InetAddress.getLocalHost().getHostAddress();
-		System.out.println("********************\n\nIPADDR= " + ipAddr);
 		cachingSys = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
 	    props.put("numDelegates","5");
 		when(mockUDE.getCachingSys()).thenReturn(cachingSys);
@@ -56,8 +56,6 @@ public class TestUDECore extends TestCase {
 	@After
 	public void tearDown() throws Exception {
 		cachingSys.shutdown();
-		classUnderTest = null;
-		
 	}
 
 }
