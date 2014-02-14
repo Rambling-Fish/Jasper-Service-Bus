@@ -45,6 +45,7 @@ public class TestUDECore extends TestCase {
 	public void setUp() throws Exception {
 		MockitoAnnotations.initMocks(this);
 		String ipAddr = InetAddress.getLocalHost().getHostAddress();
+		System.out.println("********************\n\nIPADDR= " + ipAddr);
 		cachingSys = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
 	    props.put("numDelegates","5");
 		when(mockUDE.getCachingSys()).thenReturn(cachingSys);
