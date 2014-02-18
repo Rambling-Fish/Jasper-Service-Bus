@@ -57,10 +57,13 @@ public class DataConsumer implements Runnable {
 	public void run() {
 		try{
 			workQueue  = ude.getCachingSys().getQueue("tasks");
+			sharedData = (Map<String, PersistedObject>) ude.getCachingSys().getMap("sharedData");
 			do{
 				statefulData = workQueue.take();
 				if(statefulData != null){
 					statefulData.setUDEInstance(ude.getUdeDeploymentAndInstance());
+					// Put it back in memory with updated ude instance
+					sharedData.put(statefulData.getKey(), statefulData);
 					if(logger.isDebugEnabled()){
 						logger.debug("**************************************");
 						logger.debug("  RECEIVED MSG on " +  statefulData.getUDEInstance());
@@ -103,7 +106,6 @@ public class DataConsumer implements Runnable {
   	    key = statefulData.getKey();
   	    String ruri = statefulData.getRURI();
   	    dtaParms = statefulData.getDtaParms();
-		sharedData = (Map<String, PersistedObject>) ude.getCachingSys().getMap("sharedData");
 		output = statefulData.getOutput();
 		contentType = statefulData.getContentType();
 		version = statefulData.getVersion();
