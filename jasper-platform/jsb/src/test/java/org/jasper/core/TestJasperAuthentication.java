@@ -47,6 +47,10 @@ public class TestJasperAuthentication extends TestCase {
 		System.out.println("==========================================");
 		System.out.println("RUNNING JASPER AUTHENTICATION PLUGIN TESTS");
 		System.out.println("==========================================");
+		
+		when(mockUDE.getUdeLicense()).thenReturn(mockUDELicense);
+		when(mockUDE.getUdeLicense().getNumOfConsumers()).thenReturn(1);
+		when(mockUDE.getUdeLicense().getNumOfPublishers()).thenReturn(1);
 
 		cachingSys = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
 		JasperAuthenticationPlugin authPlugin = new JasperAuthenticationPlugin(mockUDE, cachingSys, classUnderTest);
