@@ -94,6 +94,9 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
         registeredResources = (Map<String,Integer>) cachingSys.getMap("registeredResources");
         dtaResources = (Map<String,String>) cachingSys.getMap("dtaResources");
         
+        //initialize license key total consumers and producers map
+        calculateClusterResourceTotals();
+        
     }
       
      public void start() throws Exception{
@@ -379,10 +382,7 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
 	}
 	
 	private boolean updateResources(String password, boolean addConnection){
-		if(registeredResources.size() == 0){ // not a cluster, just a single UDE
-			return true;
-		}
-
+		boolean enforceProducerLimit = true;
 		int dtaConsumers = licenseKeySys.getClientNumConsumers(password);
 		int dtaProducers = licenseKeySys.getClientNumPublishers(password);
 		
@@ -405,7 +405,7 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
 					}
 				}
 				else{ //we update total producers but do not enforce limit
-					registeredResources.put(ACTIVE_PRODUCERS, currentProducers);
+					enforceProducerLimit = false;
 				}
 			
 				currentConsumers = (currentConsumers + dtaConsumers);
@@ -415,6 +415,9 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
 				else{
 					logger.error("Cannot add connection as consumer limit for cluster has been reached");
 					return false;
+				}
+				if(!enforceProducerLimit){
+					registeredResources.put(ACTIVE_PRODUCERS, currentProducers);
 				}
 			}
 			
@@ -529,12 +532,11 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
     	
     	sb.append("\nregistered resources");
     	
-    	
     	synchronized(registeredResources){
-    			activeProducers = registeredResources.get(ACTIVE_PRODUCERS);
-    			activeConsumers = registeredResources.get(ACTIVE_CONSUMERS);
-    			totalProducers  = registeredResources.get(MAX_PRODUCERS);
-    			maxConsumers    = registeredResources.get(MAX_CONSUMERS);
+    		activeProducers = registeredResources.get(ACTIVE_PRODUCERS);
+    		activeConsumers = registeredResources.get(ACTIVE_CONSUMERS);
+    		totalProducers  = registeredResources.get(MAX_PRODUCERS);
+    		maxConsumers    = registeredResources.get(MAX_CONSUMERS);
     	}
 
     	if(totalProducers != -1){
