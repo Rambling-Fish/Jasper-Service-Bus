@@ -256,6 +256,11 @@ public class UDE {
 			//can be overwritten using the property jsbLocalNetworkInterface
 			try{
 				brokerTransportIp = InetAddress.getLocalHost().getHostAddress();
+			}catch(UnknownHostException e){
+				logger.warn("unknown host exception caught, expected on linux system.", e);
+			}
+			
+			try{
 				Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 				while (interfaces.hasMoreElements()){
 				    NetworkInterface current = interfaces.nextElement();
@@ -272,8 +277,6 @@ public class UDE {
 					    }
 				    } 
 				}
-			}catch(UnknownHostException e){
-				logger.info("unknown host exception caught, expected on linux system.", e);
 			} catch (SocketException e) {
 				logger.warn("SocketException caught when trying tp parse interfaces", e);
 			}
