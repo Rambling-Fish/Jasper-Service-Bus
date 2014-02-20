@@ -39,7 +39,7 @@ public class TestDataHandler extends TestCase {
 	private String contentType = "application/json";
 	private String version = "1.0";
 	private String deploymentAndInstance = "UDE:0";
-	private String hrDataReqeuest = "{\"version\":\"1.0\",\"method\":\"GET\",\"ruri\":\"http://coralcea.ca/jasper/hrData\",\"headers\":{\"content-type\":\"application/json\"},\"parameters\":{\"http://coralcea.ca/jasper/hrSID\":\"1\",\"http://coralcea.ca/jasper/msID\":\"001\"}}";
+	private String hrDataRequest = "{\"version\":\"1.0\",\"method\":\"GET\",\"ruri\":\"http://coralcea.ca/jasper/hrData\",\"headers\":{\"content-type\":\"application/json\"},\"parameters\":{\"http://coralcea.ca/jasper/hrSID\":\"1\",\"http://coralcea.ca/jasper/msID\":\"001\"}}";
     private String hrDataNotification = "{\"version\":\"1.0\",\"method\":\"GET\",\"ruri\":\"http://coralcea.ca/jasper/hrData\",\"headers\":{\"content-type\":\"application/json\",\"expires\":\"10\",\"output\":\"json\"},\"parameters\":{},\"rule\":\"compareint(http://coralcea.ca/jasper/medicalSensor/heartRate/data/bpm,gt,90)\"}";
     private String hrDataNotificationNoExpires = "{\"version\":\"1.0\",\"method\":\"GET\",\"ruri\":\"http://coralcea.ca/jasper/hrData\",\"headers\":{\"content-type\":\"application/json\"},\"parameters\":{},\"rule\":\"compareint(http://coralcea.ca/jasper/medicalSensor/heartRate/data/bpm,gt,90)\"}";
     private String hrDataNotificationMinPolling = "{\"version\":\"1.0\",\"method\":\"GET\",\"ruri\":\"http://coralcea.ca/jasper/hrData\",\"headers\":{\"content-type\":\"application/json\",\"expires\":\"10\",\"poll-period\":\"1\"},\"parameters\":{},\"rule\":\"compareint(http://coralcea.ca/jasper/medicalSensor/heartRate/data/bpm,gt,90)\"}";
@@ -71,7 +71,7 @@ public class TestDataHandler extends TestCase {
 	 */
 	@Test
 	public void testValidRequest() throws Exception{
-		when(mockRequest.getText()).thenReturn(hrDataReqeuest);
+		when(mockRequest.getText()).thenReturn(hrDataRequest);
 		when(mockRequest.getJMSReplyTo()).thenReturn(null);
 
 		classUnderTest.run();
