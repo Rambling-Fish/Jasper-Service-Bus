@@ -15,7 +15,7 @@
         <module>jsb</module>
     </modules>
     <build>
-        <finalName>${project.artifactId}-${project.version}.${bambooBuildNumber}</finalName>
+        <finalName>${project.artifactId}-${project.version}.${env.bambooBuildNumber}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
