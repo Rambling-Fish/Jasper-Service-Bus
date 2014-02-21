@@ -4,6 +4,7 @@ import static org.mockito.Mockito.when;
 
 import java.net.InetAddress;
 import java.util.Properties;
+import java.util.UUID;
 
 import junit.framework.TestCase;
 
@@ -21,7 +22,7 @@ public class TestUDECore extends TestCase {
 	@Mock private UDE mockUDE;
 	private UDECore classUnderTest;
 	private PersistenceFacade cachingSys;
-	
+	private String hazelcastGroup = UUID.randomUUID().toString();
 	
 	
 	@Test
@@ -46,7 +47,7 @@ public class TestUDECore extends TestCase {
 		MockitoAnnotations.initMocks(this);
 		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
 		String ipAddr = InetAddress.getLocalHost().getHostAddress();
-		cachingSys = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
+		cachingSys = new PersistenceFacade(ipAddr, hazelcastGroup, "testPassword");
 	    props.put("numDelegates","5");
 		when(mockUDE.getCachingSys()).thenReturn(cachingSys);
 		

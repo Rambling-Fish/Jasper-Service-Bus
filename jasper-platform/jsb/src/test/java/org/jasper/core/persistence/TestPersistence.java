@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 
 import javax.jms.Destination;
@@ -12,7 +13,6 @@ import javax.jms.Destination;
 import junit.framework.TestCase;
 
 import org.jasper.core.notification.triggers.Trigger;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,7 +25,7 @@ public class TestPersistence extends TestCase {
 	private String ipAddr;
 	Properties props;
 	private String password = "facadePassword";
-	private String group = "facadeGroup";
+	private String hazelcastGroup = UUID.randomUUID().toString();
 
 	
 	/*
@@ -37,7 +37,7 @@ public class TestPersistence extends TestCase {
 		System.out.println("RUNNING PERSISTENCE TESTS");
 		System.out.println("=========================");
 
-		cachingSys = PersistenceFacadeFactory.getFacade(ipAddr, group, password);
+		cachingSys = PersistenceFacadeFactory.getFacade(ipAddr, hazelcastGroup, password);
 		cachingSys.shutdown();
 		cachingSys = PersistenceFacadeFactory.getFacade(props);
 		cachingSys.shutdown();
@@ -138,7 +138,7 @@ public class TestPersistence extends TestCase {
 		ipAddr = InetAddress.getLocalHost().getHostAddress();
 		props = new Properties();
 		props.setProperty("persisitence.localIp", ipAddr);
-		props.setProperty("persisitence.groupName", group);
+		props.setProperty("persisitence.groupName", hazelcastGroup);
 		props.setProperty("persisitence.groupPassword", password);
 	}
 }

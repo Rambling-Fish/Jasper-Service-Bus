@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import junit.framework.TestCase;
 
@@ -47,12 +48,12 @@ public class TestJasperAuthentication extends TestCase {
 		System.out.println("==========================================");
 		System.out.println("RUNNING JASPER AUTHENTICATION PLUGIN TESTS");
 		System.out.println("==========================================");
-		
+		String hazelcastGroup = UUID.randomUUID().toString();
 		when(mockUDE.getUdeLicense()).thenReturn(mockUDELicense);
 		when(mockUDE.getUdeLicense().getNumOfConsumers()).thenReturn(1);
 		when(mockUDE.getUdeLicense().getNumOfPublishers()).thenReturn(1);
 
-		cachingSys = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
+		cachingSys = new PersistenceFacade(ipAddr, hazelcastGroup, "testPassword");
 		JasperAuthenticationPlugin authPlugin = new JasperAuthenticationPlugin(mockUDE, cachingSys, classUnderTest);
 		authPlugin.installPlugin(mockBroker);
 		cachingSys.shutdown();

@@ -43,10 +43,9 @@ public class TestAdminHandler extends TestCase {
 	@Mock private DelegateOntology mockJOntology;
 	@Mock private UDE mockUDE;
 	@Mock private Model mockModel;
-	private Connection connection;
 	@Mock private Session mockSession;
 	@Mock private Queue mockQ;
-//	private PersistenceFacade cachingSys;
+	private Connection connection;
 	private Delegate realDelegate;
 	private Map<String,Object> locks = new ConcurrentHashMap<String,Object>();
 	private Map<String,Message> responses = new ConcurrentHashMap<String,Message>();
@@ -139,7 +138,6 @@ public class TestAdminHandler extends TestCase {
 	@After
 	public void tearDown() throws Exception {
 		classUnderTest = null;
-//		cachingSys.shutdown();
 		}
 	
 }

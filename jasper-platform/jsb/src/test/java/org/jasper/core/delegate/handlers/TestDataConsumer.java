@@ -5,8 +5,10 @@ import static org.mockito.Mockito.when;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.jms.Connection;
 import javax.jms.Destination;
 import javax.jms.Message;
 import javax.jms.TextMessage;
@@ -56,6 +58,7 @@ public class TestDataConsumer extends TestCase {
 	private Map<String,Message> responses = new ConcurrentHashMap<String,Message>();
 	private JsonArray jsonArray = new JsonArray();
 	private Map<String,String> paramsMap = new HashMap<String,String>();
+	private String hazelcastGroup = UUID.randomUUID().toString();
 	
 	/*
 	 * This tests the Data Consumer receiving a valid request
@@ -149,7 +152,7 @@ public class TestDataConsumer extends TestCase {
 		for(String prefix:JasperOntologyConstants.PREFIX_MAP.keySet()){
 			model.setNsPrefix(prefix, JasperOntologyConstants.PREFIX_MAP.get(prefix));
 		}
-		cachingSys    = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
+		cachingSys    = new PersistenceFacade(ipAddr, hazelcastGroup, "testPassword");
 		jOntology = new DelegateOntology(cachingSys, model);
 		when(mockRequest.getJMSCorrelationID()).thenReturn(corrID);
 		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);

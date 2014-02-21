@@ -3,6 +3,7 @@ package org.jasper.core.delegate;
 import static org.mockito.Mockito.when;
 
 import java.net.InetAddress;
+import java.util.UUID;
 
 import junit.framework.TestCase;
 
@@ -20,6 +21,7 @@ public class TestDelegateFactory extends TestCase {
 	private PersistenceFacade cachingSys;
 	private Delegate delegate;
 	private DelegateFactory classUnderTest;
+	private String hazelcastGroup = UUID.randomUUID().toString();
 
 	
 	/*
@@ -42,7 +44,7 @@ public class TestDelegateFactory extends TestCase {
 		MockitoAnnotations.initMocks(this);
 		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
 		String ipAddr = InetAddress.getLocalHost().getHostAddress();
-		cachingSys   = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
+		cachingSys   = new PersistenceFacade(ipAddr, hazelcastGroup, "testPassword");
 		when(mockUDE.getCachingSys()).thenReturn(cachingSys);
 	}
 

@@ -3,6 +3,7 @@ package org.jasper.core.delegate.handlers;
 import static org.mockito.Mockito.when;
 
 import java.net.InetAddress;
+import java.util.UUID;
 
 import javax.jms.Destination;
 import javax.jms.TextMessage;
@@ -49,7 +50,7 @@ public class TestDataHandler extends TestCase {
     private String noRURIReqeuest = "{\"version\":\"1.0\",\"method\":\"GET\",\"headers\":{\"content-type\":\"application/json\"},\"parameters\":{\"http://coralcea.ca/jasper/hrSID\":\"1\"}}";
 	private String nullRURIReqeuest = "{\"version\":\"1.0\",\"method\":\"GET\",\"ruri\":\"\",\"headers\":{\"content-type\":\"application/json\"},\"parameters\":{\"http://coralcea.ca/jasper/hrSID\":\"1\"}}";
 	private String unsupportedMethodReqeuest = "{\"version\":\"1.0\",\"method\":\"DELETE\",\"ruri\":\"http://coralcea.ca/jasper/hrData\",\"headers\":{\"content-type\":\"application/json\"},\"parameters\":{\"http://coralcea.ca/jasper/hrSID\":\"1\"}}";
-
+	private String hazelcastGroup = UUID.randomUUID().toString();
 	
 	/*
 	 * This tests the Data Handler error handling when receiving
@@ -218,7 +219,7 @@ public class TestDataHandler extends TestCase {
 		MockitoAnnotations.initMocks(this);
 		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
 		ipAddr = InetAddress.getLocalHost().getHostAddress();
-		cachingSys   = new PersistenceFacade(ipAddr, "testGroup", "testPassword");
+		cachingSys   = new PersistenceFacade(ipAddr, hazelcastGroup, "testPassword");
 		when(mockRequest.getJMSCorrelationID()).thenReturn(corrID);
 		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
 		when(mockUDE.getCachingSys()).thenReturn(cachingSys);
