@@ -144,6 +144,8 @@ public class Delegate implements Runnable, MessageListener {
 				
 				if (isShutdown)	break;
 
+				logger.info("TIMECHECK: Message received at " + System.currentTimeMillis());
+				
 				if (jmsRequest instanceof ObjectMessage) {
 					ObjectMessage objMessage = (ObjectMessage) jmsRequest;
 					Object obj = objMessage.getObject();

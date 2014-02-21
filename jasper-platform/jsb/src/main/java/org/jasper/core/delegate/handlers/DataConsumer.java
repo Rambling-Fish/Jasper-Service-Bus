@@ -146,7 +146,9 @@ public class DataConsumer implements Runnable {
   	    		}
   	    	}
   	    }
-    	
+  	    
+		logger.info("TIMECHECK: Message received from DTA at " + System.currentTimeMillis());
+
   	    if(output != null && output.equalsIgnoreCase("xml")){
   	    	//TODO convert to xml here IF YOU CAN!
   	    	xmlResponse = response.toString();
@@ -244,6 +246,8 @@ public class DataConsumer implements Runnable {
         String correlationID = UUID.randomUUID().toString();
         msg.setJMSCorrelationID(correlationID);
         
+		logger.info("TIMECHECK: Message sent to DTA at " + System.currentTimeMillis());
+
         Message response;
         Object lock = new Object();
 		synchronized (lock) {
@@ -287,6 +291,8 @@ public class DataConsumer implements Runnable {
         String correlationID = statefulData.getCorrelationID();
         if(correlationID == null) correlationID = statefulData.getKey();
         message.setJMSCorrelationID(correlationID);
+        
+		logger.info("TIMECHECK: Message sent back to requestor at " + System.currentTimeMillis());
 		
         delegate.sendMessage(statefulData.getReplyTo(), message);
         removeSharedData();
