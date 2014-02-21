@@ -8,7 +8,7 @@
     <fileSets>
         <fileSet>
             <directory>target</directory>
-            <outputDirectory>jasper-2.1</outputDirectory>
+            <outputDirectory>jasper-2.1.0</outputDirectory>
             <excludes>
                 <exclude>archive-tmp</exclude>
                 <exclude>*.sh</exclude>
@@ -17,7 +17,7 @@
         </fileSet>
         <fileSet>
             <directory>target</directory>
-            <outputDirectory>jasper-2.1</outputDirectory>
+            <outputDirectory>jasper-2.1.0</outputDirectory>
             <includes>
                 <include>*.sh</include>
             </includes>
