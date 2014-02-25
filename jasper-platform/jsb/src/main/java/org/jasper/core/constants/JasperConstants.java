@@ -30,6 +30,9 @@ public class JasperConstants {
 	public static final String ENCODING_LABEL = "UTF-8";
 	public static final String POLL_PERIOD_LABEL = "poll-period";
 	public static final String EXPIRES_LABEL = "expires";
+	public static final String DEFAULT_PROCESSING_SCHEME = "aggregate";
+	public static final String AGGREGATE_SCHEME = "aggregate";
+	public static final String COALESCE_SCHEME = "coalesce";
 	
 	public enum responseCodes{
 		OK(200, "OK"),
