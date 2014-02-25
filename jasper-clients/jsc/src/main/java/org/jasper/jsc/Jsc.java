@@ -59,6 +59,7 @@ public class Jsc implements MessageListener  {
 	private ScheduledExecutorService mapAuditExecutor;
 	
 	private int jscTimeout = 0;
+	private int jscPollPeriod = 0;
 
 	private Map<Listener, Request> listeners;
 	private Map<String, Listener> asyncResponses;
@@ -78,10 +79,18 @@ public class Jsc implements MessageListener  {
     	String user = prop.getProperty("jsc.username");
     	String password = prop.getProperty("jsc.password");
     	String timeout  = prop.getProperty("jsc.timeout", "60000");
+    	String pollPeriod = prop.getProperty("jsc.poll-period", "2000");
+ 
     	try{
     		jscTimeout = Integer.parseInt(timeout);
     	} catch (NumberFormatException ex) {
     		jscTimeout = 60000; // set to 60 seconds on error
+    	}
+    	
+    	try{
+    		jscPollPeriod = Integer.parseInt(pollPeriod);
+    	} catch (NumberFormatException ex) {
+    		jscPollPeriod = 2000; // set to 2 seconds on error
     	}
  
 		try {
@@ -229,12 +238,10 @@ public class Jsc implements MessageListener  {
 		Listener listener = asyncResponses.remove(msg.getJMSCorrelationID());
 		listener.processMessage(toResponsefromJson(((TextMessage)msg).getText()));
 		
-		//TODO should change this to be configurable default and check request header for poll period
 		try {
-			Thread.sleep(2000);
+			Thread.sleep(jscPollPeriod);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("InterruptedException occured while processing response " + ((TextMessage)msg).getText());
 		}
 		processAsyncRequest(listener, listeners.get(listener));
 	}
