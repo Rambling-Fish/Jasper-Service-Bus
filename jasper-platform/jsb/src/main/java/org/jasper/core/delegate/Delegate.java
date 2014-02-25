@@ -156,7 +156,7 @@ public class Delegate implements Runnable, MessageListener {
 					}
 				} else if (jmsRequest instanceof TextMessage) {
 					String text = ((TextMessage) jmsRequest).getText();
-					if (text != null && text.startsWith("?query=")) {
+					if (text != null && text.contains("query")) {
 						delegateHandlers.submit(new SparqlHandler(this,jOntology, jmsRequest));
 						globalSession.commit();
 					} else if (text != null) {

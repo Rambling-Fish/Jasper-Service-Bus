@@ -117,7 +117,13 @@ public class JscServlet extends HttpServlet {
     	String ruri = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):null;
     	if(uriMapper.containsKey(ruri)) ruri = uriMapper.get(ruri); // check if short form is being used and switch to long form URI
 		Map<String, String> headers = getHeaders(request);
-		Map<String, String> parameters = getParameters(request);
+		Map<String, String> parameters;
+		if(ruri.equalsIgnoreCase("sparql")){
+			parameters = getSparqlParameters(request);
+		}
+		else{
+			parameters = getParameters(request);
+		}
 		String rule = getRule(request);
 		byte[] payload = getPayload(request);
 		Request jReq = new Request(Method.GET, ruri, headers, parameters, rule, payload);
@@ -165,6 +171,27 @@ public class JscServlet extends HttpServlet {
     	
     	return map;
 	}
+    
+    private Map<String, String> getSparqlParameters(HttpServletRequest request) {
+    	String params = null;
+		StringBuilder sb = new StringBuilder();
+		String[] result = request.getQueryString().split("&");
+		
+    	if(result.length == 1){
+    		result[1] = "json";
+    	}
+    	sb.append(result[0]);
+    	sb.append(result[1]);
+    	params = sb.toString();
+    	
+    	if(params == null) return null;
+    	
+    	Map<String, String> map = new HashMap<String, String>();
+    	map.put("parameters", result[0]);
+    	map.put("output", result[1]);
+    	
+    	return map;
+    }
 
 	private Map<String, String> getParameters(HttpServletRequest request) {
     	

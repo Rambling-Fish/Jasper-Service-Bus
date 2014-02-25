@@ -7,14 +7,21 @@ import javax.jms.TextMessage;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.URIUtil;
 import org.apache.log4j.Logger;
+import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class SparqlHandler implements Runnable {
 
 	private Delegate delegate;
 	private DelegateOntology jOntology;
 	private Message jmsRequest;
+	private String ruri;
+	private String method;
+	private String version;
+	private String contentType;
 	
 	private static Logger logger = Logger.getLogger(SparqlHandler.class.getName());
 
@@ -41,14 +48,14 @@ public class SparqlHandler implements Runnable {
 				// We only support json or xml as output formats
 				if(!output.equalsIgnoreCase("json") && (!output.equalsIgnoreCase("xml"))){
 					errorMsg="Output must be set to json or xml";
-					processInvalidRequest((TextMessage) jmsRequest, errorMsg);
+					processInvalidRequest((TextMessage) jmsRequest, JasperConstants.responseCodes.BADREQUEST, errorMsg);
 					return;
 				}
 				sendResponse((TextMessage)jmsRequest, jOntology.queryModel(queryString, output));
 			}
 			else{
 				errorMsg = "Invalid SPARQL query received";
-				processInvalidRequest((TextMessage) jmsRequest, errorMsg);
+				processInvalidRequest((TextMessage)jmsRequest, JasperConstants.responseCodes.BADREQUEST, errorMsg);
 			}
 		}catch (Exception e){
 			logger.error("Exception caught processing SPARQL request " ,e);
@@ -56,14 +63,50 @@ public class SparqlHandler implements Runnable {
 	}
 	
 	private String[] parseSparqlRequest(String text) {
+		JSONObject parms = new JSONObject();
+		JSONObject headers = new JSONObject();
+		StringBuilder sb = new StringBuilder();
+	
 		if(text==null)return null;
-		String[] result = null;
-		if(!text.startsWith("?query=") || (!text.contains("SELECT")) && (!text.contains("select"))){
+		
+		try {
+			JSONObject jsonObj = new JSONObject(text);
+			version = jsonObj.getString(JasperConstants.VERSION_LABEL);
+			
+			if(jsonObj.has(JasperConstants.PARAMETERS_LABEL)) {
+				parms = (JSONObject)jsonObj.getJSONObject(JasperConstants.PARAMETERS_LABEL);
+				int len = parms.length();
+				for(Object o:parms.keySet()){
+					sb.append(parms.get(o.toString()));
+					if(len > 1) {
+						sb.append("&");
+						len--;
+					}
+				}
+			
+				if(!sb.toString().contains("SELECT") && (!sb.toString().contains("select"))){
+					return null;
+				}
+			}
+			
+			if(jsonObj.has(JasperConstants.HEADERS_LABEL)){
+				headers = (JSONObject)jsonObj.getJSONObject(JasperConstants.HEADERS_LABEL);
+				for(Object o:headers.keySet()){
+					switch (o.toString().toLowerCase()) {
+					case JasperConstants.CONTENT_TYPE_LABEL :
+						contentType = headers.getString(o.toString());
+						break;
+					}
+				}
+			}
+			
+		} catch (JSONException e) {
+			logger.error("Exception caught while creating JSONObject " + e);
 			return null;
 		}
 		
-		text = text.substring("?query=".length(), text.length());
-		result = text.split("&");
+		String[] result = null;
+		result = sb.toString().split("&");
 		
 		if(result.length != 2) return null;
 		
@@ -75,6 +118,7 @@ public class SparqlHandler implements Runnable {
 			result = null;
 		}
 		
+		result[0] = result[0].replaceFirst("query=", "");
 		result[1] = result[1].replaceFirst("output=", "");
 		
 		return result;
@@ -86,30 +130,33 @@ public class SparqlHandler implements Runnable {
 	 * Currently this occurs if incoming URI cannot be mapped to a JTA or the
 	 * incoming correlationID is not unique
 	 */
-	private void processInvalidRequest(Message msg, String errorMsg) throws Exception {
+	private void processInvalidRequest(TextMessage msg, JasperConstants.responseCodes responseCode, String responseMsg) throws Exception {
+		if(logger.isInfoEnabled()){
+			logger.info("processingInvalidRequest, errorMsg = " + responseMsg + " for request " + msg.getText() + " from " + msg.getJMSReplyTo());
+		}
+		String response = delegate.createJasperResponse(responseCode, responseMsg, null, contentType, version);
+        Message message = delegate.createTextMessage(response);
 
-        // For now we always send back empty JSON for all error scenarios
-		String msgText = "{".concat(errorMsg).concat("}");
-        Message message = delegate.createTextMessage(msgText);
+        
         if(msg.getJMSCorrelationID() == null){
             message.setJMSCorrelationID(msg.getJMSMessageID());
   	  	}else{
             message.setJMSCorrelationID(msg.getJMSCorrelationID());
   	  	}
-     
-        delegate.sendMessage(msg.getJMSReplyTo(), message);
-
-	}
-
-	private void sendResponse(TextMessage jmsRequestMsg,String response) throws JMSException {
         
-        Message message = delegate.createTextMessage(response);
-        
-        String correlationID = jmsRequestMsg.getJMSCorrelationID();
-        if(correlationID == null) correlationID = jmsRequestMsg.getJMSMessageID();
-        message.setJMSCorrelationID(correlationID);
-		
-        delegate.sendMessage(jmsRequestMsg.getJMSReplyTo(), message);
+        delegate.sendMessage(msg.getJMSReplyTo(),message);
 	}
-
+        
+	private void sendResponse(TextMessage msg, String response) throws JMSException {
+		JasperConstants.responseCodes code = JasperConstants.responseCodes.OK;
+		String jsonResponse = delegate.createJasperResponse(code, "Success", response, contentType, version);
+		Message message = delegate.createTextMessage(jsonResponse);      
+		String correlationID = msg.getJMSCorrelationID();
+		if(correlationID == null) correlationID = msg.getJMSMessageID();
+		message.setJMSCorrelationID(correlationID);
+			
+		delegate.sendMessage(msg.getJMSReplyTo(), message);
+	        
+		}
+	
 }
