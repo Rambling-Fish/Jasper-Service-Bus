@@ -24,6 +24,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.jasper.core.UDE;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JtaInfo;
+import org.jasper.core.persistence.PersistenceFacade;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Command;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
@@ -44,6 +45,7 @@ public class TestDelegate extends TestCase {
 	@Mock private Queue mockQueue;
 	@Mock private MessageConsumer mockConsumer;
 	@Mock private MessageProducer mockProducer;
+	@Mock private PersistenceFacade mockCachingSys;
 	private Model model;
 	private String ipAddr;
 	private Delegate classUnderTest;
@@ -213,6 +215,7 @@ public class TestDelegate extends TestCase {
 		when(mockUDE.getBrokerTransportIp()).thenReturn(ipAddr);
 		when(mockSession.createQueue("jms.delegate." + mockUDE.getBrokerTransportIp() + "." + 0 + ".queue")).thenReturn(mockQueue);
 		when(mockSession.createConsumer(mockQueue)).thenReturn(mockConsumer); 
+		when(mockUDE.getCachingSys()).thenReturn(mockCachingSys);
 	}
 
 	@After

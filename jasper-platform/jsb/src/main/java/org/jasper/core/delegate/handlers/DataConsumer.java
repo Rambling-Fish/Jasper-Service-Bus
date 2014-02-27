@@ -43,7 +43,7 @@ public class DataConsumer implements Runnable {
 	private String version;
 	private String contentType;
 	
-	private static Logger logger = Logger.getLogger(DataHandler.class.getName());
+	private static Logger logger = Logger.getLogger(DataConsumer.class.getName());
 
 	public DataConsumer(UDE ude, Delegate delegate, DelegateOntology jOntology, Map<String,Object> locks, Map<String,Message> responses) {
 		this.ude = ude;

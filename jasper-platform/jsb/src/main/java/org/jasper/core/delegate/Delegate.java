@@ -4,9 +4,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,11 +35,14 @@ import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JasperConstants.responseCodes;
 import org.jasper.core.delegate.handlers.AdminHandler;
 import org.jasper.core.delegate.handlers.DataConsumer;
-import org.jasper.core.delegate.handlers.DataHandler;
 import org.jasper.core.delegate.handlers.SparqlHandler;
+import org.jasper.core.notification.triggers.Trigger;
+import org.jasper.core.notification.triggers.TriggerFactory;
+import org.jasper.core.persistence.PersistedObject;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.hp.hpl.jena.rdf.model.Model;
@@ -62,6 +68,22 @@ public class Delegate implements Runnable, MessageListener {
 	
 	
 	public String defaultOutput;
+	private Map<String,PersistedObject> sharedData;
+	private String key;
+	private String errorTxt;
+	private BlockingQueue<PersistedObject> workQueue;
+	private String contentType;
+	private String version;
+	private String notification;
+	private String output;
+	private String dtaParms;
+	private String ruri;
+	private String method;
+	private int expires;
+	private int pollPeriod;
+	private List<Trigger> triggerList;
+	private static final int MILLISECONDS = 1000;
+	private PersistedObject statefulData;
 	public int maxExpiry;
 	public int maxPollingInterval;
 	public int minPollingInterval;
@@ -105,6 +127,10 @@ public class Delegate implements Runnable, MessageListener {
 			dataConsumers[i] = new DataConsumer(ude, this,jOntology,locks,responseMessages);
 			dataConsumerService.execute(dataConsumers[i]);
 		}
+		
+		workQueue  = ude.getCachingSys().getQueue("tasks");
+		sharedData = (Map<String, PersistedObject>) ude.getCachingSys().getMap("sharedData");
+		
 		 try {
 	          //load properties file
 	    		prop.load(new FileInputStream(System.getProperty("delegate-property-file")));
@@ -160,7 +186,7 @@ public class Delegate implements Runnable, MessageListener {
 						delegateHandlers.submit(new SparqlHandler(this,jOntology, jmsRequest));
 						globalSession.commit();
 					} else if (text != null) {
-						delegateHandlers.submit(new DataHandler(ude, this, jmsRequest));
+						persistData((TextMessage)jmsRequest);
 						globalSession.commit();
 
 					} else {
@@ -262,4 +288,201 @@ public class Delegate implements Runnable, MessageListener {
 		return jasperResponse.toString();
 		
 	}
+	
+	private void processInvalidRequest(TextMessage msg, JasperConstants.responseCodes responseCode, String responseMsg) throws Exception {
+		if(logger.isInfoEnabled()){
+			logger.info("processingInvalidRequest, errorMsg = " + responseMsg + " for request " + msg.getText() + " from " + msg.getJMSReplyTo());
+		}
+		String response = createJasperResponse(responseCode, responseMsg, null, contentType, version);
+        Message message = createTextMessage(response);
+
+        
+        if(msg.getJMSCorrelationID() == null){
+            message.setJMSCorrelationID(msg.getJMSMessageID());
+  	  	}else{
+            message.setJMSCorrelationID(msg.getJMSCorrelationID());
+  	  	}
+        
+        sendMessage(msg.getJMSReplyTo(),message);
+        removeSharedData();
+	}
+	
+	private void persistData(TextMessage txtMsg) throws Exception{
+		String request = txtMsg.getText();
+		boolean requestOK = false;
+		key = txtMsg.getJMSCorrelationID();
+		
+		 if(request == null || request.length() == 0){
+	  	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, "Invalid request received - request is null or empty string");
+	  	    	return;
+	  	    }
+		 
+		 requestOK =  parseJasperRequest(request);
+
+		 if (!requestOK){
+			 processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, errorTxt);
+			 return;
+		 }
+		 
+		 if(ruri == null || ruri.length() == 0){
+	  	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, "Invalid request received - request does not contain a URI");
+	  	    	return;
+	  	    }
+		 
+		// create object that contains stateful data
+		 statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, dtaParms,
+				 txtMsg.getJMSReplyTo(), false, ude.getUdeDeploymentAndInstance(), output, version, contentType);
+	  	   
+		 if(triggerList != null){
+			 statefulData.setTriggers(triggerList);
+			 statefulData.setNotification(notification);
+			 statefulData.setIsNotificationRequest(true);
+		 }
+
+		 sharedData.put(key, statefulData);
+		 workQueue.offer(statefulData);
+		 cleanup();
+	}
+	
+	private void removeSharedData(){
+		sharedData.remove(key);
+	}
+	
+	private boolean parseJasperRequest(String req) {
+		boolean validMsg = false;
+		expires = -1;
+		pollPeriod = -1;
+		JSONObject parms = new JSONObject();
+		JSONObject headers = new JSONObject();
+		StringBuilder sb = new StringBuilder();
+		
+		try {
+			JSONObject jsonObj = new JSONObject(req);
+			// parse out mandatory parameters
+			ruri = jsonObj.getString(JasperConstants.REQUEST_URI_LABEL);
+			version = jsonObj.getString(JasperConstants.VERSION_LABEL);
+			method = jsonObj.getString(JasperConstants.METHOD_LABEL);
+			
+			if(ruri != null && version != null && method != null) {
+				validMsg = true;
+			}		
+
+			if((!method.equalsIgnoreCase("get")) && (!method.equalsIgnoreCase("post"))){
+				validMsg = false;
+				errorTxt = ("Invalid request type: " + method);
+			}
+			
+			if(jsonObj.has(JasperConstants.PARAMETERS_LABEL)) {
+				parms = (JSONObject)jsonObj.getJSONObject(JasperConstants.PARAMETERS_LABEL);
+				int len = parms.length();
+				for(Object o:parms.keySet()){
+					sb.append(o.toString());
+					sb.append("=");
+					sb.append(parms.get(o.toString()));
+					if(len > 1) {
+						sb.append("&");
+						len--;
+					}
+				}
+			
+				dtaParms = sb.toString();
+			}
+			
+			if(jsonObj.has(JasperConstants.HEADERS_LABEL)){
+				headers = (JSONObject)jsonObj.getJSONObject(JasperConstants.HEADERS_LABEL);
+				for(Object o:headers.keySet()){
+					switch (o.toString().toLowerCase()) {
+					case JasperConstants.POLL_PERIOD_LABEL :
+						try{
+							pollPeriod = headers.getInt(o.toString());
+							pollPeriod = (pollPeriod * MILLISECONDS); // convert to milliseconds
+						}catch(JSONException ex){
+							pollPeriod = maxPollingInterval;
+						}
+						break;
+					case JasperConstants.EXPIRES_LABEL :
+						try{
+							expires = headers.getInt(o.toString());
+							expires = (expires * MILLISECONDS); // convert to milliseconds
+						} catch(JSONException ex){
+							expires = maxExpiry;
+						}
+						break;
+					case JasperConstants.CONTENT_TYPE_LABEL :
+						contentType = headers.getString(o.toString());
+						break;
+					}
+				}
+			}
+			
+			if(jsonObj.has(JasperConstants.RULE_LABEL)){
+				notification = jsonObj.getString(JasperConstants.RULE_LABEL);
+				triggerList = new ArrayList<Trigger>();
+			}
+			
+			if(notification != null){
+				if(expires == -1) expires = maxExpiry; // if not supplied set to max
+				if(expires > maxExpiry) expires = maxExpiry;
+				if(pollPeriod == -1) pollPeriod = maxPollingInterval; // if not supplied set to max
+				if(pollPeriod < minPollingInterval) pollPeriod = minPollingInterval;
+				if(pollPeriod > maxPollingInterval) pollPeriod = maxPollingInterval;
+				if(pollPeriod > expires) pollPeriod = (int) expires;
+				if(output == null) output = defaultOutput;
+				
+				parseTrigger(notification);
+			}
+			
+		} catch (JSONException e) {
+			logger.error("Exception caught while creating JSONObject " + e);
+			validMsg = false;
+			errorTxt = "Invalid / Malformed JSON object received";
+		}
+		
+		return validMsg;
+		
+	}
+	
+	/*
+	 * Parses out the different trigger types from the inbound notification string
+	 * Will create and link a trigger for each function in the inbound request
+	 */
+	private void parseTrigger(String notification){
+		String[] triggers = notification.split("&");
+		String[] tmp = new String[triggers.length];
+		String[] parms = new String[triggers.length];
+		String[] functions = new String[triggers.length];
+		for(int i=0;i<triggers.length;i++){
+			tmp = triggers[i].split("\\(");
+			if(tmp[0] != null) {
+				functions[i] = tmp[0];
+				parms[i] = tmp[1];
+				parms[i] = parms[i].replaceFirst("\\)", "");
+			}
+			
+		}
+		TriggerFactory factory = new TriggerFactory();
+		Trigger trigger;
+		String[] triggerParms;
+		for(int i=0; i<functions.length;i++){
+			triggerParms = parms[i].split(",");
+			trigger = factory.createTrigger(functions[i], expires, pollPeriod, triggerParms);
+			if(trigger != null){
+				trigger.setNotificationExpiry();
+				triggerList.add(trigger);
+			}
+			else{
+				logger.error("Invalid notification request received - cannot create trigger: " + triggerParms.toString());
+			}
+		}		
+	}
+	
+	private void cleanup(){
+		key          = null;
+		contentType  = null;
+		version      = null;
+		dtaParms     = null;
+		notification = null;
+		triggerList  = null;
+	}
+	
 }

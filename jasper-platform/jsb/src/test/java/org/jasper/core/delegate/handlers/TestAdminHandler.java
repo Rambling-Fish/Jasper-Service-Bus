@@ -45,6 +45,7 @@ public class TestAdminHandler extends TestCase {
 	@Mock private Model mockModel;
 	@Mock private Session mockSession;
 	@Mock private Queue mockQ;
+	@Mock private PersistenceFacade mockCachingSys;
 	private Connection connection;
 	private Delegate realDelegate;
 	private Map<String,Object> locks = new ConcurrentHashMap<String,Object>();
@@ -131,6 +132,7 @@ public class TestAdminHandler extends TestCase {
 		ipAddr = InetAddress.getLocalHost().getHostAddress();
 		when(mockRequest.getJMSCorrelationID()).thenReturn(corrID);
 		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
+		when(mockUDE.getCachingSys()).thenReturn(mockCachingSys);
 		 
 		classUnderTest = new AdminHandler(mockDelegate, mockJOntology, mockRequest, locks, responses); 
 	}
