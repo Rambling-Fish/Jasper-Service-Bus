@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.jena.atlas.json.JsonArray;
+import com.google.gson.JsonArray;
 import org.apache.log4j.Logger;
 import org.jasper.core.notification.util.JsonResponseParser;
 
@@ -41,7 +41,7 @@ public class Range extends Trigger implements Serializable{
 	public boolean evaluate(JsonArray ruriArray){
 		JsonResponseParser respParser = new JsonResponseParser();
 		
-		if(ruriArray.isEmpty()) return false;
+		if(ruriArray.size() == 0) return false;
 		
 		List<Integer> list = new ArrayList<Integer>();
 		list = respParser.parse(ruriArray, left);

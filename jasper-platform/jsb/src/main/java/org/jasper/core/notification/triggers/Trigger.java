@@ -2,7 +2,7 @@ package org.jasper.core.notification.triggers;
 
 import java.io.Serializable;
 
-import org.apache.jena.atlas.json.JsonArray;
+import com.google.gson.JsonArray;
 
 public class Trigger implements Serializable{
 		

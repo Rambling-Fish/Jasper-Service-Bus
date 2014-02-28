@@ -4,7 +4,11 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.apache.jena.atlas.json.JsonArray;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.notification.triggers.TriggerFactory;
 import org.jasper.core.notification.util.JsonResponseParser;
@@ -30,8 +34,15 @@ public class TestTriggers extends TestCase {
 		System.out.println("=====================");
 		System.out.println("RUNNING TRIGGER TESTS");
 		System.out.println("=====================");
-		String tmp2 = "{ http://coralcea.ca/jasper/environmentalSensor/roomTemperature : 25R ,\n" +
-			    "http://coralcea.ca/jasper/timeStamp : 2013-10-14 02:18:45.0903 EDT }"; 
+
+		JsonObject tmp1 = new JsonObject();
+		tmp1.addProperty("http://coralcea.ca/jasper/environmentalSensor/roomTemperature", 25);
+		tmp1.addProperty("http://coralcea.ca/jasper/timeStamp", "2013-10-14 02:18:45.0903 EDT");
+
+		JsonObject tmp2 = new JsonObject();
+		tmp2.addProperty("http://coralcea.ca/jasper/environmentalSensor/roomTemperature", "25R");
+		tmp2.addProperty("http://coralcea.ca/jasper/timeStamp", "2013-10-14 02:18:45.0903 EDT");
+
 		JsonArray response = new JsonArray();
 		JsonResponseParser parser = new JsonResponseParser();
 		
@@ -39,7 +50,7 @@ public class TestTriggers extends TestCase {
 		List<Integer> list = parser.parse(response, RURI);
 		
 		// test valid array and a bad room temperature (NaN)
-		response.add(tmp);
+		response.add(tmp1);
 		response.add(tmp2);
 		
 		list = parser.parse(response, RURI);
@@ -82,6 +93,10 @@ public class TestTriggers extends TestCase {
 	 */
 	@Test
 	public void testCompareIntTrigger() {
+		JsonObject tmp1 = new JsonObject();
+		tmp1.addProperty("http://coralcea.ca/jasper/environmentalSensor/roomTemperature", 25);
+		tmp1.addProperty("http://coralcea.ca/jasper/timeStamp", "2013-10-14 02:18:45.0903 EDT");
+
 		TriggerFactory factory = new TriggerFactory();
 		Trigger gtCompareInt  = factory.createTrigger(COMPARE_INT, 20, POLLING, RURI, "gt", "20");
 		gtCompareInt.setNotificationExpiry();
@@ -111,7 +126,7 @@ public class TestTriggers extends TestCase {
 		Trigger right         = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "lt", "http://jasper.com");
 
 		JsonArray response = new JsonArray();
-		response.add(tmp);
+		response.add(tmp1);
 		
 		// test all the operands
 		TestCase.assertFalse(gtCompareInt2.evaluate(response));
@@ -130,8 +145,8 @@ public class TestTriggers extends TestCase {
 		left.evaluate(response);
 		
 		//Test empty response passed into trigger
-		response.clear();
-		TestCase.assertFalse(gtCompareInt.evaluate(response));
+		JsonArray responseEmpty = new JsonArray();
+		TestCase.assertFalse(gtCompareInt.evaluate(responseEmpty));
 
 	}
 	
@@ -140,8 +155,12 @@ public class TestTriggers extends TestCase {
 	 */
 	@Test
 	public void testRangeTrigger() {
+		JsonObject tmp1 = new JsonObject();
+		tmp1.addProperty("http://coralcea.ca/jasper/environmentalSensor/roomTemperature", 25);
+		tmp1.addProperty("http://coralcea.ca/jasper/timeStamp", "2013-10-14 02:18:45.0903 EDT");
+
 		JsonArray response = new JsonArray();
-		response.add(tmp);
+		response.add(tmp1);
 		TriggerFactory factory = new TriggerFactory();
 		Trigger range1  = factory.createTrigger(RANGE, EXPIRY, POLLING, RURI, "20", "30");
 		Trigger range2  = factory.createTrigger(RANGE, EXPIRY, POLLING, RURI, "26", "36");
@@ -150,11 +169,10 @@ public class TestTriggers extends TestCase {
 		TestCase.assertTrue(range1.evaluate(response));
 		TestCase.assertFalse(range2.evaluate(response));
 		
-		response.clear();
-		range3.evaluate(response);
-		tmp = "helloWorld";
-		response.add(tmp);
-		TestCase.assertFalse(range1.evaluate(response));
-		
+		JsonArray response2 = new JsonArray();
+		range3.evaluate(response2);
+		JsonPrimitive jPrim = new JsonPrimitive("helloWorld");
+		response2.add(jPrim);
+		TestCase.assertFalse(range1.evaluate(response2));
 	}
 }

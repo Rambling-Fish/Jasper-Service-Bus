@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.jena.atlas.json.JsonArray;
+import com.google.gson.JsonArray;
 
 public class JsonResponseParser{
 
 	
 	public List<Integer> parse(JsonArray array, String ruri){
 		
-		if(array.isEmpty()) return null;
+		if(array.size() == 0) return null;
 		
 		List<String> matchList = new ArrayList<String>();
 		List<Integer> list = new ArrayList<Integer>();

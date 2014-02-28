@@ -3,6 +3,7 @@ package org.jasper.core.delegate.handlers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 
@@ -10,12 +11,13 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
 
-import org.apache.jena.atlas.json.JSON;
-import org.apache.jena.atlas.json.JsonArray;
-import org.apache.jena.atlas.json.JsonNull;
-import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.json.JsonString;
-import org.apache.jena.atlas.json.JsonValue;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonNull;
+
 import org.apache.log4j.Logger;
 import org.jasper.core.UDE;
 import org.jasper.core.constants.JasperConstants;
@@ -163,26 +165,26 @@ public class DataConsumer implements Runnable {
 		Map<String,String> paramsMap = getParams(body);
         JsonArray queuesAndParams = jOntology.getQandParams(ruri, paramsMap);
         if(queuesAndParams == null)return null;
-      	for(JsonValue j:queuesAndParams){
-      		String jta        = ((JsonString)j.getAsObject().get(DelegateOntology.JTA).getAsString()).value();
-  			String q          = ((JsonString)j.getAsObject().get(DelegateOntology.QUEUE).getAsString()).value();
-  			String provides   = ((JsonString)j.getAsObject().get(DelegateOntology.PROVIDES).getAsString()).value();
-  			JsonObject jsonParams = (JsonObject) j.getAsObject().get(DelegateOntology.PARAMS);
+      	for(JsonElement j:queuesAndParams){
+      		String jta        = j.getAsJsonObject().get(DelegateOntology.JTA).getAsString();
+  			String q          = j.getAsJsonObject().get(DelegateOntology.QUEUE).getAsString();
+  			String provides   = j.getAsJsonObject().get(DelegateOntology.PROVIDES).getAsString();
+  			JsonObject jsonParams = (JsonObject) j.getAsJsonObject().get(DelegateOntology.PARAMS);
   			Object param = null;
   			Map<String,String> valuePair = new HashMap<String, String>();
-  			for(String key:jsonParams.keys()){
-  				param = jsonParams.get(key);
-  				if(param instanceof JsonString){
-  					if(logger.isInfoEnabled()) logger.info("param " + key + " provided, no need to lookup, value = " + ((JsonString)param).value());
-  					valuePair.put(key, ((JsonString)param).value());
+  			for(Entry<String, JsonElement> key : jsonParams.entrySet()){
+  	  			param = key.getValue();
+  				if(param instanceof JsonPrimitive){
+  					if(logger.isInfoEnabled()) logger.info("param " + key + " provided, no need to lookup, value = " + ((JsonPrimitive)param).getAsString());
+  					valuePair.put(key.getKey(), param.toString());
   				}else if(param instanceof JsonArray){
   					if(logger.isInfoEnabled()) logger.info("param " + key + " not provided need to lookup");
-  		  			JsonArray response = getResponse(key, body);
-  		  			for(JsonValue index:response){
-  	  		  			if(index instanceof JsonObject || index instanceof JsonString){
-	  	  		  			JsonValue value = (index instanceof JsonObject)?((JsonObject)index).get(key):index;
-	  	  		  			if(value.isString()){
-	  	  		  				valuePair.put(key, ((JsonString)value).value());
+  		  			JsonArray response = getResponse(key.getKey(), body);
+  		  			for(JsonElement index:response){
+  		  				if(index instanceof JsonObject || index instanceof JsonPrimitive){
+	  	  		  			JsonElement value = (index instanceof JsonObject)?((JsonObject)index).get(key.getKey()):index;
+	  	  		  			if(value.isJsonPrimitive()){
+	  	  		  				valuePair.put(key.getKey(), value.getAsString());
 	  	  		  			}else{
 	  	  		  			if(logger.isInfoEnabled()) logger.info("value is not String" + value);
 	  	  		  			}
@@ -194,7 +196,7 @@ public class DataConsumer implements Runnable {
   					if(logger.isInfoEnabled()) logger.info("param is neither JsonString nor JsonArray, param = " + param);
   				}
   			}
-  			
+
   			/*
   			 * check to see if we have all the info the JTA needs before sending the request
   			 */
@@ -207,9 +209,10 @@ public class DataConsumer implements Runnable {
 				if(logger.isInfoEnabled()) logger.info("the valuePair map doesn't have all the params the DTA needs, therefore we will not send request to DTA");
 				continue;
   			}
-  			
-  			JsonObject response = JSON.parse(getResponseFromQueue(q,valuePair));
-  			JsonValue r = (response.get(provides)==null)?response:response.get(provides);
+  			JsonParser parser = new JsonParser();
+  			JsonObject response = parser.parse(getResponseFromQueue(q,valuePair)).getAsJsonObject();
+
+  			JsonElement r = (response.get(provides)==null)?response:response.get(provides);
   			if( r !=null && !(r instanceof JsonNull) )result.add(r);
       	}
       	return result;
@@ -237,7 +240,7 @@ public class DataConsumer implements Runnable {
 		JsonObject jObj = new JsonObject();
 		
 		for(String key:map.keySet()){
-			jObj.put(key, (String)map.get(key));
+			jObj.addProperty(key, (String)map.get(key));
 		}
 		Message msg = delegate.createTextMessage(jObj.toString());	
 		
