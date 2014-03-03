@@ -32,6 +32,7 @@ public class JscServlet extends HttpServlet {
 	
 	static Logger log = Logger.getLogger(JscServlet.class.getName());
 	private Map<String, String> uriMapper = new HashMap<String, String>();
+	private String rule;
 	
 	private Jsc jsc;
 
@@ -124,7 +125,7 @@ public class JscServlet extends HttpServlet {
 		else{
 			parameters = getParameters(request);
 		}
-		String rule = getRule(request);
+		
 		byte[] payload = getPayload(request);
 		Request jReq = new Request(Method.GET, ruri, headers, parameters, rule, payload);
     	
@@ -153,22 +154,16 @@ public class JscServlet extends HttpServlet {
 			String[] result = request.getQueryString().split("\\?");
     	
 			for(String str:result){
-				if(str.startsWith("output=")){
-					map.put(RequestHeaders.RESPONSE_TYPE, str.replaceFirst("output=", ""));
-				}else if(str.startsWith(RequestHeaders.RESPONSE_TYPE)){
-					map.put(RequestHeaders.RESPONSE_TYPE, str.replaceFirst(RequestHeaders.RESPONSE_TYPE, ""));
-				}else if(str.startsWith("expiry=")){
-					map.put(RequestHeaders.EXPIRES, str.replaceFirst("expiry=", ""));
+				if(str.startsWith(RequestHeaders.RESPONSE_TYPE)){
+					map.put(RequestHeaders.RESPONSE_TYPE, str.replaceFirst(RequestHeaders.RESPONSE_TYPE+"=", ""));
 				}else if(str.startsWith(RequestHeaders.EXPIRES)){
-					map.put(RequestHeaders.EXPIRES, str.replaceFirst(RequestHeaders.EXPIRES, ""));
-				}else if(str.startsWith("polling=")){
-					map.put(RequestHeaders.POOL_PERIOD, str.replaceFirst("polling=", ""));
-				}else if(str.startsWith(RequestHeaders.POOL_PERIOD)){
-					map.put(RequestHeaders.POOL_PERIOD, str.replaceFirst(RequestHeaders.POOL_PERIOD, ""));
+					map.put(RequestHeaders.EXPIRES, str.replaceFirst(RequestHeaders.EXPIRES+"=", ""));
+				}else if(str.startsWith(RequestHeaders.POLL_PERIOD)){
+					map.put(RequestHeaders.POLL_PERIOD, str.replaceFirst(RequestHeaders.POLL_PERIOD+"=", ""));
 				}
 			}
     	}
-    	
+   
     	return map;
 	}
     
@@ -196,30 +191,35 @@ public class JscServlet extends HttpServlet {
 	private Map<String, String> getParameters(HttpServletRequest request) {
     	
 		String params = null;
+		rule          = null;
 		StringBuilder sb = new StringBuilder();
     	if(request.getQueryString() !=null){
     		String[] result = request.getQueryString().split("\\?");
-    		String[] results = result[0].split("&");
     		
-    		for(String str:results){
-    			if(str.startsWith("output=")       || str.startsWith(RequestHeaders.RESPONSE_TYPE) ||
-    			    str.startsWith("expiry=")  || str.startsWith(RequestHeaders.EXPIRES)       ||
-    			    str.startsWith("polling=") || str.startsWith(RequestHeaders.POOL_PERIOD)   ||
-    			    str.startsWith("trigger=") || str.startsWith("rule=") )
+    		for(String str:result){
+    			if(str.startsWith(RequestHeaders.RESPONSE_TYPE)  ||
+    			    str.startsWith(RequestHeaders.EXPIRES)       ||
+    			    str.startsWith(RequestHeaders.POLL_PERIOD))   
     			{
-    			continue;
-    			}else{
-    				String[] arr = str.split("=");
-    				// Convert to long form URI if short form was passed in
-    				if(uriMapper.containsKey(arr[0])){
-    					sb.append(uriMapper.get(arr[0]));
+    				continue;
+    			}else if(str.startsWith(RequestHeaders.RULE)){
+    				rule = str.replaceFirst(RequestHeaders.RULE+"=", "");
+    			}
+    			else{
+    				String[] results = str.split("&");
+    				for(int i=0; i<results.length; i++){
+    					String[] arr = results[i].split("=");
+    					// Convert to long form URI if short form was passed in
+    					if(uriMapper.containsKey(arr[0])){
+    						sb.append(uriMapper.get(arr[0]));
+    					}
+    					else{
+    						sb.append(arr[0]);
+    					}
+    						sb.append("=");
+    						sb.append(arr[1]);
+    						sb.append("&");
     				}
-    				else{
-    					sb.append(arr[0]);
-    				}
-    					sb.append("=");
-    					sb.append(arr[1]);
-    					sb.append("&");
     			}
     		}
 
@@ -241,24 +241,8 @@ public class JscServlet extends HttpServlet {
 			keyValue = s.split("=");
 			if(keyValue.length == 2 ) map.put(keyValue[0], keyValue[1]);
 		}
-    	
-    	return map;
-	}
 
-	private String getRule(HttpServletRequest request) {
-		String rule = null;
-		if(request.getQueryString() != null){
-			String[] result = request.getQueryString().split("\\?");
-    		for(String str:result){
-    			if(str.startsWith("trigger=")){
-    				rule = str.replaceFirst("trigger=", "");
-    			}else if (str.startsWith("rule=") )    		{
-    				rule = str.replaceFirst("rule=", "");
-    			}
-    		}
-		}
-    	
-    	return rule;
+    	return map;
 	}
 
 	//TODO UPDATE PAYLOAD

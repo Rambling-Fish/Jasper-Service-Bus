@@ -377,7 +377,7 @@ public class Jsc implements MessageListener  {
 		
 		Map<String,String> headers = new HashMap<String, String>();
 		headers.put(RequestHeaders.EXPIRES, "300");
-		headers.put(RequestHeaders.POOL_PERIOD, "50");
+		headers.put(RequestHeaders.POLL_PERIOD, "50");
 		headers.put(RequestHeaders.CONTENT_TYPE, "application/json");
 		headers.put("x-coral-header-1", "adsfadsfadsfa");
 

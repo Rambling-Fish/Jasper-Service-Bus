@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,6 +46,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.hp.hpl.jena.rdf.model.Model;
 
 public class Delegate implements Runnable, MessageListener {
@@ -352,16 +356,16 @@ public class Delegate implements Runnable, MessageListener {
 		boolean validMsg = false;
 		expires = -1;
 		pollPeriod = -1;
-		JSONObject parms = new JSONObject();
-		JSONObject headers = new JSONObject();
+		JsonObject parms = new JsonObject();
 		StringBuilder sb = new StringBuilder();
 		
 		try {
-			JSONObject jsonObj = new JSONObject(req);
+			JsonElement jelement = new JsonParser().parse(req);
+			JsonObject jsonObj = jelement.getAsJsonObject();
 			// parse out mandatory parameters
-			ruri = jsonObj.getString(JasperConstants.REQUEST_URI_LABEL);
-			version = jsonObj.getString(JasperConstants.VERSION_LABEL);
-			method = jsonObj.getString(JasperConstants.METHOD_LABEL);
+			ruri = jsonObj.get(JasperConstants.REQUEST_URI_LABEL).getAsString();
+			version = jsonObj.get(JasperConstants.VERSION_LABEL).getAsString();
+			method = jsonObj.get(JasperConstants.METHOD_LABEL).getAsString();
 			
 			if(ruri != null && version != null && method != null) {
 				validMsg = true;
@@ -373,28 +377,28 @@ public class Delegate implements Runnable, MessageListener {
 			}
 			
 			if(jsonObj.has(JasperConstants.PARAMETERS_LABEL)) {
-				parms = (JSONObject)jsonObj.getJSONObject(JasperConstants.PARAMETERS_LABEL);
-				int len = parms.length();
-				for(Object o:parms.keySet()){
+				parms = jsonObj.getAsJsonObject(JasperConstants.PARAMETERS_LABEL);
+				
+				int len = parms.entrySet().size();
+				for(Object o:parms.entrySet()){
 					sb.append(o.toString());
-					sb.append("=");
-					sb.append(parms.get(o.toString()));
 					if(len > 1) {
 						sb.append("&");
 						len--;
 					}
 				}
+				
 			
 				dtaParms = sb.toString();
 			}
 			
 			if(jsonObj.has(JasperConstants.HEADERS_LABEL)){
-				headers = (JSONObject)jsonObj.getJSONObject(JasperConstants.HEADERS_LABEL);
-				for(Object o:headers.keySet()){
-					switch (o.toString().toLowerCase()) {
+				Map<String, String> headers = getMap(jsonObj.get(JasperConstants.HEADERS_LABEL).getAsJsonObject());
+				for(String s:headers.keySet()){
+					switch (s.toLowerCase()) {
 					case JasperConstants.POLL_PERIOD_LABEL :
 						try{
-							pollPeriod = headers.getInt(o.toString());
+							pollPeriod = Integer.parseInt(headers.get(s));
 							pollPeriod = (pollPeriod * MILLISECONDS); // convert to milliseconds
 						}catch(JSONException ex){
 							pollPeriod = maxPollingInterval;
@@ -402,21 +406,22 @@ public class Delegate implements Runnable, MessageListener {
 						break;
 					case JasperConstants.EXPIRES_LABEL :
 						try{
-							expires = headers.getInt(o.toString());
+							expires = Integer.parseInt(headers.get(s));
 							expires = (expires * MILLISECONDS); // convert to milliseconds
 						} catch(JSONException ex){
 							expires = maxExpiry;
 						}
 						break;
 					case JasperConstants.CONTENT_TYPE_LABEL :
-						contentType = headers.getString(o.toString());
+						contentType = headers.get(s);
 						break;
 					}
 				}
+					
 			}
 			
 			if(jsonObj.has(JasperConstants.RULE_LABEL)){
-				notification = jsonObj.getString(JasperConstants.RULE_LABEL);
+				notification = jsonObj.get(JasperConstants.RULE_LABEL).getAsString();
 				triggerList = new ArrayList<Trigger>();
 			}
 			
@@ -441,6 +446,14 @@ public class Delegate implements Runnable, MessageListener {
 		return validMsg;
 		
 	}
+		
+		private Map<String, String> getMap(JsonObject json) {
+			Map<String, String> map = new HashMap<String, String>();
+			for(Entry<String, JsonElement> entry:json.entrySet()){
+				map.put(entry.getKey(),entry.getValue().getAsString());
+			}
+			return map;
+		}
 	
 	/*
 	 * Parses out the different trigger types from the inbound notification string
