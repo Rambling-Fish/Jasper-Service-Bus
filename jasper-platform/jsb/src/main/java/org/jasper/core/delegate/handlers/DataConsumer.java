@@ -155,7 +155,11 @@ public class DataConsumer implements Runnable {
   	    	sendResponse(xmlResponse);
   	    }
   	    else{
-  	    	sendResponse(response.toString());
+  	    	if(response.size() == 1){
+  	    		sendResponse(response.get(0).toString());
+  	    	}else{
+  	    		sendResponse(response.toString());
+  	    	}
   	    }
     	
 	}
