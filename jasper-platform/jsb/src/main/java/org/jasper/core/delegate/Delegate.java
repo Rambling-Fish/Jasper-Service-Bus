@@ -42,10 +42,10 @@ import org.jasper.core.notification.triggers.TriggerFactory;
 import org.jasper.core.persistence.PersistedObject;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -255,18 +255,19 @@ public class Delegate implements Runnable, MessageListener {
 	}
 	
 	public String createJasperResponse(responseCodes respCode, String respMsg, String response, String contentType, String version) {
-		JSONObject jasperResponse = new JSONObject();
+		JsonObject jasperResponse = new JsonObject();
 		Map<String,String> map = new HashMap<String,String>();
+		Gson gson = new Gson();
 		
-		jasperResponse.put(JasperConstants.CODE_LABEL,  respCode.getCode());
-		jasperResponse.put(JasperConstants.REASON_LABEL,  respCode.getDescription());
-		jasperResponse.put(JasperConstants.DESCRIPTION_LABEL,  respMsg);
+		jasperResponse.addProperty(JasperConstants.CODE_LABEL,  respCode.getCode());
+		jasperResponse.addProperty(JasperConstants.REASON_LABEL,  respCode.getDescription());
+		jasperResponse.addProperty(JasperConstants.DESCRIPTION_LABEL,  respMsg);
 		
 		if(version != null){
-			jasperResponse.put(JasperConstants.VERSION_LABEL,  version);
+			jasperResponse.addProperty(JasperConstants.VERSION_LABEL,  version);
 		}
 		else{
-			jasperResponse.put(JasperConstants.VERSION_LABEL,  "unknown");
+			jasperResponse.addProperty(JasperConstants.VERSION_LABEL,  "unknown");
 		}
 		if(contentType != null){
 			map.put(JasperConstants.CONTENT_TYPE_LABEL, contentType);
@@ -274,15 +275,19 @@ public class Delegate implements Runnable, MessageListener {
 		else{
 			map.put(JasperConstants.CONTENT_TYPE_LABEL, "application/json");
 		}
-		JSONObject headers = new JSONObject(map);
-		jasperResponse.put(JasperConstants.HEADERS_LABEL, map);
+		
+		JsonObject headers = new JsonObject();
+		JsonElement jsonTree = gson.toJsonTree(map, Map.class);
+		
+		jasperResponse.add(JasperConstants.HEADERS_LABEL, jsonTree);
 		
 		if(response != null){
 			byte[] bytes;
 			try {
 				bytes = response.getBytes(JasperConstants.ENCODING_LABEL);
-				JSONArray payloadArray = new JSONArray(bytes);
-				jasperResponse.put(JasperConstants.PAYLOAD_LABEL, payloadArray);
+				JsonParser parser = new JsonParser();
+				JsonArray payloadArray = parser.parse(gson.toJson(bytes)).getAsJsonArray();
+				jasperResponse.add(JasperConstants.PAYLOAD_LABEL, payloadArray);
 			} catch (UnsupportedEncodingException e) {
 				logger.error("Exception occurred while encoding response " + e);
 				return null;
