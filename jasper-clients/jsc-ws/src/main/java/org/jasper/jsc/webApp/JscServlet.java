@@ -37,10 +37,10 @@ public class JscServlet extends HttpServlet {
 
 	public JscServlet(){
 		super();
-		jsc = new Jsc(getProperties());
     }
     
 	public void init(){
+		jsc = new Jsc(getProperties());
     	loadOntologyMapper();
 		try {
 			jsc.init();
@@ -130,6 +130,9 @@ public class JscServlet extends HttpServlet {
 		
         if(jscResponse.getCode() >= 200 && jscResponse.getCode() <= 299){
         	String jscJsonResponseString = new String(jscResponse.getPayload());
+        	if(log.isInfoEnabled()){
+        		log.info("successful response, writing response to writer : " + jscJsonResponseString);
+        	}
 			response.getWriter().write(jscJsonResponseString);
         }else{
 			response.getWriter().write("{\"error\":\"" + jscResponse.getCode() + " " + jscResponse.getReason()  + " -  " + jscResponse.getDescription() + "\"}");
