@@ -333,14 +333,14 @@ public class Delegate implements Runnable, MessageListener {
 			 return;
 		 }
 		 
-		 if(ruri == null || ruri.length() == 0){
+		 if(ruri.length() == 0){
 	  	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, "Invalid request received - request does not contain a URI");
 	  	    	return;
 	  	    }
 		 
 		// create object that contains stateful data
 		 statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, dtaParms,
-				 txtMsg.getJMSReplyTo(), false, ude.getUdeDeploymentAndInstance(), output, version, contentType);
+				 txtMsg.getJMSReplyTo(), false, null, output, version, contentType, method);
 	  	   
 		 if(triggerList != null){
 			 statefulData.setTriggers(triggerList);
@@ -385,15 +385,14 @@ public class Delegate implements Runnable, MessageListener {
 				parms = jsonObj.getAsJsonObject(JasperConstants.PARAMETERS_LABEL);
 				
 				int len = parms.entrySet().size();
-				for(Object o:parms.entrySet()){
-					sb.append(o.toString());
+				for (Entry<String, JsonElement> key_val: parms.entrySet()) {
+    	            sb.append(key_val.getKey()).append("=").append(key_val.getValue().getAsString());
 					if(len > 1) {
 						sb.append("&");
 						len--;
 					}
 				}
 				
-			
 				dtaParms = sb.toString();
 			}
 			

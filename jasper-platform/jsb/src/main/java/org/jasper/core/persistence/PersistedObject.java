@@ -24,10 +24,11 @@ public class PersistedObject implements Serializable{
 	private String output;
 	private String version;
 	private String contentType;
+	private String method;
 	
 	public PersistedObject(String key, String correlationID, String request, String ruri, String dtaParms,
 			Destination replyTo, boolean isNotificationRequest, String UDEInstance, String output,
-			String version, String contentType) {
+			String version, String contentType, String method) {
 		this.key = key;
 		this.correlationID = correlationID;
 		this.request = request;
@@ -39,6 +40,7 @@ public class PersistedObject implements Serializable{
 		this.output = output;
 		this.version = version;
 		this.contentType = contentType;
+		this.method = method;
 	}
 	
 	public PersistedObject() {
@@ -147,5 +149,13 @@ public class PersistedObject implements Serializable{
 	
 	public void setContentType(String contentType){
 		this.contentType = contentType;
+	}
+	
+	public String getMethod(){
+		return method;
+	}
+	
+	public void setMethod(String method){
+		this.method = method;
 	}
 }

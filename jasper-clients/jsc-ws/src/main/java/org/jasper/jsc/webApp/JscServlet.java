@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.jms.JMSException;
@@ -26,6 +27,10 @@ import org.jasper.jsc.Response;
 import org.jasper.jsc.constants.RequestHeaders;
 import org.jasper.jsc.constants.ResponseHeaders;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 @WebServlet("/")
 public class JscServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -38,16 +43,15 @@ public class JscServlet extends HttpServlet {
 
 	public JscServlet(){
 		super();
-		jsc = new Jsc(getProperties());
     }
     
 	public void init(){
+		jsc = new Jsc(getProperties());
     	loadOntologyMapper();
 		try {
 			jsc.init();
 		} catch (JMSException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Exception occurred during initialization " + e);
 		}
     }
 	
@@ -114,7 +118,6 @@ public class JscServlet extends HttpServlet {
 	}
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
-    	
     	String ruri = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):null;
     	if(uriMapper.containsKey(ruri)) ruri = uriMapper.get(ruri); // check if short form is being used and switch to long form URI
 		Map<String, String> headers = getHeaders(request);
@@ -131,7 +134,13 @@ public class JscServlet extends HttpServlet {
     	
 		Response jscResponse = jsc.get(jReq);
        
-		String contentType = (jscResponse.getHeaders().containsKey(ResponseHeaders.CONTENT_TYPE))?jscResponse.getHeaders().get(ResponseHeaders.CONTENT_TYPE):"application/json";
+		String contentType;
+		if(jscResponse.getHeaders() != null){
+			contentType = (jscResponse.getHeaders().containsKey(ResponseHeaders.CONTENT_TYPE))?jscResponse.getHeaders().get(ResponseHeaders.CONTENT_TYPE):"application/json";
+		}
+		else{
+			contentType = "application/json";
+		}
 		response.setContentType(contentType );
         response.setCharacterEncoding("UTF-8");
 		
@@ -250,8 +259,43 @@ public class JscServlet extends HttpServlet {
 		return null;
 	}
 	
-	protected void doPost(HttpServletRequest httpservletrequest, HttpServletResponse httpservletresponse) throws ServletException, IOException{
-    	httpservletresponse.getWriter().write("POST NOT SUPPORTED");
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+		Map<String,String> parameters = new HashMap<String, String>();
+		String contentType = request.getHeader(RequestHeaders.CONTENT_TYPE);
+		String ruri = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):null;
+	
+	    try {
+	        BufferedReader reader = request.getReader();
+	        String line = reader.readLine();
+	        //TODO what do we do if content-type not application/json?
+	        if(line != null && contentType.equalsIgnoreCase("application/json")){
+	        	JsonElement jelement = new JsonParser().parse(line);
+	    		JsonObject jsonObj = jelement.getAsJsonObject();
+	    		if(jsonObj.has(RequestHeaders.PARAMETERS_LABEL)){
+	    			JsonObject parms = jsonObj.getAsJsonObject(RequestHeaders.PARAMETERS_LABEL);
+	    			for (Entry<String, JsonElement> key_val: parms.entrySet()) {
+	    	            parameters.put(key_val.getKey(), key_val.getValue().getAsString());
+	    			}
+	    		}
+	        }
+	        reader.close();
+	    } catch(IOException e) {
+	        log.error("doPost() couldn't get the post data body ", e); 
+	    }
+		
+		Request jReq = new Request(Method.POST, ruri, null, parameters);
+		Response jscResponse = jsc.post(jReq);
+		contentType = (jscResponse.getHeaders().containsKey(ResponseHeaders.CONTENT_TYPE))?jscResponse.getHeaders().get(ResponseHeaders.CONTENT_TYPE):"application/json";
+		response.setContentType(contentType );
+        response.setCharacterEncoding("UTF-8");
+		
+        if(jscResponse.getCode() >= 200 && jscResponse.getCode() <= 299){
+        	String jscJsonResponseString = new String(jscResponse.getPayload());
+			response.getWriter().write(jscJsonResponseString);
+        }else{
+			response.getWriter().write("{\"error\":\"" + jscResponse.getCode() + " " + jscResponse.getReason()  + " -  " + jscResponse.getDescription() + "\"}");
+			log.warn("non 2xx response received : " + jscResponse.getCode() + " " + jscResponse.getReason()  + " -  " + jscResponse.getDescription());			
+        }
     }
 
 

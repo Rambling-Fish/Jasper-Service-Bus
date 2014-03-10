@@ -44,6 +44,7 @@ public class DataConsumer implements Runnable {
 	private UDE ude;
 	private String version;
 	private String contentType;
+	private String method;
 	
 	private static Logger logger = Logger.getLogger(DataConsumer.class.getName());
 
@@ -111,6 +112,12 @@ public class DataConsumer implements Runnable {
 		output = statefulData.getOutput();
 		contentType = statefulData.getContentType();
 		version = statefulData.getVersion();
+		method = statefulData.getMethod();
+		
+		if(method.equalsIgnoreCase("POST")){
+			processPost(request, ruri);
+			return;
+		}
   	    
   	    if(statefulData.isNotificationRequest()){ 
   	    	polling = statefulData.getTriggers().get(0).getPolling();
@@ -233,6 +240,10 @@ public class DataConsumer implements Runnable {
 		}else{
 			return null;
 		}		
+	}
+	
+	private void processPost(String req, String ruri) throws Exception{
+		sendResponse("POST accepted");
 	}
 
 	private String getResponseFromQueue(String q, Map<String, String> map) throws JMSException {

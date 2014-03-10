@@ -191,17 +191,22 @@ public class Jsc implements MessageListener  {
 	
 	public Response get(Request request){
 		if(request.getMethod() != Method.GET){
-			log.error("400 Bad Request returned. Incorrect method type, expecting GET but recieved " + request.getMethod());
-			return new Response(400, "Bad Request", "Incorrect method type, expecting GET but recieved " + request.getMethod() ,null,null);
+			log.error("400 Bad Request returned. Incorrect method type, expecting GET but received " + request.getMethod());
+			return new Response(400, "Bad Request", "Incorrect method type, expecting GET but received " + request.getMethod() ,null,null);
+		}
+		if(request.getRuri().length() < 1){
+			log.error("400 Bad Request returned. Request does not contain a valid RURI");
+			return new Response(400, "Bad Request", "Request does not contain a valid RURI", null,null);
 		}
 		return processSyncRequest(request);
 	}
 	
 	public Response post(Request request){
 		if(request.getMethod() != Method.POST){
-			log.error("400 Bad Request returned. Incorrect method type, expecting POST but recieved " + request.getMethod());
-			return new Response(400, "Bad Request", "Incorrect method type, expecting POST but recieved " + request.getMethod() ,null,null);
+			log.error("400 Bad Request returned. Incorrect method type, expecting POST but received " + request.getMethod());
+			return new Response(400, "Bad Request", "Incorrect method type, expecting POST but received " + request.getMethod() ,null,null);
 		}
+		
 		return processSyncRequest(request);
 	}
 	

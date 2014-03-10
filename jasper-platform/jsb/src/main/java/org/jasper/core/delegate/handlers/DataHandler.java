@@ -102,7 +102,7 @@ public class DataHandler implements Runnable {
   	    
   	    // create object that contains stateful data
   	    statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, dtaParms,
-  			  txtMsg.getJMSReplyTo(), false, ude.getUdeDeploymentAndInstance(), output, version, contentType);
+  			  txtMsg.getJMSReplyTo(), false, ude.getUdeDeploymentAndInstance(), output, version, contentType, null);
   	   
   	    if(triggerList != null){
   	    	statefulData.setTriggers(triggerList);
