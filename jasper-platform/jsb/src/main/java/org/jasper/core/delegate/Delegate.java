@@ -419,6 +419,9 @@ public class Delegate implements Runnable, MessageListener {
 					case JasperConstants.CONTENT_TYPE_LABEL :
 						contentType = headers.get(s);
 						break;
+					case JasperConstants.RESPONSE_TYPE_LABEL :
+						output = headers.get(s);
+						break;
 					}
 				}
 					
