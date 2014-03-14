@@ -1,9 +1,11 @@
 package org.jasper.core.delegate;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.activemq.util.ByteArrayInputStream;
 import org.apache.log4j.Logger;
 import org.jasper.core.constants.JasperOntologyConstants;
 import org.jasper.core.persistence.PersistenceFacade;
@@ -13,7 +15,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
-import com.hazelcast.core.MultiMap;
+import com.hazelcast.core.IMap;
+import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -22,16 +25,14 @@ import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.Property;
-import com.hp.hpl.jena.rdf.model.RDFNode;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.sparql.resultset.JSONOutput;
 
-public class DelegateOntology implements EntryListener<String, String[]>{
+public class DelegateOntology implements EntryListener<String, String>{
 	
-	private Model model;
-	private MultiMap<String, String[]> jtaStatements;
+	private OntModel model;
+	private IMap<String,String> dtaTriples;
+	private Map<String,Model> dtaSubModels;
 	
 	static Logger logger = Logger.getLogger(DelegateOntology.class.getName());
 
@@ -46,23 +47,24 @@ public class DelegateOntology implements EntryListener<String, String[]>{
     public static final String CARD_1_S_Req = "http://www.w3.org/2002/07/owl#minCardinality";
     public static final String CARD_1_1_Req = "http://www.w3.org/2002/07/owl#cardinality";
 
-	public DelegateOntology(PersistenceFacade cachingSys, Model model){
+	public DelegateOntology(PersistenceFacade cachingSys, OntModel model){
 		this.model = model;
-		jtaStatements = (MultiMap<String, String[]>) cachingSys.getMultiMap("jtaStatements");
-		jtaStatements.addEntryListener(this, true);
+		dtaTriples = (IMap<String, String>) cachingSys.getMap("dtaTriples");
+		dtaTriples.addEntryListener(this, true);
+		dtaSubModels = new HashMap<String,Model>();
 		
-		for(String key:jtaStatements.keySet()){
-			for(String[]triple:jtaStatements.get(key)){
-				Resource s = model.getResource(triple[0]);
-		    	Property p = model.getProperty(triple[1]);
-				RDFNode o = model.getResource(triple[2]);
-				Statement statements = model.createStatement(s, p, o);
-				model.add(statements);
-			}
+		for(String dtaName:dtaTriples.keySet()){
+			Model subModel = ModelFactory.createDefaultModel();
+			String triples = dtaTriples.get(dtaName);
+			InputStream in = new ByteArrayInputStream(triples.getBytes());
+			subModel.read(in,"","TURTLE");
+			model.addSubModel(subModel);
+			dtaSubModels.put(dtaName, subModel);
 		}
 		
 	}
 
+	// TODO: remove old vocab methods
 	public JsonArray getQandParams(String ruri,Map<String, String> params){
 		if(!isSupportedRURI(ruri)) return null;
 		
@@ -82,6 +84,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 		return jsonArray;
 	}
 
+	// TODO: remove old vocab methods
 	private String getProvides(String jta, String ruri) {
 		String queryString = 
 				 JasperOntologyConstants.PREFIXES +
@@ -105,6 +108,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 		return (array.size()==1)?array.get(0):ruri;
 	}
 
+	// TODO: remove old vocab methods
 	private JsonObject getParams(String jta, String ruri, Map<String, String> params) {
 		/*
 		 * get list of parameters need for jta to get ruri
@@ -140,6 +144,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 		return jsonParams;
 	}
 
+	// TODO: remove old vocab methods
 	private String getQ(String jta) {
 		String queryString = 
 				 JasperOntologyConstants.PREFIXES +
@@ -163,6 +168,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 		return (array.size()==1)?array.get(0):null;
 	}
 	
+	// TODO: remove old vocab methods
 	public ArrayList<String> getJtaParams(String jta) {
 		String queryString = 
 				 JasperOntologyConstants.PREFIXES +
@@ -186,6 +192,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 		return array;
 	}
 
+	// TODO: remove old vocab methods
 	private ArrayList<String> getJTAs(String ruri) {
 		if(ruri.startsWith("http://")){
 			ruri = "<" + ruri +">";
@@ -224,6 +231,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 		return array;	
 	}
 
+	// TODO: remove old vocab methods
 	private boolean isSupportedRURI(String ruri) {
 		if(ruri.startsWith("http://")){
 			ruri = "<" + ruri +">";
@@ -255,17 +263,18 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 			return false;
 		}
 	}
-	
+
 	//========================================================================================== 
-	// METHOD:  isRuriKnown
+	// METHOD:  isRuriKnownForInputPost
 	//
 	// INPUT:   String (RURI)
 	// OUTPUT:  boolean
 	//
-	// PURPOSE: Determine if this RURI is known in the ontology.
+	// PURPOSE: Determine if this RURI is known in the ontology and is an input to a POST
+	//          operation.
 	//========================================================================================== 
 
-	private boolean isRuriKnown(String ruri) 
+	public boolean isRuriKnownForInputPost(String ruri) 
 	{
 		if (ruri == null)
 			return false;
@@ -274,7 +283,10 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 				JasperOntologyConstants.PREFIXES +
 	             "ASK  WHERE " +
 	             "   {" +
-	             "         <" + ruri + ">    a    owl:Class   " +
+	             "         ?dta    a                               dta:DTA       .\n" +
+	             "         ?dta    dta:operation                   ?oper         .\n" +
+	             "         ?oper   dta:kind                        dta:Post      .\n" +
+	             "         ?oper   dta:input                       <" + ruri + "> \n" +
 	             "   }" ;
 		
 		try{
@@ -288,15 +300,16 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	}
 
 	//========================================================================================== 
-	// METHOD:  isProvideSupportedRURI
+	// METHOD:  isRuriKnownForInputGet
 	//
 	// INPUT:   String (RURI)
 	// OUTPUT:  boolean
 	//
-	// PURPOSE: Determine if there is a provide operation that supports this RURI.
+	// PURPOSE: Determine if this RURI is known in the ontology and is an input to a GET
+	//          operation.
 	//========================================================================================== 
 
-	private boolean isProvideSupportedRURI(String ruri) 
+	public boolean isRuriKnownForInputGet(String ruri) 
 	{
 		if (ruri == null)
 			return false;
@@ -307,10 +320,83 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	             "   {" +
 	             "         ?dta    a                               dta:DTA       .\n" +
 	             "         ?dta    dta:operation                   ?oper         .\n" +
-	             "         ?oper   a                               dta:Provide   .\n" +
-	             "         ?oper   dta:output/rdfs:subClassOf*     <" + ruri + "> \n" +
+	             "         ?oper   dta:kind                        dta:Get       .\n" +
+	             "         ?oper   dta:input                       <" + ruri + "> \n" +
 	             "   }" ;
+		
+		try{
+			Query query = QueryFactory.create(queryString) ;
+			QueryExecution qexec = QueryExecutionFactory.create(query, model);
+			return qexec.execAsk();
+		}catch(Exception ex){
+			logger.error("Exception caught while parsing request " + ex);
+			return false;
+		}
+	}
 
+	//========================================================================================== 
+	// METHOD:  isRuriKnownForOutputGet
+	//
+	// INPUT:   String (RURI)
+	// OUTPUT:  boolean
+	//
+	// PURPOSE: Determine if this RURI is known in the ontology and is an output of a GET
+	//          operation.
+	//========================================================================================== 
+
+	public boolean isRuriKnownForOutputGet(String ruri) 
+	{
+		if (ruri == null)
+			return false;
+
+		String queryString = 
+				JasperOntologyConstants.PREFIXES +
+	             "ASK  WHERE " +
+	             "   {" +
+	             "         ?dta    a                               dta:DTA       .\n" +
+	             "         ?dta    dta:operation                   ?oper         .\n" +
+	             "         ?oper   dta:kind                        dta:Get       .\n" +
+	             "         ?oper   dta:output                      <" + ruri + "> \n" +
+	             "   }" ;
+		
+		try{
+			Query query = QueryFactory.create(queryString) ;
+			QueryExecution qexec = QueryExecutionFactory.create(query, model);
+			return qexec.execAsk();
+		}catch(Exception ex){
+			logger.error("Exception caught while parsing request " + ex);
+			return false;
+		}
+	}
+	
+	//========================================================================================== 
+	// METHOD:  isEncapsulatedRuriKnownForOutput
+	//
+	// INPUT:   String (RURI)
+	// OUTPUT:  boolean
+	//
+	// PURPOSE: Determine if this RURI is known in the ontology and is an encapsulated output
+	//          of a GET operation.  (Note: current implementation extends only one
+	//          level deep, ie, one subclass.)
+	//========================================================================================== 
+
+	public boolean isEncapsulatedRuriKnownForOutput(String ruri) 
+	{
+		if (ruri == null)
+			return false;
+
+		String queryString = 
+				JasperOntologyConstants.PREFIXES +
+	             "ASK  WHERE " +
+	             "   {" +
+	             "      ?dta              a                dta:DTA        .\n" +
+	             "      ?dta              dta:operation    ?operation     .\n" +
+	             "      ?operation        dta:kind         dta:Get        .\n" +
+	             "      ?operation        dta:output       ?superRuri     .\n" +
+	             "      ?superRuri        rdfs:range       ?superType     .\n" +
+	             "      <" + ruri + ">    rdfs:domain      ?superType     \n" +
+	             "   }" ;
+		
 		try{
 			Query query = QueryFactory.create(queryString) ;
 			QueryExecution qexec = QueryExecutionFactory.create(query, model);
@@ -330,7 +416,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	// PURPOSE: Return a list of provide type operations that return the RURI object.
 	//========================================================================================== 
 
-	private ArrayList<String> getProvideOperations(String ruri) 
+	public ArrayList<String> getProvideOperations(String ruri) 
 	{
 		if (ruri == null)
 			return null;
@@ -341,7 +427,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	             "   {\n" +
 	             "      ?dta              a                dta:DTA        .\n" +
 	             "      ?dta              dta:operation    ?operation     .\n" +
-	             "      ?operation        a                dta:Provide    .\n" +
+	             "      ?operation        dta:kind         dta:Get        .\n" +
 	             "      ?operation        dta:output       <" + ruri + ">  \n" +
 	             "   }" ;
 		
@@ -370,10 +456,10 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	//
 	// PURPOSE: Return a list of provide type operations that return an object that
 	//          encapsulates the RURI.  (Note: current implementation extends only one
-	//          level deep, ie, one one subclass.)
+	//          level deep, ie, one subclass.)
 	//========================================================================================== 
 
-	private ArrayList<String> getProvideOperationsEncapsulated(String ruri) 
+	public ArrayList<String> getProvideOperationsEncapsulated(String ruri) 
 	{
 		if (ruri == null)
 			return null;
@@ -384,12 +470,12 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	             "   {\n" +
 	             "      ?dta              a                dta:DTA        .\n" +
 	             "      ?dta              dta:operation    ?operation     .\n" +
-	             "      ?operation        a                dta:Provide    .\n" +
+	             "      ?operation        dta:kind         dta:Get        .\n" +
 	             "      ?operation        dta:output       ?superRuri     .\n" +
-	             "      ?ruriProp         rdfs:domain      ?superRuri     .\n" +
-	             "      ?ruriProp         rdfs:range       <" + ruri + ">  \n" +
+	             "      ?superRuri        rdfs:range       ?superType     .\n" +
+	             "      <" + ruri + ">    rdfs:domain      ?superType     \n" +
 	             "   }" ;
-		
+				
 		Query query = QueryFactory.create(queryString) ;
 		QueryExecution qexec = QueryExecutionFactory.create(query, model);
 		ArrayList<String> array = new ArrayList<String>();
@@ -416,7 +502,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	// PURPOSE: Retrieves the input object(s) for the the provide operation.
 	//========================================================================================== 
 
-	private String getProvideOperationInputObject(String oper) 
+	public String getProvideOperationInputObject(String oper) 
 	{
 		if (oper == null)
 			return null;
@@ -427,7 +513,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	             "   {\n" +
 	             "      ?dta            a              dta:DTA        .\n" +
 	             "      ?dta            dta:operation  <" + oper + "> .\n" +
-	             "      <" + oper + ">  a              dta:Provide    .\n" +
+	             "      <" + oper + ">  dta:kind       dta:Get        .\n" +
 	             "      <" + oper + ">  dta:input      ?input          \n" +
 	             "   }" ;
 
@@ -458,7 +544,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	//          this RURI.
 	//========================================================================================== 
 
-	private String getProvideDestinationQueue(String oper) 
+	public String getProvideDestinationQueue(String oper) 
 	{
 		if (oper == null)
 			return null;
@@ -469,7 +555,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 	             "   {\n" +
 	             "      ?dta            a                dta:DTA        .\n" +
 	             "      ?dta            dta:operation    <" + oper + "> .\n" +
-	             "      <" + oper + ">  a                dta:Provide    .\n" +
+	             "      <" + oper + ">  dta:kind         dta:Get        .\n" +
 	             "      <" + oper + ">  dta:destination  ?dest           \n" +
 	             "   }" ;
 		
@@ -483,7 +569,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 			for ( ; results.hasNext() ; )
 			{
 				QuerySolution soln = results.nextSolution();
-				array.add(soln.get("dest").toString());
+				array.add(soln.get("dest").asLiteral().getString());
 				
 			}
 		}
@@ -509,7 +595,7 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 		JsonObject objDesc = new JsonObject();
 		JsonArray reqArray = new JsonArray();
 
-		if (!isRuriKnown(inputObject))
+		if (!isRuriKnownForInputGet(inputObject))
 		{
 			return null;
 		}
@@ -764,71 +850,60 @@ public class DelegateOntology implements EntryListener<String, String[]>{
 		return result;
 	}
 
-	public Model getModel() {
+	public OntModel getModel() {
 		return model;
 	}
 	
-	public void add(String jtaName, String[] statement) {
-		if(jtaName != null && jtaName.length() > 0 && statement != null && statement.length == 3){
-			jtaStatements.put(jtaName, statement);
-		}
-	}
-	
-	public void remove(String jtaName) {
-		if(jtaName != null && jtaName.length() > 0){
-			jtaStatements.remove(jtaName);
-		}
-	}
+    public void add(String dtaName, String triples) {
+        if(dtaName != null && dtaName.length() > 0 && triples != null && triples.length() > 0){
+                dtaTriples.put(dtaName, triples);
+        }else{
+                logger.warn("trying to add an invalid entry to our dtaTriples Map. dtaName : " + dtaName + " triples : " + triples);
+        }
+    }
+		
+    public void remove(String dtaName) {
+        if(dtaName != null && dtaName.length() > 0){
+                dtaTriples.remove(dtaName);
+        }else{
+                logger.warn("trying to remove an invalid entry from our dtaTriples Map. dtaName : " + dtaName);
+        }
+    }
+        
+    public void entryAdded(EntryEvent<String, String> entryEvent) {
+        String dtaName = entryEvent.getKey();
+        String triples = entryEvent.getValue();
+        if(dtaSubModels.containsKey(dtaName)){
+                logger.warn("adding a new subModel using same dtaName, removing old subModel for : " + dtaName);
+                Model subModel = dtaSubModels.remove(dtaName);
+                model.removeSubModel(subModel);
+        }
 
-	public void entryAdded(EntryEvent<String, String[]> entryEvent) {
-		String[] sArray = entryEvent.getValue();      
-        Resource s = model.getResource(sArray[0]);
-    	Property p = model.getProperty(sArray[1]);
-		RDFNode o = model.getResource(sArray[2]);
-		Statement statements = model.createStatement(s, p, o);
-		model.add(statements);
-		
-	}
+        Model subModel = ModelFactory.createDefaultModel();
+        InputStream in = new ByteArrayInputStream(triples.getBytes());
+        subModel.read(in,"","TURTLE");
+        model.addSubModel(subModel);
+        dtaSubModels.put(dtaName, subModel);
+    }
+    
+    public void entryEvicted(EntryEvent<String, String> event) {
+        logger.warn("entry Evicted" + event);;
+    }
+    
+    public void entryRemoved(EntryEvent<String, String> entryEvent){
+        String dtaName = entryEvent.getKey();
+        if(dtaSubModels.containsKey(dtaName)){
+                Model subModel = dtaSubModels.remove(dtaName);
+                model.removeSubModel(subModel);
+                if(logger.isInfoEnabled()){
+                        logger.info("removing subModel for dta : " + dtaName);
+                }
+        }else{
+                logger.warn("trying to remove dtaName that does not exist in map : " + dtaName);
+        }
+    }
 
-	public void entryEvicted(EntryEvent<String, String[]> event) {
-		logger.warn("entry Evicted" + event);;
-	}
-
-	public void entryRemoved(EntryEvent<String, String[]> entryEvent){
-		if(!(entryEvent.getValue() instanceof String[])){
-			logger.warn("entryRemoved value is not of the type String[], ignoring event and not updating model");
-			return;
-		}
-		
-		if(entryEvent.getValue().length != 3){
-			logger.warn("entryRemoved value String[] is not a triple, ignoring event and not updating model");
-			return;
-		}
-		
-		String[]val = entryEvent.getValue();
-		
-		if(logger.isInfoEnabled()){
-			logger.info("removing entry " + val[0] + " " + val[1] + " " + val[2] + " for key : " + entryEvent.getKey());
-		}
-		
-		if(!jtaStatements.containsValue(val)){
-			Resource s = model.getResource(val[0]);
-			Property p = model.getProperty(val[1]);
-			RDFNode o = model.getResource(val[2]);
-			Statement statements = model.createStatement(s, p, o);
-			model.remove(statements);
-			if(logger.isDebugEnabled()){
-				logger.debug("removing entry from model: " + statements);
-			}
-		}else{
-			if(logger.isDebugEnabled()){
-				logger.debug("duplicate entry in model belonging to another JTA, ignoring the removal from the model for triple : " +  val[0] + " " + val[1] + " " + val[2]);
-			}
-		}
-					
-	}
-
-	public void entryUpdated(EntryEvent<String, String[]> event) {
-		if(logger.isInfoEnabled())logger.info("entry uptdated - event = " + event);
-	}
+    public void entryUpdated(EntryEvent<String, String> event) {
+        if(logger.isInfoEnabled())logger.info("entry uptdated - event = " + event);
+    }
 }

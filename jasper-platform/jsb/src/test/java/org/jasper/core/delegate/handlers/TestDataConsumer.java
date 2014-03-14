@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.jms.Connection;
 import javax.jms.Destination;
 import javax.jms.Message;
 import javax.jms.TextMessage;
@@ -29,7 +28,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 //
 public class TestDataConsumer extends TestCase {
@@ -41,7 +41,7 @@ public class TestDataConsumer extends TestCase {
 	private DataConsumer classUnderTest;
 	private DataHandler dataHandler;
 	private PersistenceFacade cachingSys;
-	private Model model;
+	private OntModel model;
 	private DelegateOntology jOntology;
 	private String ipAddr;
 	private String ruri = "http://coralcea.ca/jasper/hrData";
@@ -148,7 +148,7 @@ public class TestDataConsumer extends TestCase {
 	public void setUp() throws Exception {
 		MockitoAnnotations.initMocks(this);
 		ipAddr        = InetAddress.getLocalHost().getHostAddress();
-		model = ModelFactory.createDefaultModel();
+		model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
 		for(String prefix:JasperOntologyConstants.PREFIX_MAP.keySet()){
 			model.setNsPrefix(prefix, JasperOntologyConstants.PREFIX_MAP.get(prefix));
 		}

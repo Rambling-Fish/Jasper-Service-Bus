@@ -8,13 +8,14 @@ import org.jasper.core.UDE;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JasperOntologyConstants;
 
-import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 
 public class DelegateFactory{
 
 	private Connection connection;
-    private Model model;
+    private OntModel model;
     private DelegateOntology jOntology;
 	private UDE ude;
 
@@ -37,7 +38,7 @@ public class DelegateFactory{
 	}
 	
     private void initializeModel() {
-        model = ModelFactory.createDefaultModel();
+    	model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
         for(String prefix:JasperOntologyConstants.PREFIX_MAP.keySet()){
         	model.setNsPrefix(prefix, JasperOntologyConstants.PREFIX_MAP.get(prefix));
         }
