@@ -86,7 +86,7 @@ public class TestPersistence extends TestCase {
 		Destination replyTo = null;
 		List<Trigger> triggerList;
 		PersistedObject obj = new PersistedObject("key", "correlationId", "request", "ruri", "dtaParms",
-				replyTo, false, "UDEInstance", "output", "version", "contentType", "GET");
+				replyTo, false, "UDEInstance", "output", "version", "contentType", "GET", 10);
 		
 		// test all getters
 		String contentType = obj.getContentType();

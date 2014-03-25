@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -27,6 +28,7 @@ import org.jasper.jsc.Response;
 import org.jasper.jsc.constants.RequestHeaders;
 import org.jasper.jsc.constants.ResponseHeaders;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -261,6 +263,7 @@ public class JscServlet extends HttpServlet {
 	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 		Map<String,String> parameters = new HashMap<String, String>();
+		Map<String,String> headers = this.getHeaders(request);
 		String contentType = request.getHeader(RequestHeaders.CONTENT_TYPE);
 		String ruri = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):null;
 	
@@ -272,9 +275,16 @@ public class JscServlet extends HttpServlet {
 	        	JsonElement jelement = new JsonParser().parse(line);
 	    		JsonObject jsonObj = jelement.getAsJsonObject();
 	    		if(jsonObj.has(RequestHeaders.PARAMETERS_LABEL)){
-	    			JsonObject parms = jsonObj.getAsJsonObject(RequestHeaders.PARAMETERS_LABEL);
-	    			for (Entry<String, JsonElement> key_val: parms.entrySet()) {
-	    	            parameters.put(key_val.getKey(), key_val.getValue().getAsString());
+	    			JsonElement elem = jsonObj.get(RequestHeaders.PARAMETERS_LABEL);
+	    			if(elem.isJsonObject()){
+	    				JsonObject parms = jsonObj.getAsJsonObject(RequestHeaders.PARAMETERS_LABEL);
+	    				for (Entry<String, JsonElement> key_val: parms.entrySet()) {
+	    					parameters.put(key_val.getKey(), key_val.getValue().getAsString());
+	    				}
+	    			}
+	    			else if(elem.isJsonArray()){
+	    				JsonArray parmsArray = jsonObj.getAsJsonArray(RequestHeaders.PARAMETERS_LABEL);
+	    				parameters.put("parmsArray", parmsArray.toString());
 	    			}
 	    		}
 	        }
@@ -283,7 +293,7 @@ public class JscServlet extends HttpServlet {
 	        log.error("doPost() couldn't get the post data body ", e); 
 	    }
 		
-		Request jReq = new Request(Method.POST, ruri, null, parameters);
+		Request jReq = new Request(Method.POST, ruri, headers, parameters);
 		Response jscResponse = jsc.post(jReq);
 		contentType = (jscResponse.getHeaders().containsKey(ResponseHeaders.CONTENT_TYPE))?jscResponse.getHeaders().get(ResponseHeaders.CONTENT_TYPE):"application/json";
 		response.setContentType(contentType );

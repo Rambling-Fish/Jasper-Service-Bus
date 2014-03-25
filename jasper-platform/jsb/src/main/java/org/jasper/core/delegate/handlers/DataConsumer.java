@@ -1,7 +1,9 @@
 package org.jasper.core.delegate.handlers;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -12,14 +14,6 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonNull;
-import com.hp.hpl.jena.reasoner.ValidityReport.Report;
-
 import org.apache.log4j.Logger;
 import org.jasper.core.UDE;
 import org.jasper.core.constants.JasperConstants;
@@ -29,7 +23,12 @@ import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.persistence.PersistedObject;
-import org.mule.ResponseOutputStream;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.hazelcast.core.MultiMap;
 
 public class DataConsumer implements Runnable {
 
@@ -51,6 +50,7 @@ public class DataConsumer implements Runnable {
 	private String contentType;
 	private String method;
 	private JsonParser jsonParser;
+	private MultiMap<String,PersistedObject> registeredListeners;
 
 	
 	private static Logger logger = Logger.getLogger(DataConsumer.class.getName());
@@ -69,6 +69,7 @@ public class DataConsumer implements Runnable {
 		try{
 			workQueue  = ude.getCachingSys().getQueue("tasks");
 			sharedData = (Map<String, PersistedObject>) ude.getCachingSys().getMap("sharedData");
+			registeredListeners = (MultiMap<String, PersistedObject>) ude.getCachingSys().getMultiMap("registeredListeners");
 			do{
 				statefulData = workQueue.take();
 				if(statefulData != null){
@@ -80,7 +81,7 @@ public class DataConsumer implements Runnable {
 						logger.debug("  RECEIVED MSG on " +  statefulData.getUDEInstance());
 						logger.debug("**************************************");
 					}
-					processRequest(statefulData);
+					processRequest();
 				}
 				if (isShutdown) break;
 			} while (!isShutdown);
@@ -110,7 +111,7 @@ public class DataConsumer implements Runnable {
         removeSharedData();
 	}
 	
-	private void processRequest(PersistedObject statefulData) throws Exception {
+	private void processRequest() throws Exception {
   	    String request = statefulData.getRequest();
   	    JsonElement response;
   	    String xmlResponse = null;
@@ -122,8 +123,13 @@ public class DataConsumer implements Runnable {
 		version = statefulData.getVersion();
 		method = statefulData.getMethod();
 		
-		if(method.equalsIgnoreCase("POST")){
-			processPost(request, ruri);
+		if(method.equalsIgnoreCase(JasperConstants.SUBSCRIBE)){
+			processSubscribe();
+			return;
+		}
+		
+		if(method.equalsIgnoreCase(JasperConstants.POST) || method.equalsIgnoreCase(JasperConstants.PUBLISH)){
+			processPost(ruri, request);
 			return;
 		}
 		
@@ -153,7 +159,7 @@ public class DataConsumer implements Runnable {
   	    	while(true){
   	    		response = getResponse(ruri, parameters, processing_scheme);
   	    		if(response != null){
-  	    			if(isCriteriaMet(response)){
+  	    			if(isCriteriaMet(response, null)){
   	    				break;
   	    			}
   	    			else if(isNotificationExpired()){
@@ -493,8 +499,46 @@ public class DataConsumer implements Runnable {
 		}		
 	}
 	
-	private void processPost(String req, String ruri) throws Exception{
-		sendResponse("POST accepted");
+	private void processPost(String ruri, String request) throws Exception{
+		Collection<PersistedObject> storedObjs = registeredListeners.get(ruri);
+		if(dtaParms.contains("parmsArray")){
+			dtaParms = dtaParms.replaceFirst("parmsArray=", "");
+		}
+		Iterator<PersistedObject> it = storedObjs.iterator();
+		while(it.hasNext()){
+			PersistedObject pObj = (PersistedObject) it.next();
+			if(pObj.isNotificationRequest()){
+				JsonElement jelement = new JsonParser().parse(dtaParms);
+				if(isCriteriaMet(jelement, pObj)){
+					sendAsyncResponse(dtaParms, pObj);
+//					sendAsyncResponse(dtaParms,statefulData);//TODO remove after testing
+				}
+			}
+			else{
+				sendAsyncResponse(dtaParms, pObj);
+//				sendAsyncResponse(dtaParms,statefulData);//TODO remove after testing
+			}
+		}
+	}
+	
+	private void processSubscribe() throws Exception{
+		String ruri = statefulData.getRURI();
+		if(statefulData.getExpires() == 0){
+			// expires == 0 is an unsubscribe
+			Collection<PersistedObject> storedObjs = registeredListeners.get(ruri);
+			Iterator<PersistedObject> it = storedObjs.iterator();
+			while(it.hasNext()){
+				PersistedObject pObj = (PersistedObject) it.next();
+				if(pObj.getSubscriptionId().equalsIgnoreCase(statefulData.getSubscriptionId())){
+					registeredListeners.remove(ruri, pObj);
+					logger.warn("Removing subscription for " + ruri + " request: " + pObj.getRequest());
+				}
+			}
+		}
+		else{
+			registeredListeners.put(ruri, statefulData);
+			logger.warn("Adding subscription for " + ruri + " request: " + statefulData.getRequest());
+		}
 	}
 
 	private String getResponseFromQueue(String q, Map<String, String> map) throws JMSException {
@@ -558,21 +602,30 @@ public class DataConsumer implements Runnable {
         
 	}
 	
-	private boolean isCriteriaMet(JsonElement response){
+	private void sendAsyncResponse(String response, PersistedObject pData) throws JMSException {
+		JasperConstants.responseCodes code = JasperConstants.responseCodes.OK;
+		String jsonResponse = delegate.createJasperResponse(code, "Success", response, contentType, version);
+        Message message = delegate.createTextMessage(jsonResponse);      
+        String correlationID = pData.getCorrelationID();
+        if(correlationID == null) correlationID = pData.getKey();
+        message.setJMSCorrelationID(correlationID);
 		
-		//TODO need to change how we evaluate criteria
-		JsonArray responseArray;
-		if(response.isJsonArray()){
-			responseArray = response.getAsJsonArray();
-		}else{
-			responseArray = new JsonArray();
-			responseArray.add(response);
-		}
-		
+        delegate.sendMessage(pData.getReplyTo(), message);
+        removeSharedData();
+        
+	}
+	
+	private boolean isCriteriaMet(JsonElement response, PersistedObject pObj){
 		boolean result = false;
-		triggerList = statefulData.getTriggers();
+		if(pObj != null){
+			triggerList = pObj.getTriggers();
+		}
+		else{
+			triggerList = statefulData.getTriggers();
+		}
+	
 		for(int i=0;i<triggerList.size();i++){
-			if(triggerList.get(i).evaluate(responseArray)){
+			if(triggerList.get(i).evaluate(response)){
 				result = true;
 			}
 		}

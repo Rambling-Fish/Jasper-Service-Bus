@@ -47,7 +47,7 @@ public class TestTriggers extends TestCase {
 		JsonResponseParser parser = new JsonResponseParser();
 		
 		// test passing in empty array
-		List<Integer> list = parser.parse(response, RURI);
+		List<Float> list = parser.parse(response, RURI);
 		
 		// test valid array and a bad room temperature (NaN)
 		response.add(tmp1);
