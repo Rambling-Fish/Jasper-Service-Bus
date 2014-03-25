@@ -1,5 +1,6 @@
 package org.jasper.core.delegate.handlers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,14 +18,18 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonNull;
+import com.hp.hpl.jena.reasoner.ValidityReport.Report;
 
 import org.apache.log4j.Logger;
 import org.jasper.core.UDE;
 import org.jasper.core.constants.JasperConstants;
+import org.jasper.core.dataprocessor.DataProcessor;
+import org.jasper.core.dataprocessor.DataProcessorFactory;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.persistence.PersistedObject;
+import org.mule.ResponseOutputStream;
 
 public class DataConsumer implements Runnable {
 
@@ -45,6 +50,8 @@ public class DataConsumer implements Runnable {
 	private String version;
 	private String contentType;
 	private String method;
+	private JsonParser jsonParser;
+
 	
 	private static Logger logger = Logger.getLogger(DataConsumer.class.getName());
 
@@ -54,7 +61,8 @@ public class DataConsumer implements Runnable {
 		this.jOntology = jOntology;
 		this.locks = locks;
 		this.responses = responses;
-		this.isShutdown = false;
+		this.isShutdown = false;	
+		this.jsonParser = new JsonParser();
 	}
 
 	public void run() {
@@ -104,7 +112,7 @@ public class DataConsumer implements Runnable {
 	
 	private void processRequest(PersistedObject statefulData) throws Exception {
   	    String request = statefulData.getRequest();
-  	    JsonArray response;
+  	    JsonElement response;
   	    String xmlResponse = null;
   	    key = statefulData.getKey();
   	    String ruri = statefulData.getRURI();
@@ -118,11 +126,32 @@ public class DataConsumer implements Runnable {
 			processPost(request, ruri);
 			return;
 		}
+		
+		JsonElement jsonRequest = jsonParser.parse(statefulData.getRequest());
+  	    String processing_scheme;
+  	    if( jsonRequest.isJsonObject()
+  	    		&& jsonRequest.getAsJsonObject().has("headers") 
+  	    		&& jsonRequest.getAsJsonObject().get("headers").isJsonObject()
+  	    		&& jsonRequest.getAsJsonObject().get("headers").getAsJsonObject().has("processing-scheme")
+  	            && jsonRequest.getAsJsonObject().get("headers").getAsJsonObject().get("processing-scheme").isJsonPrimitive()
+  	            && jsonRequest.getAsJsonObject().get("headers").getAsJsonObject().get("processing-scheme").getAsJsonPrimitive().isString()){
+  	    	processing_scheme = jsonRequest.getAsJsonObject().get("headers").getAsJsonObject().get("processing-scheme").getAsJsonPrimitive().getAsString();
+  	    }else{
+  	    	processing_scheme = JasperConstants.DEFAULT_PROCESSING_SCHEME;
+  	    }
   	    
+  	    JsonObject parameters = new JsonObject();
+  	    if( jsonRequest.isJsonObject()
+  	    		&& jsonRequest.getAsJsonObject().has("parameters") 
+  	    		&& jsonRequest.getAsJsonObject().get("parameters").isJsonObject()){
+  	    	parameters = jsonRequest.getAsJsonObject().get("parameters").getAsJsonObject();
+  	    }
+		
+		
   	    if(statefulData.isNotificationRequest()){ 
   	    	polling = statefulData.getTriggers().get(0).getPolling();
   	    	while(true){
-  	    		response = getResponse(ruri, dtaParms);
+  	    		response = getResponse(ruri, parameters, processing_scheme);
   	    		if(response != null){
   	    			if(isCriteriaMet(response)){
   	    				break;
@@ -140,7 +169,7 @@ public class DataConsumer implements Runnable {
   	    	}
   	    }
   	    else{
-  	    	response = getResponse(ruri,dtaParms);
+  	    	response = getResponse(ruri, parameters, processing_scheme);;
   	    }
 
   	    if(response == null){
@@ -167,64 +196,286 @@ public class DataConsumer implements Runnable {
     	
 	}
 
-	private JsonArray getResponse(String ruri, String body) throws JMSException {		
-		JsonArray result = new JsonArray();
-		Map<String,String> paramsMap = getParams(body);
-        JsonArray queuesAndParams = jOntology.getQandParams(ruri, paramsMap);
-        if(queuesAndParams == null)return null;
-      	for(JsonElement j:queuesAndParams){
-      		String jta        = j.getAsJsonObject().get(DelegateOntology.JTA).getAsString();
-  			String q          = j.getAsJsonObject().get(DelegateOntology.QUEUE).getAsString();
-  			String provides   = j.getAsJsonObject().get(DelegateOntology.PROVIDES).getAsString();
-  			JsonObject jsonParams = (JsonObject) j.getAsJsonObject().get(DelegateOntology.PARAMS);
-  			Object param = null;
-  			Map<String,String> valuePair = new HashMap<String, String>();
-  			for(Entry<String, JsonElement> key : jsonParams.entrySet()){
-  	  			param = key.getValue();
-  				if(param instanceof JsonPrimitive){
-  					if(logger.isInfoEnabled()) logger.info("param " + key + " provided, no need to lookup, value = " + ((JsonPrimitive)param).getAsString());
-  					valuePair.put(key.getKey(), param.toString());
-  				}else if(param instanceof JsonArray){
-  					if(logger.isInfoEnabled()) logger.info("param " + key + " not provided need to lookup");
-  		  			JsonArray response = getResponse(key.getKey(), body);
-  		  			for(JsonElement index:response){
-  		  				if(index instanceof JsonObject || index instanceof JsonPrimitive){
-	  	  		  			JsonElement value = (index instanceof JsonObject)?((JsonObject)index).get(key.getKey()):index;
-	  	  		  			if(value.isJsonPrimitive()){
-	  	  		  				valuePair.put(key.getKey(), value.getAsString());
-	  	  		  			}else{
-	  	  		  			if(logger.isInfoEnabled()) logger.info("value is not String" + value);
-	  	  		  			}
-  	  		  			}else{
-  	  		  			if(logger.isInfoEnabled()) logger.info("index is neither JsonObject nor JsonString, index = " + index);
-  	  		  			}
-  		  			}
-  				}else{
-  					if(logger.isInfoEnabled()) logger.info("param is neither JsonString nor JsonArray, param = " + param);
-  				}
-  			}
+	private JsonElement getResponse(String ruri, JsonObject parameters, String processing_scheme) throws JMSException{		
+		if(!jOntology.isRuriKnownForOutputGet(ruri)) return null;
+		
+		DataProcessor dataProcessor = DataProcessorFactory.createDataProcessor(processing_scheme);
+		
+		ArrayList<String> operations = jOntology.getProvideOperations(ruri);
+		
+		//TODO re-write to do operations in parallel, currently done sequentially.
+		for(String operation:operations){
+			JsonObject inputObject = getInputObject(jOntology.getProvideOperationInputObject(operation),parameters);
+			if(inputObject == null) continue;
+			JsonElement response = sendAndWaitforResponse(jOntology.getProvideDestinationQueue(operation),inputObject.toString());
+			dataProcessor.add(extractRuriData(ruri, response));
+		}
+		
+		return dataProcessor.process();
+	}
 
-  			/*
-  			 * check to see if we have all the info the JTA needs before sending the request
-  			 */
-  			boolean isResolveable = true;
-  			for(String jtaParam:jOntology.getJtaParams(jta).toArray(new String[]{})){
-  				if(!valuePair.containsKey(jtaParam)) isResolveable = false;
-  			}
-  			
-  			if(!isResolveable){
-				if(logger.isInfoEnabled()) logger.info("the valuePair map doesn't have all the params the DTA needs, therefore we will not send request to DTA");
-				continue;
-  			}
-  			JsonParser parser = new JsonParser();
-  			JsonObject response = parser.parse(getResponseFromQueue(q,valuePair)).getAsJsonObject();
+	private JsonElement extractRuriData(String ruri, JsonElement response) {
+	
+		if(response.isJsonPrimitive()){
+			//if primitive assume it is the data we want.
+			return response;
+		}else if(response.isJsonObject()){
+			
+			JsonObject responseObject = response.getAsJsonObject();
+			if(responseObject.has("@type") && responseObject.get("@type").isJsonPrimitive() && responseObject.get("@type").getAsJsonPrimitive().isString()){
+				String atType = responseObject.get("@type").getAsJsonPrimitive().getAsString();
+				if(jOntology.isRuriSubPropteryOf(ruri, atType)){	
+					return response;
+				}
+			}
+			
+			//Check 1 level deep
+			for(Entry<String, JsonElement> entry : responseObject.entrySet()){
+				if(entry.getKey().equals(ruri)) return entry.getValue();
+			}
+			
+			//check n level deep
+			for(Entry<String, JsonElement> entry : responseObject.entrySet()){
+				JsonElement tmpResponse = extractRuriData(ruri, entry.getValue());
+				if(tmpResponse != null) return tmpResponse;
+			}
+			
+			/* if we get here then we can assume that the the object is the data we are looking for as along
+			 * as it doesn't have an @type property, because if it did then it should have matched above 
+			 */
+			return (responseObject.has("@type"))?null:responseObject;
+			
+		}else if(response.isJsonArray()){
+			
+			JsonArray responseArray = response.getAsJsonArray();
+			JsonArray array = new JsonArray();
+	
+			for(JsonElement item : responseArray){
+				JsonElement tmpItem = extractRuriData(ruri, item);
+				if(tmpItem != null) array.add(tmpItem);
+			}
+			return (array.size()>0)?array:null;
+		}
+		
+		return null;
+	}
 
-  			JsonElement r = (response.get(provides)==null)?response:response.get(provides);
-  			if( r !=null && !(r instanceof JsonNull) )result.add(r);
-      	}
-      	return result;
+	private JsonElement sendAndWaitforResponse(String provideDestinationQueue, String msgText) throws JMSException {
+		Message msg = delegate.createTextMessage(msgText);	
+		
+        String correlationID = UUID.randomUUID().toString();
+        msg.setJMSCorrelationID(correlationID);
+        
+        Message response;
+        Object lock = new Object();
+		synchronized (lock) {
+			locks.put(correlationID, lock);
+		    delegate.sendMessage(provideDestinationQueue, msg);
+		    int count = 0;
+		    while(!responses.containsKey(correlationID)){
+		    	try {
+					lock.wait(10000);
+				} catch (InterruptedException e) {
+					logger.error("Interrupted while waiting for lock notification",e);
+				}
+		    	count++;
+		    	if(count >= 6)break;
+		    }
+		    response = responses.remove(correlationID);
+		}
+
+		String responseString = null;
+		if(response != null && response.getJMSCorrelationID().equals(correlationID) && response instanceof TextMessage){
+			responseString = ((TextMessage)response).getText();
+		}
+		
+		JsonElement responseObject = null;
+		try{
+			responseObject = jsonParser.parse(responseString);
+		}catch (Exception e){
+			logger.error("response from DTA is not a valid JsonReponse, response string = " + responseString);
+		}
+			
+		return responseObject;
+	}
+
+	private JsonObject getInputObject(String ruri, JsonObject parameters) throws JMSException {
+			
+			JsonObject schema = jOntology.createJsonSchema(ruri);
+			
+			if(schema.has("required")){
+				if(!isAllRequiredParametersPassed(schema.get("required").getAsJsonArray(),parameters)){
+					//TODO add more info regarding which parameter is missing
+					return null;
+				}	
+			}
+			
+			JsonObject result = new JsonObject();
+			
+			if(!schema.has("type")){
+				System.out.println("invalid schema missing, type.");
+				return null;
+			}
+			
+			String type = schema.getAsJsonPrimitive("type").getAsString();
+
+			if(!"object".equals(type)){
+				//TODO change to logger
+				System.out.println("ruri " + ruri + " is not of type object, all input objects must be of type object. Returning NULL");
+				return null;
+			}
+			
+			if(schema.has("id")){
+				result.add("@type", schema.getAsJsonPrimitive("id"));
+			}
+			
+			if(!schema.has("properties")){
+				System.out.println("no properites to add, returing result");
+				return result;
+			}else if(!schema.get("properties").isJsonObject()){
+				System.out.println("invalid schema properites is not of type object, returning null.");
+				return null;
+			}
+			
+			JsonObject properties = schema.get("properties").getAsJsonObject();
+			
+			for(Entry<String, JsonElement> entry:properties.entrySet()){
+				if(!parameters.has(entry.getKey())){
+					//TODO change to logger
+					System.out.println("property " + entry.getKey() + " is not passed as parameter, it is not mandatory (we would have failed earlier if it was), ignoring property.");
+					continue;
+				}
+				
+				String propertyName = entry.getKey();
+				JsonObject propertySchema = entry.getValue().getAsJsonObject();
+				JsonElement property = parameters.get(propertyName);
+				
+				if(isValidJsonObject(propertySchema,property)){
+					result.add(propertyName,property);
+				}else{
+					
+					JsonElement subPropertyResult = null;
+								
+					if(propertySchema.has("required") && isAllRequiredParametersPassed(propertySchema.get("required").getAsJsonArray(),propertySchema)){
+						if(property.isJsonObject()){
+							subPropertyResult = getInputObject(propertyName, property.getAsJsonObject());
+						}else{
+							System.out.println("cannot getInputObject of sub property " + propertyName + " and it passed parameters is not a jsonObject");
+						}
+					}else{
+						if(property.isJsonObject()){
+							String subPropertyProcessingScheme = (propertySchema.has("type") && "array".equals(property.getAsJsonObject().get("type").getAsString()))?JasperConstants.AGGREGATE_SCHEME:JasperConstants.COALESCE_SCHEME;
+							if(logger.isInfoEnabled()){
+								logger.info("sub property type : " + (property.getAsJsonObject().get("type")) + " setting processing scheme to : " + subPropertyProcessingScheme);
+							}
+							subPropertyResult = getResponse(propertyName,property.getAsJsonObject(),subPropertyProcessingScheme);
+						}else{
+							System.out.println("cannot getInputObject of sub property " + propertyName + " and it passed parameters is not a jsonObject");
+						}
+
+					}
+					
+					
+					if(subPropertyResult == null && isPropertyRequired(propertyName,schema)){
+						System.out.println("cannot fetch or build property " + propertyName + " and it is required, therefore we cannot build the object, returning null");
+						return null;
+					}else if(subPropertyResult == null){
+						System.out.println("cannot fetch or build property " + propertyName + " and it is not required, ignoring");
+					}else{
+						result.add(propertyName, subPropertyResult);
+					}
+				}
+				
+			}
+			
+			
+			return result;
+		}
+	
+	private boolean isPropertyRequired(String propertyName,JsonObject schema) {
+		if(!schema.has("required")) return true;
+		
+		JsonElement required = schema.get("required");
+		
+		if(!required.isJsonArray()){
+			System.out.println("property " + propertyName + " schema has required JsonElement that is not a JsonArray, this is an invalid schema, returning that the property is required as default behaviour");
+			return true;
+		}
+		
+		for(JsonElement entry:required.getAsJsonArray()){
+			if(propertyName.equals(entry.getAsString())) return true;
+		}
+		
+		return false;
 	}
 	
+	private boolean isValidJsonObject(JsonObject propertySchema,	JsonElement property) {
+		if(!propertySchema.has("type")){
+			System.out.println("invalid schema missing, type.");
+			return false;
+		}
+				
+		String type = propertySchema.getAsJsonPrimitive("type").getAsString();
+		
+		switch (type){
+		case "object":
+			JsonObject properties = propertySchema.get("properties").getAsJsonObject();
+			if(!property.isJsonObject()) return false;
+			
+			if(propertySchema.has("required")){
+				
+				if(!property.isJsonObject()){
+					System.out.println("property is not JsonObject: " + property);
+				}
+				
+				if(!isAllRequiredParametersPassed(propertySchema.get("required").getAsJsonArray(),property.getAsJsonObject() )){
+					//TODO add more info regarding which parameter is missing
+					return false;
+				}	
+			}
+			
+			
+			for(Entry<String, JsonElement> entry:properties.entrySet()){
+				String subPropertyName = entry.getKey();
+				JsonObject subPropertySchema = entry.getValue().getAsJsonObject();
+				if(!isValidJsonObject(subPropertySchema, property.getAsJsonObject().get(subPropertyName))){
+					return false;
+				}
+			}		
+			return true;
+		case "string":
+			return (property.isJsonPrimitive() && property.getAsJsonPrimitive().isString());
+		case "array":
+			//TODO add array validation
+			return false;
+		case "integer":
+			return (property.isJsonPrimitive() && property.getAsJsonPrimitive().isNumber());
+		case "boolean":
+			return (property.isJsonPrimitive() && property.getAsJsonPrimitive().isBoolean());
+		}
+		
+		return true;
+	}
+
+
+	private boolean isAllRequiredParametersPassed(JsonArray jsonArray, JsonObject parameters) {
+		boolean response = true;
+		for(JsonElement entry:jsonArray){
+			if(!(entry.isJsonPrimitive() && entry.getAsJsonPrimitive().isString() && parameters.has(entry.getAsString()))){
+				if(entry.isJsonPrimitive() && entry.getAsJsonPrimitive().isString()){
+					//TODO change to logger
+					System.out.println("required paramter missing : " + entry.getAsString());
+				}else{
+					//TODO change to logger
+					System.out.println("required paramter not primitive : " + entry);
+				}
+				response = false;
+			}
+		}
+		
+		return response;
+	}
+
 	/*
 	 * assumes the request will be in the format of ruri?param1=val1&parm2=val2
 	 * if there are no params, than we return an empty map, if there's an error,
@@ -307,11 +558,21 @@ public class DataConsumer implements Runnable {
         
 	}
 	
-	private boolean isCriteriaMet(JsonArray response){
+	private boolean isCriteriaMet(JsonElement response){
+		
+		//TODO need to change how we evaluate criteria
+		JsonArray responseArray;
+		if(response.isJsonArray()){
+			responseArray = response.getAsJsonArray();
+		}else{
+			responseArray = new JsonArray();
+			responseArray.add(response);
+		}
+		
 		boolean result = false;
 		triggerList = statefulData.getTriggers();
 		for(int i=0;i<triggerList.size();i++){
-			if(triggerList.get(i).evaluate(response)){
+			if(triggerList.get(i).evaluate(responseArray)){
 				result = true;
 			}
 		}

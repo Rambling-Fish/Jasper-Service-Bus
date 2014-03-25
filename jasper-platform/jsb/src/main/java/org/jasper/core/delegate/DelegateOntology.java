@@ -333,6 +333,34 @@ public class DelegateOntology implements EntryListener<String, String>{
 			return false;
 		}
 	}
+	
+	
+	//========================================================================================== 
+
+	//========================================================================================== 
+
+	public boolean isRuriSubPropteryOf(String parentRuri,String childUri) 
+	{
+		if(parentRuri == null || childUri == null) 	return false;
+		if(parentRuri.equals(childUri)) return true;
+
+		String queryString = 
+				JasperOntologyConstants.PREFIXES +
+	             "ASK  WHERE " +
+	             "   {" +
+	             "         <" + childUri + ">   rdfs:subPropertyOf+ <" + parentRuri + "> \n" +
+	             "   }" ;
+		
+		try{
+			Query query = QueryFactory.create(queryString) ;
+			QueryExecution qexec = QueryExecutionFactory.create(query, model);
+			return qexec.execAsk();
+		}catch(Exception ex){
+			logger.error("Exception caught while parsing request " + ex);
+			return false;
+		}
+	}
+	
 
 	//========================================================================================== 
 	// METHOD:  isRuriKnownForOutputGet
@@ -352,12 +380,22 @@ public class DelegateOntology implements EntryListener<String, String>{
 		String queryString = 
 				JasperOntologyConstants.PREFIXES +
 	             "ASK  WHERE " +
-	             "   {" +
+	             "   {{" +
 	             "         ?dta    a                               dta:DTA       .\n" +
 	             "         ?dta    dta:operation                   ?oper         .\n" +
 	             "         ?oper   dta:kind                        dta:Get       .\n" +
-	             "         ?oper   dta:output                      <" + ruri + "> \n" +
-	             "   }" ;
+	             "         ?oper   dta:output/rdfs:rdfs:subPropertyOf*                      <" + ruri + "> .\n" +
+	             "   }" + 
+	             "       UNION" +
+	             "   {" +
+	             "      ?dta              a                dta:DTA        .\n" +
+	             "      ?dta              dta:operation    ?operation     .\n" +
+	             "      ?operation        dta:kind         dta:Get        .\n" +
+	             "      ?operation        dta:output/rdfs:rdfs:subPropertyOf*       ?superRuri     .\n" +
+	             "      ?superRuri        rdfs:range       ?superType     .\n" +
+	             "      <" + ruri + ">    rdfs:domain      ?superType     .\n" +
+	             "   }}" ;
+	             ;
 		
 		try{
 			Query query = QueryFactory.create(queryString) ;
@@ -392,7 +430,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 	             "      ?dta              a                dta:DTA        .\n" +
 	             "      ?dta              dta:operation    ?operation     .\n" +
 	             "      ?operation        dta:kind         dta:Get        .\n" +
-	             "      ?operation        dta:output       ?superRuri     .\n" +
+	             "      ?operation        dta:output/rdfs:rdfs:subPropertyOf*       ?superRuri     .\n" +
 	             "      ?superRuri        rdfs:range       ?superType     .\n" +
 	             "      <" + ruri + ">    rdfs:domain      ?superType     \n" +
 	             "   }" ;
@@ -424,12 +462,21 @@ public class DelegateOntology implements EntryListener<String, String>{
 		String queryString = 
 				JasperOntologyConstants.PREFIXES +
 	             "SELECT ?operation  WHERE \n" +
-	             "   {\n" +
+	             "   {{\n" +
 	             "      ?dta              a                dta:DTA        .\n" +
 	             "      ?dta              dta:operation    ?operation     .\n" +
 	             "      ?operation        dta:kind         dta:Get        .\n" +
-	             "      ?operation        dta:output       <" + ruri + ">  \n" +
-	             "   }" ;
+	             "      ?operation        dta:output/rdfs:rdfs:subPropertyOf*       <" + ruri + ">  .\n" +
+	             "       }" +
+	             "       UNION" +
+	             "       {" +
+	             "      ?dta           a                dta:DTA        .\n" +
+	             "      ?dta           dta:operation    ?operation     .\n" +
+	             "      ?operation     dta:kind         dta:Get        .\n" +
+	             "      ?operation     dta:output/rdfs:rdfs:subPropertyOf*       ?superRuri     .\n" +
+	             "      ?superRuri     rdfs:range       ?superType     .\n" +
+	             "      <" + ruri + "> rdfs:domain      ?superType     .\n" +
+	             "   }}" ;
 		
 		Query query = QueryFactory.create(queryString) ;
 		QueryExecution qexec = QueryExecutionFactory.create(query, model);
@@ -468,14 +515,15 @@ public class DelegateOntology implements EntryListener<String, String>{
 				JasperOntologyConstants.PREFIXES +
 	             "SELECT ?operation  WHERE \n" +
 	             "   {\n" +
-	             "      ?dta              a                dta:DTA        .\n" +
-	             "      ?dta              dta:operation    ?operation     .\n" +
-	             "      ?operation        dta:kind         dta:Get        .\n" +
-	             "      ?operation        dta:output       ?superRuri     .\n" +
-	             "      ?superRuri        rdfs:range       ?superType     .\n" +
-	             "      <" + ruri + ">    rdfs:domain      ?superType     \n" +
+	             "      ?dta           a                dta:DTA        .\n" +
+	             "      ?dta           dta:operation    ?operation     .\n" +
+	             "      ?operation     dta:kind         dta:Get        .\n" +
+	             "      ?operation     dta:output/rdfs:rdfs:subPropertyOf*       ?superRuri     .\n" +
+//	             "      ?operation     dta:output       ?superRuri     .\n" +
+	             "      ?superRuri     rdfs:range       ?superType     .\n" +
+	             "      <" + ruri + "> rdfs:domain      ?superType     \n" +
 	             "   }" ;
-				
+		
 		Query query = QueryFactory.create(queryString) ;
 		QueryExecution qexec = QueryExecutionFactory.create(query, model);
 		ArrayList<String> array = new ArrayList<String>();
@@ -580,6 +628,10 @@ public class DelegateOntology implements EntryListener<String, String>{
 		return (array.size()==1)?array.get(0):null;	
 	}	
 	
+	public JsonObject createJsonSchema(String inputObject) {
+		return createJsonSchema(inputObject,true); 
+	}
+	
 	//========================================================================================== 
 	// METHOD:  createJsonSchema
 	//
@@ -589,8 +641,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 	//
 	// PURPOSE: Create the JSON-Schema for the input object.
 	//========================================================================================== 
-
-	public JsonObject createJsonSchema(String inputObject, boolean firstPass) 
+	private JsonObject createJsonSchema(String inputObject, boolean firstPass) 
 	{
 		JsonObject objDesc = new JsonObject();
 		JsonArray reqArray = new JsonArray();
