@@ -122,7 +122,6 @@ public class TestTriggers extends TestCase {
 		Trigger leCompareInt  = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "le", "25");
 		Trigger leCompareInt2 = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "le", "24");
 		Trigger badCompareInt = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "bad", "25");
-		Trigger left          = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, "23Q", "lt", "40");
 		Trigger right         = factory.createTrigger(COMPARE_INT, EXPIRY, POLLING, RURI, "lt", "http://jasper.com");
 
 		JsonArray response = new JsonArray();
@@ -142,7 +141,6 @@ public class TestTriggers extends TestCase {
 		TestCase.assertTrue(leCompareInt.evaluate(response));
 		TestCase.assertFalse(leCompareInt2.evaluate(response));
 		TestCase.assertFalse(badCompareInt.evaluate(response));
-		left.evaluate(response);
 		
 		//Test empty response passed into trigger
 		JsonArray responseEmpty = new JsonArray();

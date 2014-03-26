@@ -21,7 +21,11 @@ public class JsonResponseParser{
 				if(item.isJsonObject()){
 					JsonElement jelem = item.getAsJsonObject().get(ruri).getAsJsonPrimitive();
 					if(jelem != null){
-						list.add(Float.parseFloat(jelem.getAsString()));
+						try{
+							list.add(Float.parseFloat(jelem.getAsString()));
+						}catch(NumberFormatException ex){
+							// Do nothing as we do not add invalid data
+						}
 					}
 				}
 				else if(item.isJsonArray()){

@@ -46,7 +46,7 @@ public class CompareInt extends Trigger implements Serializable{
 		 
 		list = respParser.parse(response, left);
 		 
-		if(list.isEmpty()) return false;
+		if(list == null || list.isEmpty()) return false;
 		
 		return compare(list);
 		
