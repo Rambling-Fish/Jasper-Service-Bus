@@ -1,8 +1,14 @@
 package org.jasper.jsc;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jasper.jsc.constants.RequestConstants;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class Request {
 		
@@ -11,7 +17,7 @@ public class Request {
 	private Method method;
 	private String ruri;
 	private Map<String,String> headers;
-	private Map<String,String> parameters;
+	private JsonObject parameters;
 	private String rule;
 	private byte[] payload;
 	
@@ -33,11 +39,22 @@ public class Request {
 		this.method = method;
 		this.ruri = ruri;
 		this.headers = headers;
-		this.parameters = parameters;
+		this.parameters = parseParameters(parameters);
 		this.rule = rule;
 		this.payload = payload;
 	}
 	
+	private JsonObject parseParameters(Map<String, String> params) {
+		JsonObject result = new JsonObject();
+		JsonParser jParser = new JsonParser();
+		
+		for(Entry<String, String> entry:params.entrySet()){
+			result.add(entry.getKey(), jParser.parse(entry.getValue()));
+		}
+		
+		return result;
+	}
+
 	public String getVersion() {
 		return version;
 	}
@@ -60,10 +77,16 @@ public class Request {
 		this.headers = headers;
 	}
 	public Map<String, String> getParameters() {
-		return parameters;
+		 Map<String, String> result = new HashMap<String, String>();
+		
+		 for(Entry<String, JsonElement> entry:parameters.entrySet()){
+			 result.put(entry.getKey(), entry.getValue().toString());
+		 }
+		 
+		return result;
 	}
 	public void setParameters(Map<String, String> parameters) {
-		this.parameters = parameters;
+		this.parameters = parseParameters(parameters);
 	}
 	public String getRule() {
 		return rule;

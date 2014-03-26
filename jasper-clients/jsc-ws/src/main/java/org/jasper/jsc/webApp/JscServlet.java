@@ -169,6 +169,8 @@ public class JscServlet extends HttpServlet {
 					map.put(RequestHeaders.EXPIRES, str.replaceFirst(RequestHeaders.EXPIRES+"=", ""));
 				}else if(str.startsWith(RequestHeaders.POLL_PERIOD)){
 					map.put(RequestHeaders.POLL_PERIOD, str.replaceFirst(RequestHeaders.POLL_PERIOD+"=", ""));
+				}else if(str.startsWith(RequestHeaders.PROCESSING_SCHEME)){
+					map.put(RequestHeaders.PROCESSING_SCHEME, str.replaceFirst(RequestHeaders.PROCESSING_SCHEME+"=", ""));
 				}
 			}
     	}

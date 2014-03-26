@@ -9,6 +9,7 @@ public class RequestHeaders {
 	public static final String RESPONSE_TYPE    = "response-type";
 	public static final String RULE             = "rule";
 	public static final String PARAMETERS_LABEL = "parameters";
+	public static final String PROCESSING_SCHEME= "processing-scheme";
 	
 
 }

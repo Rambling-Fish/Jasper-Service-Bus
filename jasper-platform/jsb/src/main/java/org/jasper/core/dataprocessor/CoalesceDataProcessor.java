@@ -18,8 +18,13 @@ public class CoalesceDataProcessor implements DataProcessor{
     	if(logger.isInfoEnabled()){
     		logger.info("adding element : " + jsonElement);
     	}
-    	cache.add(jsonElement);
-    }
+    	//TODO add check that no duplicates are added
+    	if(jsonElement.isJsonArray()){
+    		cache.addAll(jsonElement.getAsJsonArray());
+    	}else{
+    		cache.add(jsonElement);
+    	}
+	}
     
     public JsonElement process(){
     	return coalesceOutput();

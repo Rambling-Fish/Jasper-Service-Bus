@@ -384,14 +384,14 @@ public class DelegateOntology implements EntryListener<String, String>{
 	             "         ?dta    a                               dta:DTA       .\n" +
 	             "         ?dta    dta:operation                   ?oper         .\n" +
 	             "         ?oper   dta:kind                        dta:Get       .\n" +
-	             "         ?oper   dta:output/rdfs:rdfs:subPropertyOf*                      <" + ruri + "> .\n" +
+	             "         ?oper   dta:output/rdfs:subPropertyOf*                      <" + ruri + "> .\n" +
 	             "   }" + 
 	             "       UNION" +
 	             "   {" +
 	             "      ?dta              a                dta:DTA        .\n" +
 	             "      ?dta              dta:operation    ?operation     .\n" +
 	             "      ?operation        dta:kind         dta:Get        .\n" +
-	             "      ?operation        dta:output/rdfs:rdfs:subPropertyOf*       ?superRuri     .\n" +
+	             "      ?operation        dta:output/rdfs:subPropertyOf*       ?superRuri     .\n" +
 	             "      ?superRuri        rdfs:range       ?superType     .\n" +
 	             "      <" + ruri + ">    rdfs:domain      ?superType     .\n" +
 	             "   }}" ;
@@ -430,7 +430,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 	             "      ?dta              a                dta:DTA        .\n" +
 	             "      ?dta              dta:operation    ?operation     .\n" +
 	             "      ?operation        dta:kind         dta:Get        .\n" +
-	             "      ?operation        dta:output/rdfs:rdfs:subPropertyOf*       ?superRuri     .\n" +
+	             "      ?operation        dta:output/rdfs:subPropertyOf*       ?superRuri     .\n" +
 	             "      ?superRuri        rdfs:range       ?superType     .\n" +
 	             "      <" + ruri + ">    rdfs:domain      ?superType     \n" +
 	             "   }" ;
@@ -466,14 +466,14 @@ public class DelegateOntology implements EntryListener<String, String>{
 	             "      ?dta              a                dta:DTA        .\n" +
 	             "      ?dta              dta:operation    ?operation     .\n" +
 	             "      ?operation        dta:kind         dta:Get        .\n" +
-	             "      ?operation        dta:output/rdfs:rdfs:subPropertyOf*       <" + ruri + ">  .\n" +
+	             "      ?operation        dta:output/rdfs:subPropertyOf*       <" + ruri + ">  .\n" +
 	             "       }" +
 	             "       UNION" +
 	             "       {" +
 	             "      ?dta           a                dta:DTA        .\n" +
 	             "      ?dta           dta:operation    ?operation     .\n" +
 	             "      ?operation     dta:kind         dta:Get        .\n" +
-	             "      ?operation     dta:output/rdfs:rdfs:subPropertyOf*       ?superRuri     .\n" +
+	             "      ?operation     dta:output/rdfs:subPropertyOf*       ?superRuri     .\n" +
 	             "      ?superRuri     rdfs:range       ?superType     .\n" +
 	             "      <" + ruri + "> rdfs:domain      ?superType     .\n" +
 	             "   }}" ;
@@ -518,7 +518,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 	             "      ?dta           a                dta:DTA        .\n" +
 	             "      ?dta           dta:operation    ?operation     .\n" +
 	             "      ?operation     dta:kind         dta:Get        .\n" +
-	             "      ?operation     dta:output/rdfs:rdfs:subPropertyOf*       ?superRuri     .\n" +
+	             "      ?operation     dta:output/rdfs:subPropertyOf*       ?superRuri     .\n" +
 //	             "      ?operation     dta:output       ?superRuri     .\n" +
 	             "      ?superRuri     rdfs:range       ?superType     .\n" +
 	             "      <" + ruri + "> rdfs:domain      ?superType     \n" +

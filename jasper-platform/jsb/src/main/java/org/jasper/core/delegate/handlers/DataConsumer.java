@@ -209,6 +209,7 @@ public class DataConsumer implements Runnable {
 			if(inputObject == null) continue;
 			JsonElement response = sendAndWaitforResponse(jOntology.getProvideDestinationQueue(operation),inputObject.toString());
 			dataProcessor.add(extractRuriData(ruri, response));
+//			dataProcessor.add(response);
 		}
 		
 		return dataProcessor.process();
@@ -222,12 +223,12 @@ public class DataConsumer implements Runnable {
 		}else if(response.isJsonObject()){
 			
 			JsonObject responseObject = response.getAsJsonObject();
-			if(responseObject.has("@type") && responseObject.get("@type").isJsonPrimitive() && responseObject.get("@type").getAsJsonPrimitive().isString()){
-				String atType = responseObject.get("@type").getAsJsonPrimitive().getAsString();
-				if(jOntology.isRuriSubPropteryOf(ruri, atType)){	
-					return response;
-				}
-			}
+//			if(responseObject.has("@type") && responseObject.get("@type").isJsonPrimitive() && responseObject.get("@type").getAsJsonPrimitive().isString()){
+//				String atType = responseObject.get("@type").getAsJsonPrimitive().getAsString();
+//				if(jOntology.isRuriSubPropteryOf(ruri, atType)){	
+//					return response;
+//				}
+//			}
 			
 			//Check 1 level deep
 			for(Entry<String, JsonElement> entry : responseObject.entrySet()){
@@ -235,15 +236,15 @@ public class DataConsumer implements Runnable {
 			}
 			
 			//check n level deep
-			for(Entry<String, JsonElement> entry : responseObject.entrySet()){
+			for(Entry<String, JsonElement> entry : responseObject.entrySet()){				
+				
+				if(entry.getValue().isJsonPrimitive()) continue;
+				
 				JsonElement tmpResponse = extractRuriData(ruri, entry.getValue());
 				if(tmpResponse != null) return tmpResponse;
 			}
 			
-			/* if we get here then we can assume that the the object is the data we are looking for as along
-			 * as it doesn't have an @type property, because if it did then it should have matched above 
-			 */
-			return (responseObject.has("@type"))?null:responseObject;
+			return responseObject;
 			
 		}else if(response.isJsonArray()){
 			
