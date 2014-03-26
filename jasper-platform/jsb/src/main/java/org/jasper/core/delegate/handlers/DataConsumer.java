@@ -129,7 +129,7 @@ public class DataConsumer implements Runnable {
 		}
 		
 		if(method.equalsIgnoreCase(JasperConstants.POST) || method.equalsIgnoreCase(JasperConstants.PUBLISH)){
-			processPost(ruri, request);
+			processPublish(ruri, request);
 			return;
 		}
 		
@@ -326,8 +326,7 @@ public class DataConsumer implements Runnable {
 			String type = schema.getAsJsonPrimitive("type").getAsString();
 
 			if(!"object".equals(type)){
-				//TODO change to logger
-				System.out.println("ruri " + ruri + " is not of type object, all input objects must be of type object. Returning NULL");
+				logger.info("ruri " + ruri + " is not of type object, all input objects must be of type object. Returning NULL");
 				return null;
 			}
 			
@@ -347,8 +346,7 @@ public class DataConsumer implements Runnable {
 			
 			for(Entry<String, JsonElement> entry:properties.entrySet()){
 				if(!parameters.has(entry.getKey())){
-					//TODO change to logger
-					System.out.println("property " + entry.getKey() + " is not passed as parameter, it is not mandatory (we would have failed earlier if it was), ignoring property.");
+					logger.info("property " + entry.getKey() + " is not passed as parameter, it is not mandatory (we would have failed earlier if it was), ignoring property.");
 					continue;
 				}
 				
@@ -469,11 +467,9 @@ public class DataConsumer implements Runnable {
 		for(JsonElement entry:jsonArray){
 			if(!(entry.isJsonPrimitive() && entry.getAsJsonPrimitive().isString() && parameters.has(entry.getAsString()))){
 				if(entry.isJsonPrimitive() && entry.getAsJsonPrimitive().isString()){
-					//TODO change to logger
-					System.out.println("required paramter missing : " + entry.getAsString());
+					logger.info("required paramter missing : " + entry.getAsString());
 				}else{
-					//TODO change to logger
-					System.out.println("required paramter not primitive : " + entry);
+					logger.info("required paramter not primitive : " + entry);
 				}
 				response = false;
 			}
@@ -499,7 +495,7 @@ public class DataConsumer implements Runnable {
 		}		
 	}
 	
-	private void processPost(String ruri, String request) throws Exception{
+	private void processPublish(String ruri, String request) throws Exception{
 		Collection<PersistedObject> storedObjs = registeredListeners.get(ruri);
 		if(dtaParms.contains("parmsArray")){
 			dtaParms = dtaParms.replaceFirst("parmsArray=", "");
@@ -511,12 +507,10 @@ public class DataConsumer implements Runnable {
 				JsonElement jelement = new JsonParser().parse(dtaParms);
 				if(isCriteriaMet(jelement, pObj)){
 					sendAsyncResponse(dtaParms, pObj);
-//					sendAsyncResponse(dtaParms,statefulData);//TODO remove after testing
 				}
 			}
 			else{
 				sendAsyncResponse(dtaParms, pObj);
-//				sendAsyncResponse(dtaParms,statefulData);//TODO remove after testing
 			}
 		}
 	}
