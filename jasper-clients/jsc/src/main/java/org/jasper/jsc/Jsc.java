@@ -214,6 +214,11 @@ public class Jsc implements MessageListener  {
 		if(listeners.containsKey(listener)){
 			return false;
 		}else{
+			Map<String,String> headers = request.getHeaders();
+			String subscriptionID = UUID.randomUUID().toString();
+			headers.put("subscription-id", subscriptionID);
+			request.setHeaders(headers);
+			request.setMethod(Method.SUBSCRIBE);
 			listeners.put(listener,request);
 			processAsyncRequest(listener,request);
 			return true;
@@ -221,7 +226,14 @@ public class Jsc implements MessageListener  {
 	}
 	
 	public boolean deregisterListener(Listener listener){
-		return (listeners.remove(listener) != null);
+		Request request = listeners.remove(listener);
+		if(request != null){
+			Map<String,String> headers = request.getHeaders();
+			headers.put(RequestHeaders.EXPIRES, "0");
+			request.setMethod(Method.SUBSCRIBE);
+			processAsyncRequest(listener,request);
+		}
+		return true;
 	}
 	
 	private void processAsyncRequest(Listener listener, Request request) {
@@ -242,13 +254,6 @@ public class Jsc implements MessageListener  {
 	private void processAsyncResponse(Message msg) throws JMSException {
 		Listener listener = asyncResponses.remove(msg.getJMSCorrelationID());
 		listener.processMessage(toResponsefromJson(((TextMessage)msg).getText()));
-		
-		try {
-			Thread.sleep(jscPollPeriod);
-		} catch (InterruptedException e) {
-			log.error("InterruptedException occured while processing response " + ((TextMessage)msg).getText());
-		}
-		processAsyncRequest(listener, listeners.get(listener));
 	}
 	
 	private Response processSyncRequest(Request request){
@@ -352,7 +357,7 @@ public class Jsc implements MessageListener  {
 	public void onMessage(Message msg) {
 		try{
 			if(msg.getJMSCorrelationID() == null){
-				log.warn("jms response message recieved with null JMSCorrelationID, ignoring message.");
+				log.warn("jms response message received with null JMSCorrelationID, ignoring message.");
 				return;
 			}
 
@@ -367,49 +372,12 @@ public class Jsc implements MessageListener  {
 			}else if (asyncResponses.containsKey(msg.getJMSCorrelationID())){
 				processAsyncResponse(msg);
 			}else{
-				log.error("response with correlationID = " + msg.getJMSCorrelationID() + " recieved however no record of sending message with this ID, ignoring");
+				log.error("response with correlationID = " + msg.getJMSCorrelationID() + " received however no record of sending message with this ID, ignoring");
 			}
 
 		} catch (JMSException e) {
-			log.error("Exception when storing response recieved in onMessage",e);
+			log.error("Exception when storing response received in onMessage",e);
 		}		
-	}
-
-	public static void main(String args[]){
-		Properties prop = new Properties();
-		
-		Jsc jsc = new Jsc(prop);
-		
-		Map<String,String> headers = new HashMap<String, String>();
-		headers.put(RequestHeaders.EXPIRES, "300");
-		headers.put(RequestHeaders.POLL_PERIOD, "50");
-		headers.put(RequestHeaders.CONTENT_TYPE, "application/json");
-		headers.put("x-coral-header-1", "adsfadsfadsfa");
-
-		Map<String,String> parameters = new HashMap<String, String>();
-		parameters.put("http://coralcea.ca/hrSID", "hrID-01");
-		parameters.put("http://coralcea.ca/bpSID", "bpID-01");
-		parameters.put("http://coralcea.ca/msSID", "001");
-		
-		Request request = new Request(Method.GET, "http://hrData.com/testingURI",headers,parameters,"","{}".getBytes());
-		
-		String jsonRequstString = jsc.toJsonFromRequest(request);
-		
-		Request parsedRequest = jsc.toRequestfromJson(jsonRequstString);
-		System.out.println(new String(parsedRequest.getPayload()));
-				
-		///#############################
-		
-		Map<String, String> respHeaders = new HashMap<String, String>();
-		respHeaders.put(ResponseHeaders.CONTENT_TYPE,"application/json");
-		Response response = new Response(200, "OK", "Successful request", respHeaders, "{\"name\" : \"abe web\"}".getBytes());
-		
-		String jsonResponseString = "{\"headers\":{\"content-type\":\"application/json\"},\"reason\":\"OK\",\"description\":\"OK\",\"payload\":[91,32,123,32,34,104,116,116,112,58,47,47,99,111,114,97,108,99,101,97,46,99,97,47,106,97,115,112,101,114,47,109,101,100,105,99,97,108,83,101,110,115,111,114,47,104,101,97,114,116,82,97,116,101,47,100,97,116,97,34,32,58,32,91,32,123,32,34,104,116,116,112,58,47,47,99,111,114,97,108,99,101,97,46,99,97,47,106,97,115,112,101,114,47,109,101,100,105,99,97,108,83,101,110,115,111,114,47,104,101,97,114,116,82,97,116,101,47,100,97,116,97,47,98,112,109,34,32,58,32,49,48,54,32,44,10,32,32,32,32,32,32,32,32,32,32,34,104,116,116,112,58,47,47,99,111,114,97,108,99,101,97,46,99,97,47,106,97,115,112,101,114,47,116,105,109,101,83,116,97,109,112,34,32,58,32,34,50,48,49,52,45,48,49,45,49,53,32,49,50,58,53,57,58,48,49,46,48,49,52,48,32,69,83,84,34,10,32,32,32,32,32,32,32,32,125,32,93,32,125,32,93],\"code\":200,\"version\":\"1.0\"}";
-				
-		Response parseResponse = jsc.toResponsefromJson(jsonResponseString);
-		System.out.println(jsonResponseString);		
-		System.out.println(new String(parseResponse.getPayload()));		
-
 	}
 	
 }

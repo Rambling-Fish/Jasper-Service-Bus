@@ -2,7 +2,7 @@ package org.jasper.core.notification.triggers;
 
 import java.io.Serializable;
 
-import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
 public class Trigger implements Serializable{
 		
@@ -20,7 +20,7 @@ public class Trigger implements Serializable{
 		
 	}
 	
-	public boolean evaluate(JsonArray response){
+	public boolean evaluate(JsonElement response){
 		return false;
 	}
 	

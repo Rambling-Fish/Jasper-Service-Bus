@@ -83,6 +83,7 @@ public class Delegate implements Runnable, MessageListener {
 	private String dtaParms;
 	private String ruri;
 	private String method;
+	private String subscriptionId;
 	private int expires;
 	private int pollPeriod;
 	private List<Trigger> triggerList;
@@ -340,7 +341,11 @@ public class Delegate implements Runnable, MessageListener {
 		 
 		// create object that contains stateful data
 		 statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, dtaParms,
-				 txtMsg.getJMSReplyTo(), false, null, output, version, contentType, method);
+				 txtMsg.getJMSReplyTo(), false, null, output, version, contentType, method, expires);
+		 
+		 if(subscriptionId != null){
+			 statefulData.setSubscriptionId(subscriptionId);
+		 }
 	  	   
 		 if(triggerList != null){
 			 statefulData.setTriggers(triggerList);
@@ -374,9 +379,9 @@ public class Delegate implements Runnable, MessageListener {
 			
 			if(ruri != null && version != null && method != null) {
 				validMsg = true;
-			}		
-
-			if((!method.equalsIgnoreCase("get")) && (!method.equalsIgnoreCase("post"))){
+			}	
+			
+			if(!isValidMethod(method)){
 				validMsg = false;
 				errorTxt = ("Invalid request type: " + method);
 			}
@@ -393,7 +398,12 @@ public class Delegate implements Runnable, MessageListener {
 					}
 				}
 				
-				dtaParms = sb.toString();
+				if(sb.indexOf("parmsArray") < 0){
+					dtaParms = parms.toString();
+				}
+				else{
+					dtaParms = sb.toString();
+				}
 			}
 			
 			if(jsonObj.has(JasperConstants.HEADERS_LABEL)){
@@ -418,6 +428,9 @@ public class Delegate implements Runnable, MessageListener {
 						break;
 					case JasperConstants.CONTENT_TYPE_LABEL :
 						contentType = headers.get(s);
+						break;
+					case JasperConstants.SUBSCRIPTION_ID_LABEL :
+						subscriptionId = headers.get(s);
 						break;
 					case JasperConstants.RESPONSE_TYPE_LABEL :
 						output = headers.get(s);
@@ -491,18 +504,27 @@ public class Delegate implements Runnable, MessageListener {
 				triggerList.add(trigger);
 			}
 			else{
-				logger.error("Invalid notification request received - cannot create trigger: " + triggerParms.toString());
+				logger.error("Invalid notification request received - cannot create rule: " + triggerParms.toString());
 			}
 		}		
 	}
 	
+	private boolean isValidMethod(String method){
+		if((!method.equalsIgnoreCase(JasperConstants.GET)) && (!method.equalsIgnoreCase(JasperConstants.POST))
+				&& (!method.equalsIgnoreCase(JasperConstants.SUBSCRIBE)) && (!method.equalsIgnoreCase(JasperConstants.PUBLISH))){
+			return false;
+		}
+		return true;
+	}
+	
 	private void cleanup(){
-		key          = null;
-		contentType  = null;
-		version      = null;
-		dtaParms     = null;
-		notification = null;
-		triggerList  = null;
+		key            = null;
+		contentType    = null;
+		version        = null;
+		dtaParms       = null;
+		notification   = null;
+		triggerList    = null;
+		subscriptionId = null;
 	}
 	
 }

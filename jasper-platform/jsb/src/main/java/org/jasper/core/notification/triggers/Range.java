@@ -4,9 +4,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gson.JsonArray;
 import org.apache.log4j.Logger;
 import org.jasper.core.notification.util.JsonResponseParser;
+
+import com.google.gson.JsonElement;
 
 public class Range extends Trigger implements Serializable{
 	private static final long serialVersionUID = -4016645138650948052L;
@@ -38,21 +39,21 @@ public class Range extends Trigger implements Serializable{
 	}
 	
 	@Override
-	public boolean evaluate(JsonArray ruriArray){
+	public boolean evaluate(JsonElement response){
 		JsonResponseParser respParser = new JsonResponseParser();
 		
-		if(ruriArray.size() == 0) return false;
-		
-		List<Integer> list = new ArrayList<Integer>();
-		list = respParser.parse(ruriArray, left);
+		if(response.isJsonNull()) return false;
+		List<Float> list = new ArrayList<Float>();
 		 
-		if(list.isEmpty()) return false;
+		list = respParser.parse(response, left);
+		 
+		if(list == null || list.isEmpty()) return false;
 		
 		return compare(list);
 		
 	}
 	
-	private boolean compare(List<Integer> list){
+	private boolean compare(List<Float> list){
 		boolean result = false;
 		for(int i=0;i<list.size();i++){
 			this.x = list.get(i);

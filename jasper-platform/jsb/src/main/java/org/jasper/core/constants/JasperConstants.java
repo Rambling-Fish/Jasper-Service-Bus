@@ -34,6 +34,12 @@ public class JasperConstants {
 	public static final String AGGREGATE_SCHEME = "aggregate";
 	public static final String COALESCE_SCHEME = "coalesce";
 	public static final String RESPONSE_TYPE_LABEL = "response-type";
+	public static final String SUBSCRIPTION_ID_LABEL = "subscription-id";
+	
+	public static final String GET = "get";
+	public static final String POST = "post";
+	public static final String PUBLISH = "publish";
+	public static final String SUBSCRIBE = "subscribe";
 	
 	public enum responseCodes{
 		OK(200, "OK"),
