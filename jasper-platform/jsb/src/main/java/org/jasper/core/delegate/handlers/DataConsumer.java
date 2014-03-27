@@ -37,7 +37,6 @@ public class DataConsumer implements Runnable {
 	private Map<String, Object> locks;
 	private Map<String, Message> responses;
 	private String output;
-	private String dtaParms;
 	private int polling;
 	private List<Trigger> triggerList;
 	private PersistedObject statefulData;
@@ -117,7 +116,6 @@ public class DataConsumer implements Runnable {
   	    String xmlResponse = null;
   	    key = statefulData.getKey();
   	    String ruri = statefulData.getRURI();
-  	    dtaParms = statefulData.getDtaParms();
 		output = statefulData.getOutput();
 		contentType = statefulData.getContentType();
 		version = statefulData.getVersion();
@@ -125,11 +123,6 @@ public class DataConsumer implements Runnable {
 		
 		if(method.equalsIgnoreCase(JasperConstants.SUBSCRIBE)){
 			processSubscribe();
-			return;
-		}
-		
-		if(method.equalsIgnoreCase(JasperConstants.POST) || method.equalsIgnoreCase(JasperConstants.PUBLISH)){
-			processPublish(ruri, request);
 			return;
 		}
 		
@@ -152,6 +145,11 @@ public class DataConsumer implements Runnable {
   	    		&& jsonRequest.getAsJsonObject().get("parameters").isJsonObject()){
   	    	parameters = jsonRequest.getAsJsonObject().get("parameters").getAsJsonObject();
   	    }
+  	    
+  	  if(method.equalsIgnoreCase(JasperConstants.POST) || method.equalsIgnoreCase(JasperConstants.PUBLISH)){
+			processPublish(ruri, parameters);
+			return;
+		}
 		
 		
   	    if(statefulData.isNotificationRequest()){ 
@@ -506,22 +504,25 @@ public class DataConsumer implements Runnable {
 		}		
 	}
 	
-	private void processPublish(String ruri, String request) throws Exception{
+	private void processPublish(String ruri, JsonElement parameters) throws Exception{
+		if(parameters.isJsonObject()
+  	    		&& parameters.getAsJsonObject().has("parmsArray") 
+  	    		&& parameters.getAsJsonObject().get("parmsArray").isJsonArray()){
+  	    	parameters = parameters.getAsJsonObject().get("parmsArray").getAsJsonArray();
+  	    }
 		Collection<PersistedObject> storedObjs = registeredListeners.get(ruri);
-		if(dtaParms.contains("parmsArray")){
-			dtaParms = dtaParms.replaceFirst("parmsArray=", "");
-		}
 		Iterator<PersistedObject> it = storedObjs.iterator();
 		while(it.hasNext()){
 			PersistedObject pObj = (PersistedObject) it.next();
 			if(pObj.isNotificationRequest()){
-				JsonElement jelement = new JsonParser().parse(dtaParms);
-				if(isCriteriaMet(jelement, pObj)){
-					sendAsyncResponse(dtaParms, pObj);
+				if(isCriteriaMet(parameters, pObj)){
+					sendAsyncResponse(parameters.toString(), pObj);
+					sendAsyncResponse(parameters.toString(), statefulData);
 				}
 			}
 			else{
-				sendAsyncResponse(dtaParms, pObj);
+				sendAsyncResponse(parameters.toString(), pObj);
+				sendAsyncResponse(parameters.toString(), statefulData);
 			}
 		}
 	}

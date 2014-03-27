@@ -207,7 +207,7 @@ public class JscServlet extends HttpServlet {
 		rule          = null;
 		StringBuilder sb = new StringBuilder();
     	if(request.getQueryString() !=null){
-    		String[] result = request.getQueryString().split("\\?");
+    		String[] result = (request.getQueryString().replaceAll("%22", "\"")).split("\\?");
     		
     		for(String str:result){
     			if(str.startsWith(RequestHeaders.RESPONSE_TYPE)  ||
