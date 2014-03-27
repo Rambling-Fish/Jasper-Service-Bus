@@ -22,29 +22,46 @@ public class Request {
 	private byte[] payload;
 	
 	public Request(Method method, String ruri, Map<String, String> headers) {
-		this(method, ruri, headers, null, null, null);
-	}
-	
-	public Request(Method method, String ruri, Map<String, String> headers, Map<String, String> parameters) {
-		this(method, ruri, headers, parameters, null, null);
-	}
-	
-	public Request(Method method, String ruri, Map<String, String> headers, Map<String, String> parameters, String rule) {
-		this(method, ruri, headers, parameters, rule, null);
-	}
-	
-	public Request(Method method, String ruri, Map<String, String> headers,
-			Map<String, String> parameters, String rule, byte[] payload) {
 		super();
 		this.method = method;
 		this.ruri = ruri;
 		this.headers = headers;
-		this.parameters = parseParameters(parameters);
+		this.parameters = null;
+		this.rule = null;
+		this.payload = null;
+	}
+	
+	public Request(Method method, String ruri, Map<String, String> headers, Map<String, String> parameters) {
+		this(method, ruri, headers, parseParameters(parameters), null, null);
+	}
+	
+	public Request(Method method, String ruri, Map<String, String> headers, Map<String, String> parameters, String rule) {
+		this(method, ruri, headers, parseParameters(parameters), rule, null);
+	}
+	
+	public Request(Method method, String ruri, Map<String, String> headers,	Map<String, String> parameters, String rule, byte[] payload) {
+		this(method, ruri, headers, parseParameters(parameters), rule, null);
+	}
+	
+	public Request(Method method, String ruri, Map<String, String> headers, JsonObject parameters) {
+		this(method, ruri, headers, parameters, null, null);
+	}
+	
+	public Request(Method method, String ruri, Map<String, String> headers, JsonObject parameters, String rule) {
+		this(method, ruri, headers, parameters, rule, null);
+	}
+	
+	public Request(Method method, String ruri, Map<String, String> headers,	JsonObject parameters, String rule, byte[] payload) {
+		super();
+		this.method = method;
+		this.ruri = ruri;
+		this.headers = headers;
+		this.parameters = parameters;
 		this.rule = rule;
 		this.payload = payload;
 	}
 	
-	private JsonObject parseParameters(Map<String, String> params) {
+	private static JsonObject parseParameters(Map<String, String> params) {
 		JsonObject result = new JsonObject();
 		JsonParser jParser = new JsonParser();
 		
@@ -76,7 +93,13 @@ public class Request {
 	public void setHeaders(Map<String, String> headers) {
 		this.headers = headers;
 	}
-	public Map<String, String> getParameters() {
+	public JsonObject getParameters() {
+		return parameters;
+	}
+	public void setParameters(JsonObject parameters) {
+		this.parameters = parameters;
+	}
+	public Map<String, String> getParametersAsMap() {
 		 Map<String, String> result = new HashMap<String, String>();
 		
 		 for(Entry<String, JsonElement> entry:parameters.entrySet()){
@@ -85,7 +108,7 @@ public class Request {
 		 
 		return result;
 	}
-	public void setParameters(Map<String, String> parameters) {
+	public void parseAndSetParameters(Map<String, String> parameters) {
 		this.parameters = parseParameters(parameters);
 	}
 	public String getRule() {

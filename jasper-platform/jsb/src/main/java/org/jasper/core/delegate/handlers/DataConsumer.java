@@ -369,7 +369,8 @@ public class DataConsumer implements Runnable {
 						}
 					}else{
 						if(property.isJsonObject()){
-							String subPropertyProcessingScheme = (propertySchema.has("type") && "array".equals(property.getAsJsonObject().get("type").getAsString()))?JasperConstants.AGGREGATE_SCHEME:JasperConstants.COALESCE_SCHEME;
+							
+							String subPropertyProcessingScheme = (propertySchema.has("type") && "array".equals(propertySchema.getAsJsonObject().get("type").getAsString()))?JasperConstants.AGGREGATE_SCHEME:JasperConstants.COALESCE_SCHEME;
 							if(logger.isInfoEnabled()){
 								logger.info("sub property type : " + (property.getAsJsonObject().get("type")) + " setting processing scheme to : " + subPropertyProcessingScheme);
 							}
@@ -448,14 +449,23 @@ public class DataConsumer implements Runnable {
 				}
 			}		
 			return true;
+		
+		//TODO update jOntology to return jsonScheme that matches json schema types, not xml schema
 		case "string":
+		case "String":
+		case "http://www.w3.org/2001/XMLSchema#string":
 			return (property.isJsonPrimitive() && property.getAsJsonPrimitive().isString());
 		case "array":
+		case "Array":
 			//TODO add array validation
 			return false;
 		case "integer":
+		case "Integer":
+		case "http://www.w3.org/2001/XMLSchema#integer":
 			return (property.isJsonPrimitive() && property.getAsJsonPrimitive().isNumber());
 		case "boolean":
+		case "Boolean":
+		case "http://www.w3.org/2001/XMLSchema#boolean":
 			return (property.isJsonPrimitive() && property.getAsJsonPrimitive().isBoolean());
 		}
 		

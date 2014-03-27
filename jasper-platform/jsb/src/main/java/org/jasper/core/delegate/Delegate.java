@@ -80,7 +80,7 @@ public class Delegate implements Runnable, MessageListener {
 	private String version;
 	private String notification;
 	private String output;
-	private String dtaParms;
+//	private String dtaParms;
 	private String ruri;
 	private String method;
 	private String subscriptionId;
@@ -340,7 +340,7 @@ public class Delegate implements Runnable, MessageListener {
 	  	    }
 		 
 		// create object that contains stateful data
-		 statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, dtaParms,
+		 statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, null,
 				 txtMsg.getJMSReplyTo(), false, null, output, version, contentType, method, expires);
 		 
 		 if(subscriptionId != null){
@@ -366,8 +366,8 @@ public class Delegate implements Runnable, MessageListener {
 		boolean validMsg = false;
 		expires = -1;
 		pollPeriod = -1;
-		JsonObject parms = new JsonObject();
-		StringBuilder sb = new StringBuilder();
+//		JsonObject parms = new JsonObject();
+//		StringBuilder sb = new StringBuilder();
 		
 		try {
 			JsonElement jelement = new JsonParser().parse(req);
@@ -386,25 +386,25 @@ public class Delegate implements Runnable, MessageListener {
 				errorTxt = ("Invalid request type: " + method);
 			}
 			
-			if(jsonObj.has(JasperConstants.PARAMETERS_LABEL)) {
-				parms = jsonObj.getAsJsonObject(JasperConstants.PARAMETERS_LABEL);
-				
-				int len = parms.entrySet().size();
-				for (Entry<String, JsonElement> key_val: parms.entrySet()) {
-    	            sb.append(key_val.getKey()).append("=").append(key_val.getValue().getAsString());
-					if(len > 1) {
-						sb.append("&");
-						len--;
-					}
-				}
-				
-				if(sb.indexOf("parmsArray") < 0){
-					dtaParms = parms.toString();
-				}
-				else{
-					dtaParms = sb.toString();
-				}
-			}
+//			if(jsonObj.has(JasperConstants.PARAMETERS_LABEL)) {
+//				parms = jsonObj.getAsJsonObject(JasperConstants.PARAMETERS_LABEL);
+//				
+//				int len = parms.entrySet().size();
+//				for (Entry<String, JsonElement> key_val: parms.entrySet()) {
+//    	            sb.append(key_val.getKey()).append("=").append(key_val.getValue().getAsString());
+//					if(len > 1) {
+//						sb.append("&");
+//						len--;
+//					}
+//				}
+//				
+//				if(sb.indexOf("parmsArray") < 0){
+//					dtaParms = parms.toString();
+//				}
+//				else{
+//					dtaParms = sb.toString();
+//				}
+//			}
 			
 			if(jsonObj.has(JasperConstants.HEADERS_LABEL)){
 				Map<String, String> headers = getMap(jsonObj.get(JasperConstants.HEADERS_LABEL).getAsJsonObject());
@@ -521,7 +521,7 @@ public class Delegate implements Runnable, MessageListener {
 		key            = null;
 		contentType    = null;
 		version        = null;
-		dtaParms       = null;
+//		dtaParms       = null;
 		notification   = null;
 		triggerList    = null;
 		subscriptionId = null;
