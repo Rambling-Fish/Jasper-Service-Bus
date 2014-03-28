@@ -50,6 +50,7 @@ public class DataConsumer implements Runnable {
 	private String method;
 	private JsonParser jsonParser;
 	private MultiMap<String,PersistedObject> registeredListeners;
+	private JsonArray matchedValues;
 
 	
 	private static Logger logger = Logger.getLogger(DataConsumer.class.getName());
@@ -194,9 +195,12 @@ public class DataConsumer implements Runnable {
   	    	xmlResponse = response.toString();
   	    	sendResponse(xmlResponse);
   	    }
-  	    else{
-  	    	sendResponse(response.toString());
-  	    }
+  	    else if(matchedValues != null && matchedValues.size() > 0){
+			sendResponse(matchedValues.toString());
+		}
+		else{
+			sendResponse(parameters.toString());
+		}
     	
 	}
 
@@ -516,13 +520,16 @@ public class DataConsumer implements Runnable {
 			PersistedObject pObj = (PersistedObject) it.next();
 			if(pObj.isNotificationRequest()){
 				if(isCriteriaMet(parameters, pObj)){
-					sendAsyncResponse(parameters.toString(), pObj);
-					sendAsyncResponse(parameters.toString(), statefulData);
+					if(matchedValues != null && matchedValues.size() > 0){
+						sendAsyncResponse(matchedValues.toString(), pObj);
+					}
+					else{
+						sendAsyncResponse(parameters.toString(), pObj);
+					}
 				}
 			}
 			else{
 				sendAsyncResponse(parameters.toString(), pObj);
-				sendAsyncResponse(parameters.toString(), statefulData);
 			}
 		}
 	}
@@ -623,16 +630,34 @@ public class DataConsumer implements Runnable {
 	
 	private boolean isCriteriaMet(JsonElement response, PersistedObject pObj){
 		boolean result = false;
+		matchedValues = null;
 		if(pObj != null){
 			triggerList = pObj.getTriggers();
 		}
 		else{
 			triggerList = statefulData.getTriggers();
 		}
-	
-		for(int i=0;i<triggerList.size();i++){
-			if(triggerList.get(i).evaluate(response)){
-				result = true;
+		
+		if(response.isJsonArray()){
+			matchedValues = new JsonArray();
+			JsonArray jsonArray = response.getAsJsonArray();
+			if(jsonArray.size() == 0) return false;
+			for(int i=0;i<triggerList.size();i++){
+				for(JsonElement item:jsonArray){
+					if(triggerList.get(i).evaluate(item)){
+						matchedValues.add(item);
+					}
+				}
+			}
+				if(matchedValues.size() > 0){
+					result = true;
+				}
+		}
+		else{
+			for(int i=0;i<triggerList.size();i++){
+				if(triggerList.get(i).evaluate(response)){
+					result = true;
+				}
 			}
 		}
 	
