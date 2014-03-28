@@ -65,6 +65,8 @@ public class Request {
 		JsonObject result = new JsonObject();
 		JsonParser jParser = new JsonParser();
 		
+		if(params == null) return result;
+		
 		for(Entry<String, String> entry:params.entrySet()){
 			result.add(entry.getKey(), jParser.parse(entry.getValue()));
 		}
