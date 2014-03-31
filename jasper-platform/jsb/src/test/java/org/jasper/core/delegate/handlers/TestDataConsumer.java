@@ -4,7 +4,6 @@ import static org.mockito.Mockito.when;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -17,7 +16,6 @@ import javax.jms.TextMessage;
 
 import junit.framework.TestCase;
 
-import org.apache.jena.atlas.json.JsonArray;
 import org.jasper.core.UDE;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.constants.JasperOntologyConstants;
@@ -70,8 +68,6 @@ public class TestDataConsumer extends TestCase {
 	private String hrPostArray = "{\"version\":\"1.0\",\"method\":\"POST\",\"ruri\":\"http://coralcea.ca/jasper/hrData\",\"headers\":{\"content-type\":\"application/json\"},\"parameters\":{\"parmsArray\":[{\"@type\":\"roomTempData\",\"http://coralcea.ca/jasper/environmentalSensor/roomTemperature\":\"33.5\",\"http://coralcea.ca/jasper/roomId\":\"2\",\"@type\":\"roomTempData\",\"http://coralcea.ca/jasper/environmentalSensor/roomTemperature\":\"98.6\",\"http://coralcea.ca/jasper/roomId\":\"1\"}]}";
 	private Map<String,Object> locks = new ConcurrentHashMap<String,Object>();
 	private Map<String,Message> responses = new ConcurrentHashMap<String,Message>();
-	private JsonArray jsonArray = new JsonArray();
-	private Map<String,String> paramsMap = new HashMap<String,String>();
 	private String hazelcastGroup = UUID.randomUUID().toString();
 	private BlockingQueue<PersistedObject> workQueue;
 	private Map<String,PersistedObject> sharedData;
