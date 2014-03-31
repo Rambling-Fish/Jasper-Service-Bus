@@ -74,7 +74,6 @@ public class TestDataConsumer extends TestCase {
 	private PersistedObject pObj;
 	private List<Trigger> triggers;
 	private ArrayList<String> operations = new ArrayList<String>();
-//	private JsonElement jelem;
 	private String hrDataInputObject = "{\"@type\":\"http://coralcea.ca/jasper/HrDataReq\",\"http://coralcea.ca/jasper/hrSID\":\"1\"}";
 	private String schemaStr = "{\"id\":\"http://coralcea.ca/jasper/HrDataReq\",\"type\":\"object\",\"properties\":{\"http://coralcea.ca/jasper/hrSID\":{\"type\":\"http://www.w3.org/2001/XMLSchema#string\"}},\"required\":[\"http://coralcea.ca/jasper/hrSID\"]}";
 	private JsonParser jsonParser = new JsonParser();
@@ -100,7 +99,7 @@ public class TestDataConsumer extends TestCase {
 		when(mockOntology.createJsonSchema(hrDataInputObject)).thenReturn((JsonObject) schema);
 		when(mockDelegate.createTextMessage(hrDataInputObject)).thenReturn(mockRequest);
 		
-		pObj = new PersistedObject(corrID, corrID, hrDataRequest, ruri, null, null, false, "UDE:0", output, version, contentType, "GET", 20);
+		pObj = new PersistedObject(corrID, corrID, hrDataRequest, ruri, null, null, false, deploymentAndInstance, output, version, contentType, "GET", 20);
 		sharedData.put(corrID, pObj);
 		workQueue.offer(pObj);
 
@@ -119,14 +118,14 @@ public class TestDataConsumer extends TestCase {
 	public void testValidRequests() throws Exception{
 		when(mockOntology.isRuriKnownForOutputGet(ruri)).thenReturn(true);
 		
-		pObj = new PersistedObject(corrID, corrID, hrDataRequest, ruri, null, null, false, "UDE:0", output, version, contentType, "GET", 20);
+		pObj = new PersistedObject(corrID, corrID, hrDataRequest, ruri, null, null, false, deploymentAndInstance, output, version, contentType, "GET", 20);
 		pObj.setCorrelationID(null);;
 		sharedData.put(corrID, pObj);
 		workQueue.offer(pObj);
 		classUnderTest.shutdown();
 		classUnderTest.run();
 		
-		pObj = new PersistedObject(corrID, corrID, hrDataRequest2, ruri, null, null, false, "UDE:0", output, version, contentType, "GET", 20);
+		pObj = new PersistedObject(corrID, corrID, hrDataRequest2, ruri, null, null, false, deploymentAndInstance, output, version, contentType, "GET", 20);
 		sharedData.put(corrID, pObj);
 		workQueue.offer(pObj);
 		classUnderTest.shutdown();
@@ -144,7 +143,7 @@ public class TestDataConsumer extends TestCase {
 		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.NOTFOUND, errorTxt, null, contentType, version)).thenReturn(errorResp);
 		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
 		
-		pObj = new PersistedObject(corrID, corrID, hrSubscribeRequest, ruri, null, null, false, "UDE:0", output, version, contentType, "SUBSCRIBE", 20);
+		pObj = new PersistedObject(corrID, corrID, hrSubscribeRequest, ruri, null, null, false, deploymentAndInstance, output, version, contentType, "SUBSCRIBE", 20);
 		pObj.setSubscriptionId(corrID);
 		sharedData.put(corrID, pObj);
 		workQueue.offer(pObj);
@@ -157,7 +156,7 @@ public class TestDataConsumer extends TestCase {
 		classUnderTest.run();
 		
 		//Unsubscribe
-		pObj = new PersistedObject(corrID, corrID, hrSubscribeRequest, ruri, null, null, false, "UDE:0", output, version, contentType, "SUBSCRIBE", 0);
+		pObj = new PersistedObject(corrID, corrID, hrSubscribeRequest, ruri, null, null, false, deploymentAndInstance, output, version, contentType, "SUBSCRIBE", 0);
 		pObj.setSubscriptionId(corrID);
 		sharedData.put(corrID, pObj);
 		workQueue.offer(pObj);
@@ -176,7 +175,7 @@ public class TestDataConsumer extends TestCase {
 		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
 		
 		//subscribe first
-		pObj = new PersistedObject(corrID, corrID, hrSubscribeRequest, ruri, null, null, false, "UDE:0", output, version, contentType, "SUBSCRIBE", 20);
+		pObj = new PersistedObject(corrID, corrID, hrSubscribeRequest, ruri, null, null, false, deploymentAndInstance, output, version, contentType, "SUBSCRIBE", 20);
 		pObj.setSubscriptionId(corrID);
 		sharedData.put(corrID, pObj);
 		workQueue.offer(pObj);
@@ -189,14 +188,14 @@ public class TestDataConsumer extends TestCase {
 		classUnderTest.run();
 		
 		// Now send POST
-		pObj = new PersistedObject(corrID, corrID, hrPostRequest, ruri, null, null, false, "UDE:0", output, version, contentType, "PUBLISH", 20);
+		pObj = new PersistedObject(corrID, corrID, hrPostRequest, ruri, null, null, false, deploymentAndInstance, output, version, contentType, "PUBLISH", 20);
 		sharedData.put(corrID, pObj);
 		workQueue.offer(pObj);
 
 		classUnderTest.shutdown();
 		classUnderTest.run();
 		
-		pObj = new PersistedObject(corrID, corrID, hrPostArray, ruri, null, null, false, "UDE:0", output, version, contentType, "PUBLISH", 20);
+		pObj = new PersistedObject(corrID, corrID, hrPostArray, ruri, null, null, false, deploymentAndInstance, output, version, contentType, "PUBLISH", 20);
 		sharedData.put(corrID, pObj);
 		workQueue.offer(pObj);
 
@@ -224,7 +223,7 @@ public class TestDataConsumer extends TestCase {
 		triggers = new ArrayList<Trigger>();
 		triggers.add(trigger);
 
-		pObj = new PersistedObject(corrID, corrID, hrDataNotification, ruri, null, null, true, "UDE:0", output, version, contentType, "GET", 6);
+		pObj = new PersistedObject(corrID, corrID, hrDataNotification, ruri, null, null, true, deploymentAndInstance, output, version, contentType, "GET", 6);
 		pObj.setTriggers(triggers);
 		sharedData.put(corrID, pObj);
 		workQueue.offer(pObj);
