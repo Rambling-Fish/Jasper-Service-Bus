@@ -53,185 +53,194 @@ public class TestDataHandler extends TestCase {
 	private String hazelcastGroup = UUID.randomUUID().toString();
 	
 	/*
+	 * placeholder until we delete this class since DataHandler
+	 * is no longer used
+	 */
+	@Test
+	public void testNothing() throws Exception{
+		
+	}
+	
+	/*
 	 * This tests the Data Handler error handling when receiving
 	 * a null request (i.e. no text in text message)
 	 */
-	@Test
-	public void testNullRequest() throws Exception{
-		System.out.println("==========================");
-		System.out.println("RUNNING DATA HANDLER TESTS");
-		System.out.println("==========================");
-		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.BADREQUEST, errorTxt, null, null, null)).thenReturn(errorResp);
-		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
-		
-		classUnderTest.run();	
-	}
+//	@Test
+//	public void testNullRequest() throws Exception{
+//		System.out.println("==========================");
+//		System.out.println("RUNNING DATA HANDLER TESTS");
+//		System.out.println("==========================");
+//		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.BADREQUEST, errorTxt, null, null, null)).thenReturn(errorResp);
+//		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
+//		
+//		classUnderTest.run();	
+//	}
 	
 	/*
 	 * This tests the Data Handler receiving a valid request
 	 */
-	@Test
-	public void testValidRequest() throws Exception{
-		when(mockRequest.getText()).thenReturn(hrDataRequest);
-		when(mockRequest.getJMSReplyTo()).thenReturn(null);
-
-		classUnderTest.run();
-	}
+//	@Test
+//	public void testValidRequest() throws Exception{
+//		when(mockRequest.getText()).thenReturn(hrDataRequest);
+//		when(mockRequest.getJMSReplyTo()).thenReturn(null);
+//
+//		classUnderTest.run();
+//	}
 	
 	/*
 	 * This tests the Data Handler receiving a valid notification
 	 */
-	@Test
-	public void testValidNotification() throws Exception{
-		when(mockRequest.getText()).thenReturn(hrDataNotification);
-		when(mockRequest.getJMSReplyTo()).thenReturn(null);
-		mockDelegate.defaultOutput = "json";
-
-		classUnderTest.run();	
-	}
+//	@Test
+//	public void testValidNotification() throws Exception{
+//		when(mockRequest.getText()).thenReturn(hrDataNotification);
+//		when(mockRequest.getJMSReplyTo()).thenReturn(null);
+//		mockDelegate.defaultOutput = "json";
+//
+//		classUnderTest.run();	
+//	}
 	
 	/*
 	 * This tests the Data Handler receiving a valid notification
 	 * but with no expires parameter
 	 */
-	@Test
-	public void testNotificationNoExpires() throws Exception{
-		when(mockRequest.getText()).thenReturn(hrDataNotificationNoExpires);
-		when(mockRequest.getJMSReplyTo()).thenReturn(null);
-		mockDelegate.defaultOutput = "json";
-		mockDelegate.maxExpiry = 60000;
-		mockDelegate.maxPollingInterval = 6000;
-		mockDelegate.minPollingInterval = 2000;
-
-		classUnderTest.run();	
-	}
+//	@Test
+//	public void testNotificationNoExpires() throws Exception{
+//		when(mockRequest.getText()).thenReturn(hrDataNotificationNoExpires);
+//		when(mockRequest.getJMSReplyTo()).thenReturn(null);
+//		mockDelegate.defaultOutput = "json";
+//		mockDelegate.maxExpiry = 60000;
+//		mockDelegate.maxPollingInterval = 6000;
+//		mockDelegate.minPollingInterval = 2000;
+//
+//		classUnderTest.run();	
+//	}
 	
 	/*
 	 * This tests the Data Handler receiving a valid notification
 	 * but with a poll period that is less than the minimum
 	 */
-	@Test
-	public void testNotificationMinPolling() throws Exception{
-		when(mockRequest.getText()).thenReturn(hrDataNotificationMinPolling);
-		when(mockRequest.getJMSReplyTo()).thenReturn(null);
-		mockDelegate.defaultOutput = "json";
-		mockDelegate.maxExpiry = 60000;
-		mockDelegate.maxPollingInterval = 6000;
-		mockDelegate.minPollingInterval = 2000;
-
-		classUnderTest.run();	
-	}
+//	@Test
+//	public void testNotificationMinPolling() throws Exception{
+//		when(mockRequest.getText()).thenReturn(hrDataNotificationMinPolling);
+//		when(mockRequest.getJMSReplyTo()).thenReturn(null);
+//		mockDelegate.defaultOutput = "json";
+//		mockDelegate.maxExpiry = 60000;
+//		mockDelegate.maxPollingInterval = 6000;
+//		mockDelegate.minPollingInterval = 2000;
+//
+//		classUnderTest.run();	
+//	}
 	
 	/*
 	 * This tests the Data Handler receiving a valid notification
 	 * but with a poll period that is greater than maximum
 	 */
-	@Test
-	public void testNotificationMaxPolling() throws Exception{
-		when(mockRequest.getText()).thenReturn(hrDataNotificationMaxPolling);
-		when(mockRequest.getJMSReplyTo()).thenReturn(null);
-		mockDelegate.defaultOutput = "json";
-		mockDelegate.maxExpiry = 60000;
-		mockDelegate.maxPollingInterval = 6000;
-		mockDelegate.minPollingInterval = 2000;
-
-		classUnderTest.run();	
-	}
+//	@Test
+//	public void testNotificationMaxPolling() throws Exception{
+//		when(mockRequest.getText()).thenReturn(hrDataNotificationMaxPolling);
+//		when(mockRequest.getJMSReplyTo()).thenReturn(null);
+//		mockDelegate.defaultOutput = "json";
+//		mockDelegate.maxExpiry = 60000;
+//		mockDelegate.maxPollingInterval = 6000;
+//		mockDelegate.minPollingInterval = 2000;
+//
+//		classUnderTest.run();	
+//	}
 	
 	/*
 	 * This tests the Data Handler receiving a valid notification
 	 * but with non numbers in the poll period and expires parameters
 	 */
-	@Test
-	public void testNotificationBadInts() throws Exception{
-		when(mockRequest.getText()).thenReturn(hrDataNotificationBadInts);
-		when(mockRequest.getJMSReplyTo()).thenReturn(null);
-		mockDelegate.defaultOutput = "json";
-		mockDelegate.maxExpiry = 60000;
-		mockDelegate.maxPollingInterval = 6000;
-		mockDelegate.minPollingInterval = 2000;
-
-		classUnderTest.run();	
-	}
+//	@Test
+//	public void testNotificationBadInts() throws Exception{
+//		when(mockRequest.getText()).thenReturn(hrDataNotificationBadInts);
+//		when(mockRequest.getJMSReplyTo()).thenReturn(null);
+//		mockDelegate.defaultOutput = "json";
+//		mockDelegate.maxExpiry = 60000;
+//		mockDelegate.maxPollingInterval = 6000;
+//		mockDelegate.minPollingInterval = 2000;
+//
+//		classUnderTest.run();	
+//	}
 	
 	/*
 	 * This tests the Data Handler receiving an invalid notification
 	 * with an unknown trigger name
 	 */
-	@Test
-	public void testNotificationInvalidTrigger() throws Exception{
-		when(mockRequest.getText()).thenReturn(hrDataNotificationInvalidTrigger);
-		when(mockRequest.getJMSReplyTo()).thenReturn(null);
-		mockDelegate.defaultOutput = "json";
-		mockDelegate.maxExpiry = 60000;
-		mockDelegate.maxPollingInterval = 6000;
-		mockDelegate.minPollingInterval = 2000;
-
-		classUnderTest.run();	
-	}
+//	@Test
+//	public void testNotificationInvalidTrigger() throws Exception{
+//		when(mockRequest.getText()).thenReturn(hrDataNotificationInvalidTrigger);
+//		when(mockRequest.getJMSReplyTo()).thenReturn(null);
+//		mockDelegate.defaultOutput = "json";
+//		mockDelegate.maxExpiry = 60000;
+//		mockDelegate.maxPollingInterval = 6000;
+//		mockDelegate.minPollingInterval = 2000;
+//
+//		classUnderTest.run();	
+//	}
 	
 	/*
 	 * This tests the Data Handler receiving a request without an RURI parameter
 	 */
-	@Test
-	public void testNoRURI() throws Exception{
-		when(mockRequest.getText()).thenReturn(noRURIReqeuest);
-		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
-		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.BADREQUEST, errorTxt2, null, null, null)).thenReturn(errorResp);
-		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
-
-		classUnderTest.run();
-	}
+//	@Test
+//	public void testNoRURI() throws Exception{
+//		when(mockRequest.getText()).thenReturn(noRURIReqeuest);
+//		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
+//		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.BADREQUEST, errorTxt2, null, null, null)).thenReturn(errorResp);
+//		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
+//
+//		classUnderTest.run();
+//	}
 	
 	/*
 	 * This tests the Data Handler receiving a request with an empty RURI
 	 */
-	@Test
-	public void testEmptyRURI() throws Exception{
-		when(mockRequest.getText()).thenReturn(nullRURIReqeuest);
-		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
-		when(mockRequest.getJMSCorrelationID()).thenReturn(null);
-		when(mockRequest.getJMSMessageID()).thenReturn(corrID);
-		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.BADREQUEST, errorTxt3, null, contentType, version)).thenReturn(errorResp);
-		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
-
-		classUnderTest.run();
-	}
+//	@Test
+//	public void testEmptyRURI() throws Exception{
+//		when(mockRequest.getText()).thenReturn(nullRURIReqeuest);
+//		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
+//		when(mockRequest.getJMSCorrelationID()).thenReturn(null);
+//		when(mockRequest.getJMSMessageID()).thenReturn(corrID);
+//		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.BADREQUEST, errorTxt3, null, contentType, version)).thenReturn(errorResp);
+//		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
+//
+//		classUnderTest.run();
+//	}
 	
 	/*
 	 * This tests the Data Handler receiving a request with an 
 	 * unsupported method
 	 */
-	@Test
-	public void testUnsupportedMethod() throws Exception{
-		when(mockRequest.getText()).thenReturn(unsupportedMethodReqeuest);
-		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
-		when(mockRequest.getJMSCorrelationID()).thenReturn(null);
-		when(mockRequest.getJMSMessageID()).thenReturn(corrID);
-		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.BADREQUEST, errorTxt4, null, contentType, version)).thenReturn(errorResp);
-		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
+//	@Test
+//	public void testUnsupportedMethod() throws Exception{
+//		when(mockRequest.getText()).thenReturn(unsupportedMethodReqeuest);
+//		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
+//		when(mockRequest.getJMSCorrelationID()).thenReturn(null);
+//		when(mockRequest.getJMSMessageID()).thenReturn(corrID);
+//		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.BADREQUEST, errorTxt4, null, contentType, version)).thenReturn(errorResp);
+//		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
+//
+//		classUnderTest.run();
+//	}
 
-		classUnderTest.run();
-	}
+//	@Before
+//	public void setUp() throws Exception {
+//		MockitoAnnotations.initMocks(this);
+//		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
+//		ipAddr = InetAddress.getLocalHost().getHostAddress();
+//		cachingSys   = new PersistenceFacade(ipAddr, hazelcastGroup, "testPassword");
+//		when(mockRequest.getJMSCorrelationID()).thenReturn(corrID);
+//		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
+//		when(mockUDE.getCachingSys()).thenReturn(cachingSys);
+//		when(mockUDE.getUdeDeploymentAndInstance()).thenReturn(deploymentAndInstance);
+//		 
+//		classUnderTest = new DataHandler(mockUDE, mockDelegate, mockRequest); 
+//	}
 
-	@Before
-	public void setUp() throws Exception {
-		MockitoAnnotations.initMocks(this);
-		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
-		ipAddr = InetAddress.getLocalHost().getHostAddress();
-		cachingSys   = new PersistenceFacade(ipAddr, hazelcastGroup, "testPassword");
-		when(mockRequest.getJMSCorrelationID()).thenReturn(corrID);
-		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
-		when(mockUDE.getCachingSys()).thenReturn(cachingSys);
-		when(mockUDE.getUdeDeploymentAndInstance()).thenReturn(deploymentAndInstance);
-		 
-		classUnderTest = new DataHandler(mockUDE, mockDelegate, mockRequest); 
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		classUnderTest = null;
-		cachingSys.shutdown();
-		}
+//	@After
+//	public void tearDown() throws Exception {
+//		classUnderTest = null;
+//		cachingSys.shutdown();
+//		}
 	
 }
