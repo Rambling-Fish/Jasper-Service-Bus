@@ -43,7 +43,7 @@ function stop_j {
       cd jsb-core/bin/ 
       ./ude stop
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-2.1/udeAutoStart
+         rm /opt/jasper/jasper-2.1.0.0/udeAutoStart
       fi
       echo ".. Done."
    fi
@@ -59,7 +59,7 @@ function stop_m {
       ./mule stop
       cd ../../../
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-2.1/dtaAutoStart
+         rm /opt/jasper/jasper-2.1.0.0/dtaAutoStart
       fi 
       sleep 1
       echo ".. Done."
@@ -75,7 +75,7 @@ function force_stop_j {
       kill $J_PID 
       sleep 1
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-2.1/udeAutoStart
+         rm /opt/jasper/jasper-2.1.0.0/udeAutoStart
       fi
       echo ".. Done."
    fi
@@ -89,7 +89,7 @@ function force_stop_m {
       echo -n "Stopping DTA Server.."
       kill $M_PID
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-2.1/dtaAutoStart
+         rm /opt/jasper/jasper-2.1.0/dtaAutoStart
       fi 
       sleep 1
       echo ".. Done."
@@ -108,8 +108,8 @@ function start_j {
       ./ude start
       cd ../../
       if [ "$OS" == 'Linux' ]; then
-         if [ ! -L /opt/jasper/jasper-2.1/udeAutoStart ]; then
-            ln -s /opt/jasper/jasper-2.1/jsb-core/udeAutoStart /opt/jasper/jasper-2.1/udeAutoStart
+         if [ ! -L /opt/jasper/jasper-2.1.0/udeAutoStart ]; then
+            ln -s /opt/jasper/jasper-2.1.0/jsb-core/udeAutoStart /opt/jasper/jasper-2.1.0/udeAutoStart
          fi
       fi
       else
@@ -133,8 +133,8 @@ if [ -z "$M_PID" ]; then
       get_m_pid
       echo "Done. PID=$M_PID" 
       if [ "$OS" == 'Linux' ]; then
-         if [ ! -L /opt/jasper/jasper-2.1/dtaAutoStart ]; then
-            ln -s /opt/jasper/jasper-2.1/jsb-core/dtaAutoStart /opt/jasper/jasper-2.1/dtaAutoStart
+         if [ ! -L /opt/jasper/jasper-2.1.0/dtaAutoStart ]; then
+            ln -s /opt/jasper/jasper-2.1.0/jsb-core/dtaAutoStart /opt/jasper/jasper-2.1.0/dtaAutoStart
          fi
       fi     
    else
