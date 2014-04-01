@@ -43,7 +43,7 @@ function stop_j {
       cd jsb-core/bin/ 
       ./ude stop
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-2.1.0.0/udeAutoStart
+         rm /opt/jasper/jasper-2.1.0/udeAutoStart
       fi
       echo ".. Done."
    fi
@@ -59,7 +59,7 @@ function stop_m {
       ./mule stop
       cd ../../../
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-2.1.0.0/dtaAutoStart
+         rm /opt/jasper/jasper-2.1.0/dtaAutoStart
       fi 
       sleep 1
       echo ".. Done."
@@ -75,7 +75,7 @@ function force_stop_j {
       kill $J_PID 
       sleep 1
       if [ "$OS" == 'Linux' ]; then
-         rm /opt/jasper/jasper-2.1.0.0/udeAutoStart
+         rm /opt/jasper/jasper-2.1.0/udeAutoStart
       fi
       echo ".. Done."
    fi
