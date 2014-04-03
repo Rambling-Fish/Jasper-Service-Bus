@@ -199,7 +199,7 @@ public class DataConsumer implements Runnable {
 			sendResponse(matchedValues.toString());
 		}
 		else{
-			sendResponse(parameters.toString());
+			sendResponse(response.toString());
 		}
     	
 	}
