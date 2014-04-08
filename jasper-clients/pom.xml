@@ -12,6 +12,7 @@
     <modules>
         <module>jsc</module>
         <module>jsc-ws</module>
+        <module>jsc-hrv-tw-testhead-ws</module>
     </modules>
     
      <build>
