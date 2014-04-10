@@ -2,7 +2,6 @@ package org.jasper.core.delegate.handlers;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +111,6 @@ public class DataConsumer implements Runnable {
 	}
 	
 	private void processRequest() throws Exception {
-  	    String request = statefulData.getRequest();
   	    JsonElement response;
   	    String xmlResponse = null;
   	    key = statefulData.getKey();
@@ -490,23 +488,6 @@ public class DataConsumer implements Runnable {
 		
 		return response;
 	}
-
-	/*
-	 * assumes the request will be in the format of ruri?param1=val1&parm2=val2
-	 * if there are no params, than we return an empty map, if there's an error,
-	 * we return null.
-	 */
-	private Map<String, String> getParams(String request) {
-		if(request == null)return null;
-		String[] splitRequest = request.split("\\?");
-		if(splitRequest.length == 1){
-			return getMapFromValuePairString(splitRequest[0]);
-		}else if(splitRequest.length == 2){
-			return getMapFromValuePairString(splitRequest[1]);
-		}else{
-			return null;
-		}		
-	}
 	
 	private void processPublish(String ruri, JsonElement parameters) throws Exception{
 		if(parameters.isJsonObject()
@@ -554,54 +535,6 @@ public class DataConsumer implements Runnable {
 		}
 	}
 
-	private String getResponseFromQueue(String q, Map<String, String> map) throws JMSException {
-		
-		JsonObject jObj = new JsonObject();
-		
-		for(String key:map.keySet()){
-			jObj.addProperty(key, (String)map.get(key));
-		}
-		Message msg = delegate.createTextMessage(jObj.toString());	
-		
-        String correlationID = UUID.randomUUID().toString();
-        msg.setJMSCorrelationID(correlationID);
-        
-        Message response;
-        Object lock = new Object();
-		synchronized (lock) {
-			locks.put(correlationID, lock);
-		    delegate.sendMessage(q, msg);
-		    int count = 0;
-		    while(!responses.containsKey(correlationID)){
-		    	try {
-					lock.wait(10000);
-				} catch (InterruptedException e) {
-					logger.error("Interrupted while waiting for lock notification",e);
-				}
-		    	count++;
-		    	if(count >= 6)break;
-		    }
-		    response = responses.remove(correlationID);
-		}
-
-		String responseString = null;
-		if(response != null && response.getJMSCorrelationID().equals(correlationID) && response instanceof TextMessage){
-			responseString = ((TextMessage)response).getText();
-		}
-		return responseString;
-	}
-	
-	private Map<String, String> getMapFromValuePairString(String str) {
-		Map<String, String> result = new HashMap<String, String>();
-		String[] keyValuePairs = str.split("&");
-		String[] keyValue;
-		for(String s:keyValuePairs){
-			keyValue = s.split("=");
-			if(keyValue.length == 2 ) result.put(keyValue[0], keyValue[1]);
-		}
-		return result;
-	}
-	
 	private void sendResponse(String response) throws JMSException {
 		JasperConstants.responseCodes code = JasperConstants.responseCodes.OK;
 		String jsonResponse = delegate.createJasperResponse(code, "Success", response, contentType, version);

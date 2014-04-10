@@ -26,8 +26,6 @@ public class SparqlHandler implements Runnable {
 	private Delegate delegate;
 	private DelegateOntology jOntology;
 	private Message jmsRequest;
-	private String ruri;
-	private String method;
 	private String version;
 	private String contentType;
 	
@@ -50,9 +48,7 @@ public class SparqlHandler implements Runnable {
         		String queryString = parsedSparqlRequest[0];
 				String output;
 				output = (parsedSparqlRequest.length > 1) ? parsedSparqlRequest[1]:"json";
-				if(output.isEmpty()){
-					output = "json";
-				}
+			
 				// We only support json or xml as output formats
 				if(!output.equalsIgnoreCase("json") && (!output.equalsIgnoreCase("xml"))){
 					errorMsg="Output must be set to json or xml";
@@ -71,7 +67,6 @@ public class SparqlHandler implements Runnable {
 	}
 	
 	private String[] parseSparqlRequest(String text) {
-		StringBuilder sb = new StringBuilder();
 		String[] result = null;
 	
 		if(text==null)return null;
@@ -88,21 +83,15 @@ public class SparqlHandler implements Runnable {
 				try {
 					result[0] = URIUtil.decode(result[0]);
 					result[0] = result[0].replaceFirst("query=", "");
-					sb.append(result[0]);
+					if(!result[0].contains("SELECT") && (!result[0].contains("select"))){
+						return null;
+					}
 				} catch (URIException e) {
 					logger.error("Exception when decoding encoded sparql query, returning null " ,e);
 					return null;
 				}
 				if(result.length == 2){
 					result[1] = result[1].replaceFirst("output=", "");
-					sb.append(result[1]);
-				}
-				else{
-					sb.append("json");
-				}
-			
-				if(!sb.toString().contains("SELECT") && (!sb.toString().contains("select"))){
-					return null;
 				}
 			}
 			
