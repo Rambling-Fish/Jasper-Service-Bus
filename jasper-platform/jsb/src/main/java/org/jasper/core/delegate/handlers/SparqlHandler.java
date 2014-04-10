@@ -1,5 +1,9 @@
 package org.jasper.core.delegate.handlers;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
@@ -11,7 +15,11 @@ import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
 import org.json.JSONException;
-import org.json.JSONObject;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class SparqlHandler implements Runnable {
 
@@ -63,25 +71,34 @@ public class SparqlHandler implements Runnable {
 	}
 	
 	private String[] parseSparqlRequest(String text) {
-		JSONObject parms = new JSONObject();
-		JSONObject headers = new JSONObject();
 		StringBuilder sb = new StringBuilder();
+		String[] result = null;
 	
 		if(text==null)return null;
 		
 		try {
-			JSONObject jsonObj = new JSONObject(text);
-			version = jsonObj.getString(JasperConstants.VERSION_LABEL);
+			JsonElement jelement = new JsonParser().parse(text);
+		    JsonObject  jsonObj = jelement.getAsJsonObject();
+			version = jsonObj.get(JasperConstants.VERSION_LABEL).getAsString();
 			
-			if(jsonObj.has(JasperConstants.PARAMETERS_LABEL)) {
-				parms = (JSONObject)jsonObj.getJSONObject(JasperConstants.PARAMETERS_LABEL);
-				int len = parms.length();
-				for(Object o:parms.keySet()){
-					sb.append(parms.get(o.toString()));
-					if(len > 1) {
-						sb.append("&");
-						len--;
-					}
+			if(jsonObj.has(JasperConstants.PAYLOAD_LABEL)) {
+				JsonArray jsonArr = (JsonArray) jsonObj.get(JasperConstants.PAYLOAD_LABEL);
+				String query = new String(getByteArray(jsonArr));
+				result = query.split("output=");
+				try {
+					result[0] = URIUtil.decode(result[0]);
+					result[0] = result[0].replaceFirst("query=", "");
+					sb.append(result[0]);
+				} catch (URIException e) {
+					logger.error("Exception when decoding encoded sparql query, returning null " ,e);
+					return null;
+				}
+				if(result.length == 2){
+					result[1] = result[1].replaceFirst("output=", "");
+					sb.append(result[1]);
+				}
+				else{
+					sb.append("json");
 				}
 			
 				if(!sb.toString().contains("SELECT") && (!sb.toString().contains("select"))){
@@ -89,14 +106,12 @@ public class SparqlHandler implements Runnable {
 				}
 			}
 			
-			if(jsonObj.has(JasperConstants.HEADERS_LABEL)){
-				headers = (JSONObject)jsonObj.getJSONObject(JasperConstants.HEADERS_LABEL);
-				for(Object o:headers.keySet()){
-					switch (o.toString().toLowerCase()) {
-					case JasperConstants.CONTENT_TYPE_LABEL :
-						contentType = headers.getString(o.toString());
-						break;
-					}
+			Map<String, String> headers = getMap(jsonObj.get(JasperConstants.HEADERS_LABEL).getAsJsonObject());
+			for(String s:headers.keySet()){
+				switch (s.toLowerCase()) {
+				case JasperConstants.CONTENT_TYPE_LABEL :
+					contentType = headers.get(s);
+					break;
 				}
 			}
 			
@@ -104,22 +119,6 @@ public class SparqlHandler implements Runnable {
 			logger.error("Exception caught while creating JSONObject " + e);
 			return null;
 		}
-		
-		String[] result = null;
-		result = sb.toString().split("&");
-		
-		if(result.length != 2) return null;
-		
-		try {
-			result[0] = URIUtil.decode(result[0]);
-			result[1] = URIUtil.decode(result[1]);
-		} catch (URIException e) {
-			logger.error("Exception when decoding encoded sparql query, returning null " ,e);
-			result = null;
-		}
-		
-		result[0] = result[0].replaceFirst("query=", "");
-		result[1] = result[1].replaceFirst("output=", "");
 		
 		return result;
 	}
@@ -145,6 +144,22 @@ public class SparqlHandler implements Runnable {
   	  	}
         
         delegate.sendMessage(msg.getJMSReplyTo(),message);
+	}
+	
+	private byte[] getByteArray(JsonArray array) {
+		byte[] result = new byte[array.size()];
+		for(int index = 0 ; index < array.size() ;  index++){
+			result[index] = array.get(index).getAsByte();
+		}
+		return result;
+	}
+	
+	private Map<String, String> getMap(JsonObject json) {
+		Map<String, String> map = new HashMap<String, String>();
+		for(Entry<String, JsonElement> entry:json.entrySet()){
+			map.put(entry.getKey(),entry.getValue().getAsString());
+		}
+		return map;
 	}
         
 	private void sendResponse(TextMessage msg, String response) throws JMSException {
