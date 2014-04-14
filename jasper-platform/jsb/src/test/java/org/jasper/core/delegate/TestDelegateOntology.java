@@ -11,7 +11,6 @@ import org.jasper.core.persistence.PersistenceFacade;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockitoAnnotations;
 
 import com.google.gson.JsonObject;
 import com.hp.hpl.jena.ontology.OntModel;
@@ -28,7 +27,7 @@ public class TestDelegateOntology extends TestCase {
 	private String ruri2 = "http://coralcea.ca/jasper/getBpData";
 	private String operation = "http://coralcea.ca/jasper/getHrData";
 	private String inputObject = "http://coralcea.ca/jasper/HrDataReq";
-	private String dtaName = "jasper:dta-heart-rate-monitor-D:1.0:rayLab";
+	private String dtaName = "jasper:dta-heart-rate-monitor-D:1.0:jasperLab";
 	private String dest = "dta-heart-rate-monitor-d-gethrdata";
 	private String triples	= "@prefix :  <http://coralcea.ca/jasper/> .\n@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n@prefix hrSensor: <http://coralcea.ca/jasper/hrSensor/> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix dta:   <http://coralcea.ca/2014/01/dta#> .\n\n:MsData  a  owl:Class .\n\n:timestamp  a  owl:DatatypeProperty ;\n  rdfs:domain  :HrData ;\n rdfs:range   xsd:string .\n\n:hrSID  a owl:DatatypeProperty ;\n rdfs:domain  :HrDataReq ;\n  rdfs:range   xsd:string .\n\n:HrData  a owl:Class ;\n rdfs:subClassOf  :MsData ;\n  dta:restriction  [ a  owl:Restriction ;\n  owl:onProperty :timestamp\n  ] ;\n dta:restriction  [ a  owl:Restriction ;\n owl:onProperty   hrSensor:bpm\n ] .\n\n:dta-heart-rate-monitor-D\n a dta:DTA ;\n dta:operation  :getHrData .\n\n:hrData  a owl:ObjectProperty ;\n  rdfs:range :HrData ;\n  rdfs:subPropertyOf  :msData .\n\n:msData  a owl:ObjectProperty ;\n rdfs:range  :MsData .\n\n:HrDataReq  a owl:Class ;\n  dta:restriction  [ a owl:Restriction ;\n owl:onProperty   :hrSID;\n ] .\n\nhrSensor:bpm  a owl:DatatypeProperty ;\n  rdfs:domain  :HrData ;\n rdfs:range   xsd:integer .\n\n:getHrData  a dta:Operation ;\n dta:destination  'dta-heart-rate-monitor-d-gethrdata' ;\n dta:input :HrDataReq ;\n dta:kind dta:Get ;\n  dta:output :hrData .\n";	
 
@@ -140,7 +139,6 @@ public class TestDelegateOntology extends TestCase {
 	
 	@Before
 	public void setUp() throws Exception {
-		MockitoAnnotations.initMocks(this);
 		model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
 		for(String prefix:JasperOntologyConstants.PREFIX_MAP.keySet()){
         	model.setNsPrefix(prefix, JasperOntologyConstants.PREFIX_MAP.get(prefix));
