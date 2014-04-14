@@ -8,6 +8,7 @@
 		<display-name>JscServlet</display-name>
 		<servlet-name>JscServlet</servlet-name>
 		<servlet-class>org.jasper.jsc.webApp.JscServlet</servlet-class>
+		<load-on-startup>10</load-on-startup>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>JscServlet</servlet-name>
