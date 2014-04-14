@@ -49,9 +49,6 @@ public class TestDelegate extends TestCase {
 	private Model model;
 	private String ipAddr;
 	private Delegate classUnderTest;
-	private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
-	private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
-
 	
 	/*
 	 * This test constructor of the Delegate class and the shutdown method
@@ -66,8 +63,8 @@ public class TestDelegate extends TestCase {
 		Connection connection;
 
         // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+        connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+        connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
         connection = connectionFactory.createConnection();
 
 		classUnderTest = new Delegate(mockUDE, connection, model, mockJOntology);
@@ -83,8 +80,8 @@ public class TestDelegate extends TestCase {
 		Connection connection;
 
         // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+        connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+        connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
         connection = connectionFactory.createConnection();
 
 		classUnderTest = new Delegate(mockUDE, connection, model, mockJOntology);
@@ -105,8 +102,8 @@ public class TestDelegate extends TestCase {
 		Connection connection;
 
         // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+        connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+        connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
         connection = connectionFactory.createConnection();
         session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         globalQueue = session.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
@@ -129,12 +126,12 @@ public class TestDelegate extends TestCase {
 		Connection connection;
 
         // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+        connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+        connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
         connection = connectionFactory.createConnection();
 
 		classUnderTest = new Delegate(mockUDE, connection, model, mockJOntology);
-		ObjectMessage objMsg = classUnderTest.createObjectMessage(JASPER_ADMIN_PASSWORD);
+		ObjectMessage objMsg = classUnderTest.createObjectMessage(JasperConstants.JASPER_ADMIN_PASSWORD);
 		TestCase.assertNotNull(objMsg);
 		
 		TextMessage txtMsg = classUnderTest.createTextMessage("text");
@@ -158,8 +155,8 @@ public class TestDelegate extends TestCase {
 		Connection connection;
 
         // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+        connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+        connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
         connection = connectionFactory.createConnection();
 
 		classUnderTest = new Delegate(mockUDE, connection, model, mockJOntology);
