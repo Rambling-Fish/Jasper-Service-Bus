@@ -40,7 +40,7 @@ public class Request {
 	}
 	
 	public Request(Method method, String ruri, Map<String, String> headers,	Map<String, String> parameters, String rule, byte[] payload) {
-		this(method, ruri, headers, parseParameters(parameters), rule, null);
+		this(method, ruri, headers, parseParameters(parameters), rule, payload);
 	}
 	
 	public Request(Method method, String ruri, Map<String, String> headers, JsonObject parameters) {
