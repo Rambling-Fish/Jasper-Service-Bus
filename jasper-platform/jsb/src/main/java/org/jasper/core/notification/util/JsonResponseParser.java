@@ -36,7 +36,11 @@ public class JsonResponseParser{
 		else if(response.isJsonObject()){
 			JsonElement jelem = response.getAsJsonObject().get(ruri);
 			if(jelem != null){
-				list.add(Float.parseFloat(jelem.getAsString()));
+				try{
+					list.add(Float.parseFloat(jelem.getAsString()));
+				}catch(NumberFormatException ex){
+					//Do nothing as we do not add invalid data
+				}
 			}
 		}
 		else if(response.isJsonPrimitive()){

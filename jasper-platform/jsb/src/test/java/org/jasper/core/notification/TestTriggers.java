@@ -48,12 +48,16 @@ public class TestTriggers extends TestCase {
 		
 		// test passing in empty array
 		List<Float> list = parser.parse(response, RURI);
+		TestCase.assertEquals(null, list);
 		
 		// test valid array and a bad room temperature (NaN)
 		response.add(tmp1);
 		response.add(tmp2);
-		
 		list = parser.parse(response, RURI);
+		TestCase.assertNotNull(list);
+		
+		//test with a JsonObject
+		list = parser.parse(tmp1, RURI);
 		TestCase.assertNotNull(list);
 		
 	}
