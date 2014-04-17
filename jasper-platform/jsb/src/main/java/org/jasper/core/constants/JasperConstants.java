@@ -41,7 +41,7 @@ public class JasperConstants {
 	public static final String PUBLISH = "publish";
 	public static final String SUBSCRIBE = "subscribe";
 	
-	public enum responseCodes{
+	public enum ResponseCodes{
 		OK(200, "OK"),
 		ACCEPTED(202, "Accepted"),
 		BADREQUEST(400, "Bad Request"),
@@ -52,7 +52,7 @@ public class JasperConstants {
 		private int code;
 		private String description;
 		
-		private responseCodes(int code, String description){
+		private ResponseCodes(int code, String description){
 			this.code = code;
 			this.description = description;
 		}

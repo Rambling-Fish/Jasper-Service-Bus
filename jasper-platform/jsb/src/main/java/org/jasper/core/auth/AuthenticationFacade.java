@@ -31,6 +31,7 @@ public class AuthenticationFacade {
 	private static AuthenticationFacade authFacade;
 	private static Gson gson;
 	private String deploymentId;
+	private String	keyStore;
 	
 	private AuthenticationFacade(){
 		GsonBuilder builder = new GsonBuilder();
@@ -45,7 +46,12 @@ public class AuthenticationFacade {
 		return authFacade;
 	}
 	
-	public UDELicense loadKeys(String keyStore) throws IOException {
+
+	public void setKeystoreLocation(String keyStore) {
+		this.keyStore = keyStore;
+	}
+	
+	public UDELicense loadKeys() throws IOException {
 		File licenseKeyFile = getLicenseKeyFile(keyStore);
 		if(licenseKeyFile == null){
 	    	throw (SecurityException)new SecurityException("Unable to find single UDE license key in: " + keyStore);
@@ -170,14 +176,37 @@ public class AuthenticationFacade {
 	}
 
 	public boolean isUdeLicenseKey(String password) {
-		UDELicense ulic = getUdeLicense(JAuthHelper.hexToBytes(password));
-		if (ulic.getType().toLowerCase().equals("ude")) {
-			return true;
-		}
-		else {
+		try{
+			UDELicense ulic = getUdeLicense(JAuthHelper.hexToBytes(password));
+			if(ulic == null) return false;
+			if (ulic.getType().toLowerCase().equals("ude")) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}catch (Throwable t){
+			t.printStackTrace();
 			return false;
 		}
 	}
+	
+	public boolean isClientLicenseKey(String password) {
+		try{
+			ClientLicense clic = getClientLicense(JAuthHelper.hexToBytes(password));
+			if(clic == null) return false;
+			if (clic.getType().toLowerCase().equals("dta") || clic.getType().toLowerCase().equals("jsc")) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}catch (Throwable t){
+			t.printStackTrace();
+			return false;
+		}
+	}
+	
 	
 	public boolean isUdeLicenseKey(UDELicense lic) {
 		if (lic.getType().toLowerCase().equals("ude")) 	return true;
@@ -279,7 +308,7 @@ public class AuthenticationFacade {
 	// Methods for getting UDE/Client licenses from password 
 	
 	public UDELicense getUdeLicense(byte[] bytes) throws JsonSyntaxException {
-		
+		if(bytes.length == 0) return null;
 		String password;
 		try {
 			password = new String(JAuthHelper.rsaDecrypt(bytes, publicKey));
@@ -292,7 +321,7 @@ public class AuthenticationFacade {
 	}
 
 	public ClientLicense getClientLicense(byte[] bytes) throws JsonSyntaxException {
-		
+		if(bytes.length == 0) return null;
 		String password;
 		try {
 			password = new String(JAuthHelper.rsaDecrypt(bytes, publicKey));
@@ -304,6 +333,4 @@ public class AuthenticationFacade {
 		}
 
 	}
-
-
 }

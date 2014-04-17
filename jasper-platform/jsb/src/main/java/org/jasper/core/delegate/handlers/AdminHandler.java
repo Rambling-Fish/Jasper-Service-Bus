@@ -26,12 +26,12 @@ public class AdminHandler implements Runnable {
 	
 	private static Logger logger = Logger.getLogger(AdminHandler.class.getName());
 
-	public AdminHandler(Delegate delegate, DelegateOntology jOntology, Message jmsRequest, Map<String,Object> locks, Map<String,Message> responses) {
+	public AdminHandler(Delegate delegate, Message jmsRequest) {
 		this.delegate   = delegate;
-		this.jOntology  = jOntology;
+		this.jOntology  = delegate.getJOntology();
 		this.jmsRequest = jmsRequest;
-		this.locks      = locks;
-		this.responses  = responses;	
+		this.locks      = delegate.getLocksMap();
+		this.responses  = delegate.getResponsesMap();	
 	}
 
 	public void run() {
@@ -79,7 +79,18 @@ public class AdminHandler implements Runnable {
 			return;
 		}
 		
-		String dtaAdminQueue = "jms." + dtaName.replace(":", ".") + ".admin.queue";
+		String dtaAdminQueue = null;
+		
+		if(jam.getDetails()[1] !=null && jam.getDetails()[1] instanceof String && ((String) jam.getDetails()[1]).length() > 0){
+			dtaAdminQueue = (String)jam.getDetails()[1];
+		}else{
+			logger.warn("received invalid connect command, details[1] != string, unknown connection request, ignoring");
+			return;
+		}
+		
+		if(logger.isDebugEnabled()) logger.debug("received connect for dta : " + dtaName + " on adminQ : " + dtaAdminQueue);
+
+		
 		
 		Message msg = delegate.createObjectMessage(new JasperAdminMessage(Type.ontologyManagement,Command.get_ontology));
         String correlationID = UUID.randomUUID().toString();

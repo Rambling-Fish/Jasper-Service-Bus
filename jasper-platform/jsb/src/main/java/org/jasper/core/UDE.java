@@ -9,12 +9,12 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.security.InvalidParameterException;
 import java.util.Enumeration;
-import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import javax.jms.JMSException;
 
 import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerRegistry;
@@ -23,7 +23,7 @@ import org.apache.activemq.network.NetworkConnector;
 import org.apache.log4j.Logger;
 import org.jasper.core.auth.AuthenticationFacade;
 import org.jasper.core.auth.JasperAuthenticationPlugin;
-import org.jasper.core.persistence.PersistedObject;
+import org.jasper.core.delegate.Delegate;
 import org.jasper.core.persistence.PersistenceFacade;
 import org.jasper.core.persistence.PersistenceFacadeFactory;
 import org.jasper.jLib.jAuth.UDELicense;
@@ -39,43 +39,54 @@ public class UDE {
 	private AuthenticationFacade licenseKeySys;
 	private PersistenceFacade cachingSys;
 	
-	private UDECore udeCore;
-	private UDELicense license;
+	private UDELicense localUdelicense;
 	
-
 	private ScheduledExecutorService exec;
 	private boolean clusterEnabled;
 	
 	private String brokerTransportIp;
 
+	private Delegate delegate;
 	
 	public UDE(Properties prop){
 		this.prop = prop;
 		
 		//initializing license key system
-    	licenseKeySys = AuthenticationFacade.getInstance();
+		this.licenseKeySys = AuthenticationFacade.getInstance();
+		licenseKeySys.setKeystoreLocation(prop.getProperty("jsb-keystore"));
 		try {
-			license = licenseKeySys.loadKeys(prop.getProperty("jsb-keystore"));
+			localUdelicense = licenseKeySys.loadKeys();
 		} catch (IOException e) {
 			logger.error("unalble to load license key",e);
 		}
 		
 		//initializing and starting caching layer
 		String localIP = prop.getProperty("persisitence.localIp", getBrokerTransportIp());
-		String groupName = prop.getProperty("persisitence.groupName", license.getDeploymentId());
-		String groupPassword = prop.getProperty("persisitence.groupPassword", license.getDeploymentId() + "_password_dec_18_2013_1108");
-		this.cachingSys = PersistenceFacadeFactory.getFacade(localIP, groupName, groupPassword);
+		String groupName = prop.getProperty("persisitence.groupName", localUdelicense.getDeploymentId());
+		String groupPassword = prop.getProperty("persisitence.groupPassword", localUdelicense.getDeploymentId() + "_password_dec_18_2013_1108");
 		
-		this.udeCore = new UDECore(this,prop);
+		//clusteredEnable is by default true, only set to false if false 
+		clusterEnabled = prop.getProperty("jsbClusterEnabled", "true").equalsIgnoreCase("true");	
+		
+		if(clusterEnabled){
+			this.cachingSys = PersistenceFacadeFactory.getFacade(localIP, groupName, groupPassword);	
+		}else{
+			this.cachingSys = PersistenceFacadeFactory.getNonClusteredFacade();
+		}
+				
+		delegate = new Delegate(this);
+		
 	}
 	
 	public void start(){
     	try {
-	    	if(licenseKeySys.isValidUdeLicenseKey(license)){
-	    		if(licenseKeySys.isValidUdeLicenseKeyExpiry(license)){
+	    	if(licenseKeySys.isValidUdeLicenseKey(localUdelicense)){
+	    		if(licenseKeySys.isValidUdeLicenseKeyExpiry(localUdelicense)){
 	    			
 	    			startBroker();
-	    			udeCore.start();
+	    			
+	    			delegate.start();
+	    			
 	    			setupAudit();
 	    	
 				}else{
@@ -93,7 +104,8 @@ public class UDE {
 	private void startBroker() throws Exception {
 		
 		broker = new JasperBrokerService();
-		String brokerName = license.getDeploymentId() + "_" + license.getInstanceId();
+		
+		String brokerName = localUdelicense.getDeploymentId() + "_" + localUdelicense.getInstanceId();
 		broker.setBrokerName(brokerName);
 		BrokerRegistry.getInstance().bind(brokerName, broker);
 		BrokerRegistry.getInstance().bind("localhost", broker);
@@ -110,10 +122,7 @@ public class UDE {
 			broker.getSystemUsage().getTempUsage().setLimit(1024L * 1024 * 15000);
 		}
 		
-		broker.setPlugins(new BrokerPlugin[]{new JasperAuthenticationPlugin(this, cachingSys, licenseKeySys)});
-				
-		//clusteredEnable is by default false, only set to false if false 
-		clusterEnabled = prop.getProperty("jsbClusterEnabled", "false").equalsIgnoreCase("true");			
+		broker.setPlugins(new BrokerPlugin[]{new JasperAuthenticationPlugin(this, cachingSys,licenseKeySys)});		
 		
 		JsbTransportConnector connector;
 		if(prop.getProperty("jsbLocalURL") != null){
@@ -127,11 +136,11 @@ public class UDE {
 		}   			
 		
 		if(isClusterEnabled()){
-			NetworkConnector networkConnector = broker.addNetworkConnector("multicast://224.1.2.3:6255?group=" + license.getDeploymentId());
-			networkConnector.setUserName(license.getDeploymentId() + ":" + license.getInstanceId());
-			networkConnector.setPassword(JAuthHelper.bytesToHex((license.getLicenseKey())));
+			NetworkConnector networkConnector = broker.addNetworkConnector("multicast://224.1.2.3:6255?group=" + localUdelicense.getDeploymentId());
+			networkConnector.setUserName(localUdelicense.getDeploymentId() + ":" + localUdelicense.getInstanceId());
+			networkConnector.setPassword(JAuthHelper.bytesToHex((localUdelicense.getLicenseKey())));
 			networkConnector.setDecreaseNetworkConsumerPriority(true);
-			connector.setDiscoveryUri(new URI("multicast://224.1.2.3:6255?group=" + license.getDeploymentId()));
+			connector.setDiscoveryUri(new URI("multicast://224.1.2.3:6255?group=" + localUdelicense.getDeploymentId()));
 			connector.setUpdateClusterClients(true);
 			connector.setUpdateClusterClientsOnRemove(true);
 			connector.setRebalanceClusterClients(true);
@@ -146,18 +155,18 @@ public class UDE {
 	}
 
 	public void stop(){
-		
 		stopAudit();
-		
-		udeCore.stop();
-
+		try {
+			delegate.shutdown();
+		} catch (JMSException e1) {
+			logger.error("error shutting down delegateFactory and/or delegate", e1);
+		}
 		try {
 			broker.stop();
 			broker.waitUntilStopped();
 		} catch (Exception e) {
 			logger.error("unable to stop broker ",e);
 		}
-		
 		cachingSys.shutdown();
 	}
 	
@@ -166,19 +175,19 @@ public class UDE {
 	}
 
 	public String getDeploymentID() {
-		return (license!=null)?license.getDeploymentId():"licenceKeyNotSet";
+		return (localUdelicense!=null)?localUdelicense.getDeploymentId():"licenceKeyNotSet";
 	}
      
     public String getUdeDeploymentAndInstance() {
-        return (license!=null)?license.getDeploymentId() + ":" + license.getInstanceId():"jasperLab:0";
+        return (localUdelicense!=null)?localUdelicense.getDeploymentId() + ":" + localUdelicense.getInstanceId():"jasperLab:0";
     }
     
     public boolean isThisMyUdeLicense(String password){
-        return JAuthHelper.bytesToHex(license.getLicenseKey()).equals(password);
+        return JAuthHelper.bytesToHex(localUdelicense.getLicenseKey()).equals(password);
     }
 	
 	public UDELicense getUdeLicense(){
-		return license;
+		return localUdelicense;
 	}
 	
 	private void stopAudit() {
@@ -209,17 +218,17 @@ public class UDE {
 	private void auditSystem(){
 		try {
 			//reload license key
-			license = licenseKeySys.loadKeys(prop.getProperty("jsb-keystore"));
-			if(licenseKeySys.willUdeLicenseKeyExpireInDays(license, 3)){
-				logger.error("ude-license key will expire on : " + licenseKeySys.getUdeExpiryDate(license));
-			}else if(licenseKeySys.willUdeLicenseKeyExpireInDays(license, 7)){
-				logger.warn("ude-license key will expire on : " + licenseKeySys.getUdeExpiryDate(license));
-			}else if(licenseKeySys.willUdeLicenseKeyExpireInDays(license, 14)){
-				logger.info("ude-license key will expire on : " + licenseKeySys.getUdeExpiryDate(license));
-			}else if(licenseKeySys.willUdeLicenseKeyExpireInDays(license, 21)){
-				logger.debug("ude-license key will expire on : " + licenseKeySys.getUdeExpiryDate(license));
+			localUdelicense = licenseKeySys.loadKeys();
+			if(licenseKeySys.willUdeLicenseKeyExpireInDays(localUdelicense, 3)){
+				logger.error("ude-license key will expire on : " + licenseKeySys.getUdeExpiryDate(localUdelicense));
+			}else if(licenseKeySys.willUdeLicenseKeyExpireInDays(localUdelicense, 7)){
+				logger.warn("ude-license key will expire on : " + licenseKeySys.getUdeExpiryDate(localUdelicense));
+			}else if(licenseKeySys.willUdeLicenseKeyExpireInDays(localUdelicense, 14)){
+				logger.info("ude-license key will expire on : " + licenseKeySys.getUdeExpiryDate(localUdelicense));
+			}else if(licenseKeySys.willUdeLicenseKeyExpireInDays(localUdelicense, 21)){
+				logger.debug("ude-license key will expire on : " + licenseKeySys.getUdeExpiryDate(localUdelicense));
 			}
-			if(!licenseKeySys.isValidUdeLicenseKeyExpiry(license))stop();
+			if(!licenseKeySys.isValidUdeLicenseKeyExpiry(localUdelicense))stop();
 		} catch (IOException e) {
 			logger.error("IOException caught when trying to load license key, shutting down",e);
 			stop();
@@ -229,24 +238,8 @@ public class UDE {
 		}
 	}
 	
-	public void auditMap(String udeInstance){
-		Map<String,PersistedObject> sharedData;
-		BlockingQueue<PersistedObject> workQueue;
-		sharedData = (Map<String, PersistedObject>) cachingSys.getMap("sharedData");
-		workQueue = cachingSys.getQueue("tasks");
-		PersistedObject statefulData;
-
-		for(String s:sharedData.keySet()){
-			statefulData = sharedData.get(s);
-			// Only resubmit jobs to queue for UDE that has gone down
-			if(statefulData != null && statefulData.getUDEInstance().equals(udeInstance)){
-				workQueue.offer(statefulData);
-			}
-		}
-	}
-	
 	public String getUdeInstance() {
-		return license.getDeploymentId() + ":" + license.getInstanceId();
+		return localUdelicense.getDeploymentId() + ":" + localUdelicense.getInstanceId();
 	}
 	
 	public String getBrokerTransportIp() {
@@ -258,6 +251,13 @@ public class UDE {
 				brokerTransportIp = InetAddress.getLocalHost().getHostAddress();
 			}catch(UnknownHostException e){
 				logger.warn("unknown host exception caught, expected on linux system.", e);
+			}
+			
+			if(brokerTransportIp != null){
+				if(logger.isInfoEnabled()){
+					logger.info("broker transport IP set to " + brokerTransportIp);
+				}
+				return brokerTransportIp;
 			}
 			
 			try{
@@ -281,12 +281,34 @@ public class UDE {
 				logger.warn("SocketException caught when trying tp parse interfaces", e);
 			}
 		}
-		
+		if(logger.isInfoEnabled()){
+			logger.info("broker transport IP is " + brokerTransportIp);
+		}
 		return brokerTransportIp;
 	}
 
 	public boolean isClusterEnabled(){
 		return clusterEnabled;
+	}
+	
+//	public void auditMap(String udeInstance){
+//		Map<String,PersistedObject> sharedData;
+//		BlockingQueue<PersistedObject> workQueue;
+//		sharedData = (Map<String, PersistedObject>) cachingSys.getMap("sharedData");
+//		workQueue = cachingSys.getQueue("tasks");
+//		PersistedObject statefulData;
+//
+//		for(String s:sharedData.keySet()){
+//			statefulData = sharedData.get(s);
+//			// Only resubmit jobs to queue for UDE that has gone down
+//			if(statefulData != null && statefulData.getUDEInstance().equals(udeInstance)){
+//				workQueue.offer(statefulData);
+//			}
+//		}
+//	}
+
+	public void remoteUdeConnectionDropped(String clientId, String clientIp, String username, String password) {
+		delegate.connectionToRemoteUdeLost(licenseKeySys.getUdeInstance(password)); 
 	}
 
 }

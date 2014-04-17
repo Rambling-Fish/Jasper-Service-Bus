@@ -3,7 +3,11 @@ package org.jasper.core.delegate;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.activemq.util.ByteArrayInputStream;
 import org.apache.log4j.Logger;
@@ -17,6 +21,8 @@ import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.IMap;
 import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntProperty;
+import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -26,13 +32,24 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.sparql.resultset.JSONOutput;
+import com.hp.hpl.jena.vocabulary.RDF;
+import com.hp.hpl.jena.vocabulary.RDFS;
 
 public class DelegateOntology implements EntryListener<String, String>{
 	
 	private OntModel model;
 	private IMap<String,String> dtaTriples;
 	private Map<String,Model> dtaSubModels;
+	
+	private Map<String,JsonObject>	schemaCache;
+	private Map<String, Boolean>	knownRuriForOutputGetCache;
+	private Map<String, ArrayList<String>>	provideOperationsCache;
+	private Map<String, String>	provideOperationInputObjectCache;
+	private Map<String, String>	provideDestinationQueueCache;
+	private Map<String, Set<String>> superPropertyList;
+	private Map<String, Set<String>> subPropertyList;
 	
 	static Logger logger = Logger.getLogger(DelegateOntology.class.getName());
 
@@ -53,6 +70,14 @@ public class DelegateOntology implements EntryListener<String, String>{
 		dtaTriples.addEntryListener(this, true);
 		dtaSubModels = new HashMap<String,Model>();
 		
+		schemaCache = new ConcurrentHashMap<String,JsonObject>();
+		knownRuriForOutputGetCache = new ConcurrentHashMap<String,Boolean>();
+		provideOperationsCache = new ConcurrentHashMap<String,ArrayList<String>>();
+		provideOperationInputObjectCache = new ConcurrentHashMap<String,String>();
+		provideDestinationQueueCache = new ConcurrentHashMap<String,String>();
+		superPropertyList = new ConcurrentHashMap<String,Set<String>>();
+		subPropertyList = new ConcurrentHashMap<String,Set<String>>();
+		
 		for(String dtaName:dtaTriples.keySet()){
 			Model subModel = ModelFactory.createDefaultModel();
 			String triples = dtaTriples.get(dtaName);
@@ -63,206 +88,17 @@ public class DelegateOntology implements EntryListener<String, String>{
 		}
 		
 	}
-
-	// TODO: remove old vocab methods
-	public JsonArray getQandParams(String ruri,Map<String, String> params){
-		if(!isSupportedRURI(ruri)) return null;
-		
-		ArrayList<String> jtaList = getJTAs(ruri);
-		
-		if(jtaList.size() == 0)return null;
-		
-		JsonArray jsonArray = new JsonArray();
-		for(String jta:jtaList){
-			JsonObject qAndParams = new JsonObject();
-			qAndParams.addProperty(JTA, jta);
-			qAndParams.addProperty(QUEUE,getQ(jta));
-			qAndParams.add(PARAMS, getParams(jta,ruri,params));
-			qAndParams.addProperty(PROVIDES, getProvides(jta,ruri));
-			jsonArray.add(qAndParams);
-		}
-		return jsonArray;
-	}
-
-	// TODO: remove old vocab methods
-	private String getProvides(String jta, String ruri) {
-		String queryString = 
-				 JasperOntologyConstants.PREFIXES +
-	             "SELECT ?provides  WHERE" +
-	             "   {<" + jta + "> :provides ?provides}" ;
-		
-		Query query = QueryFactory.create(queryString) ;
-		QueryExecution qexec = QueryExecutionFactory.create(query, model);
-		ArrayList<String> array = new ArrayList<String>();
-		try {
-			ResultSet results = qexec.execSelect() ;
-			for ( ; results.hasNext() ; )
-			{
-				QuerySolution soln = results.nextSolution();
-				array.add(soln.get("provides").toString());
-				
-			}
-		}finally{
-			qexec.close();
-		}
-		return (array.size()==1)?array.get(0):ruri;
-	}
-
-	// TODO: remove old vocab methods
-	private JsonObject getParams(String jta, String ruri, Map<String, String> params) {
-		/*
-		 * get list of parameters need for jta to get ruri
-		 * if param list is 0 than no parameters are needed and we return 
-		 */
-		JsonObject jsonParams = new JsonObject();
-		ArrayList<String> jtaParams = getJtaParams(jta);
-		if(jtaParams.size() == 0) return jsonParams;
-		
-		/*
-		 * if parameters are needed we check which are available and which we
-		 * need to lookup. At the end of this for loop
-		 *   - availableParams list contains all the parameters needed and available
-		 *   - jtaParamsToLookp list contains all parameters needed to be looked up
-		 */
-		ArrayList<String> availableParams = new ArrayList<String>();
-		ArrayList<String> jtaParamsToLookup = getJtaParams(jta);
-		for(String param:jtaParams){
-			if(params.containsKey(param)){
-				availableParams.add(param);
-				jtaParamsToLookup.remove(param);
-			}
-		}
-		
-		for(String param:availableParams){
-			jsonParams.addProperty(param, params.get(param));
-		}
-		
-		for(String param:jtaParamsToLookup){
-			jsonParams.add(param,getQandParams(param,params));
-		}
-				
-		return jsonParams;
-	}
-
-	// TODO: remove old vocab methods
-	private String getQ(String jta) {
-		String queryString = 
-				 JasperOntologyConstants.PREFIXES +
-	             "SELECT ?q  WHERE " +
-	             "   {<" + jta + "> :queue ?q .}" ;
-		
-		Query query = QueryFactory.create(queryString) ;
-		QueryExecution qexec = QueryExecutionFactory.create(query, model);
-		ArrayList<String> array = new ArrayList<String>();
-		try {
-			ResultSet results = qexec.execSelect() ;
-			for ( ; results.hasNext() ; )
-			{
-				QuerySolution soln = results.nextSolution();
-				array.add(soln.get("q").toString());
-				
-			}
-		}finally{
-			qexec.close();
-		}
-		return (array.size()==1)?array.get(0):null;
-	}
 	
-	// TODO: remove old vocab methods
-	public ArrayList<String> getJtaParams(String jta) {
-		String queryString = 
-				 JasperOntologyConstants.PREFIXES +
-	             "SELECT ?params  WHERE " +
-	             "   {<" + jta + "> :param ?params .}" ;
-		
-		Query query = QueryFactory.create(queryString) ;
-		QueryExecution qexec = QueryExecutionFactory.create(query, model);
-		ArrayList<String> array = new ArrayList<String>();
-		try {
-			ResultSet results = qexec.execSelect() ;
-			for ( ; results.hasNext() ; )
-			{
-				QuerySolution soln = results.nextSolution();
-				array.add(soln.get("params").toString());
-				
-			}
-		}finally{
-			qexec.close();
-		}
-		return array;
+	private void clearCaches(){
+		schemaCache.clear();
+		knownRuriForOutputGetCache.clear();
+		provideOperationsCache.clear();
+		provideOperationInputObjectCache.clear();
+		provideDestinationQueueCache.clear();
+		superPropertyList.clear();
+		subPropertyList.clear();
 	}
 
-	// TODO: remove old vocab methods
-	private ArrayList<String> getJTAs(String ruri) {
-		if(ruri.startsWith("http://")){
-			ruri = "<" + ruri +">";
-		}else{
-			ruri = "\"" + ruri +"\"";
-		}		String queryString = 
-				 JasperOntologyConstants.PREFIXES +
-	             "SELECT ?jta  WHERE " +
-	             "   {" +
-	             "       {" +
-	             "         ?jta             :is           :jta ." +
-	             "         ?jtaProvidedData :subClassOf    " + ruri + "." +
-	             "         ?jta             :provides      ?jtaProvidedData ." +
-	             "       }" +
-	             "       UNION" +
-	             "       {" +
-	             "         ?jta             :is           :jta ." +
-	             "         ?jta             :provides    " + ruri + "." +
-	             "       }" +
-	             "   }" ;
-		
-		Query query = QueryFactory.create(queryString) ;
-		QueryExecution qexec = QueryExecutionFactory.create(query, model);
-		ArrayList<String> array = new ArrayList<String>();
-		try {
-			ResultSet results = qexec.execSelect() ;
-			for ( ; results.hasNext() ; )
-			{
-				QuerySolution soln = results.nextSolution();
-				array.add(soln.get("jta").toString());
-				
-			}
-		}finally{
-			qexec.close();
-		}
-		return array;	
-	}
-
-	// TODO: remove old vocab methods
-	private boolean isSupportedRURI(String ruri) {
-		if(ruri.startsWith("http://")){
-			ruri = "<" + ruri +">";
-		}else{
-			ruri = "\"" + ruri +"\"";
-		}
-		String queryString = 
-				 JasperOntologyConstants.PREFIXES +
-	             "ASK  WHERE " +
-	             "   {" +
-	             "       {" +
-	             "         ?jta             :is           :jta ." +
-	             "         ?jtaProvidedData :subClassOf    " + ruri + "." +
-	             "         ?jta             :provides      ?jtaProvidedData ." +
-	             "       }" +
-	             "       UNION" +
-	             "       {" +
-	             "         ?jta             :is           :jta ." +
-	             "         ?jta             :provides    " + ruri + "." +
-	             "       }" +
-	             "   }" ;
-		
-		try{
-			Query query = QueryFactory.create(queryString) ;
-			QueryExecution qexec = QueryExecutionFactory.create(query, model);
-			return qexec.execAsk();
-		}catch(Exception ex){
-			logger.error("Exception caught while parsing request " + ex);
-			return false;
-		}
-	}
 
 	//========================================================================================== 
 	// METHOD:  isRuriKnownForInputPost
@@ -309,10 +145,8 @@ public class DelegateOntology implements EntryListener<String, String>{
 	//          operation.
 	//========================================================================================== 
 
-	public boolean isRuriKnownForInputGet(String ruri) 
-	{
-		if (ruri == null)
-			return false;
+	public boolean isRuriKnownForInputGet(String ruri) {
+		if (ruri == null) return false;
 
 		String queryString = 
 				JasperOntologyConstants.PREFIXES +
@@ -361,6 +195,55 @@ public class DelegateOntology implements EntryListener<String, String>{
 		}
 	}
 	
+	public Set<String> getSuperProperties(String ruri) {
+		if (ruri == null) return null;
+		
+		if(!superPropertyList.containsKey(ruri)){
+			String queryString = 
+					JasperOntologyConstants.PREFIXES +
+		             "SELECT ?superProperty  WHERE " +
+	             "   {" +
+	             "         <" + ruri + ">   rdfs:subPropertyOf+ ?superProperty \n" +
+	             "   }" ;
+			
+			Query query = QueryFactory.create(queryString) ;
+			QueryExecution qexec = QueryExecutionFactory.create(query, model);
+			Set<String> array = new HashSet<String>();
+			try {
+				ResultSet results = qexec.execSelect() ;
+				for ( ; results.hasNext() ; )
+				{
+					QuerySolution soln = results.nextSolution();
+					array.add(soln.get("superProperty").toString());
+					
+				}
+			}finally{
+				qexec.close();
+			}
+			superPropertyList.put(ruri, array);
+		}
+		return superPropertyList.get(ruri);
+	}
+	
+	public Set<String> getSubProperties(String ruri){
+		if (ruri == null) return null;
+		
+		if(!subPropertyList.containsKey(ruri)){
+			Set<String> fullList = new HashSet<String>();
+			
+			OntProperty property = model.getObjectProperty(ruri);
+			OntResource range = property.getRange();
+			Set<Resource> list = model.listSubjectsWithProperty(RDFS.domain, range).toSet();
+			for(Resource r:list){
+				fullList.add(r.getURI());
+				fullList.addAll(getSubProperties(r.getURI()));
+			}
+			
+			subPropertyList.put(ruri, fullList);
+		}
+		return subPropertyList.get(ruri);
+	}
+	
 
 	//========================================================================================== 
 	// METHOD:  isRuriKnownForOutputGet
@@ -371,78 +254,40 @@ public class DelegateOntology implements EntryListener<String, String>{
 	// PURPOSE: Determine if this RURI is known in the ontology and is an output of a GET
 	//          operation.
 	//========================================================================================== 
-
-	public boolean isRuriKnownForOutputGet(String ruri) 
-	{
-		if (ruri == null)
-			return false;
-
-		String queryString = 
-				JasperOntologyConstants.PREFIXES +
-	             "ASK  WHERE " +
-	             "   {{" +
-	             "         ?dta    a                               dta:DTA       .\n" +
-	             "         ?dta    dta:operation                   ?oper         .\n" +
-	             "         ?oper   dta:kind                        dta:Get       .\n" +
-	             "         ?oper   dta:output/rdfs:subPropertyOf*                      <" + ruri + "> .\n" +
-	             "   }" + 
-	             "       UNION" +
-	             "   {" +
-	             "      ?dta              a                dta:DTA        .\n" +
-	             "      ?dta              dta:operation    ?operation     .\n" +
-	             "      ?operation        dta:kind         dta:Get        .\n" +
-	             "      ?operation        dta:output/rdfs:subPropertyOf*       ?superRuri     .\n" +
-	             "      ?superRuri        rdfs:range       ?superType     .\n" +
-	             "      <" + ruri + ">    rdfs:domain      ?superType     .\n" +
-	             "   }}" ;
-	             ;
+	public boolean isRuriKnownForOutputGet(String ruri)	{
+		if (ruri == null) return false;
 		
-		try{
-			Query query = QueryFactory.create(queryString) ;
-			QueryExecution qexec = QueryExecutionFactory.create(query, model);
-			return qexec.execAsk();
-		}catch(Exception ex){
-			logger.error("Exception caught while parsing request " + ex);
-			return false;
+		if(!knownRuriForOutputGetCache.containsKey(ruri)){
+			String queryString = 
+					JasperOntologyConstants.PREFIXES +
+		             "ASK  WHERE " +
+		             "   {{" +
+		             "         ?dta    a                               dta:DTA       .\n" +
+		             "         ?dta    dta:operation                   ?oper         .\n" +
+		             "         ?oper   dta:kind                        dta:Get       .\n" +
+		             "         ?oper   dta:output/rdfs:subPropertyOf*                      <" + ruri + "> .\n" +
+		             "   }" + 
+		             "       UNION" +
+		             "   {" +
+		             "      ?dta              a                dta:DTA        .\n" +
+		             "      ?dta              dta:operation    ?operation     .\n" +
+		             "      ?operation        dta:kind         dta:Get        .\n" +
+		             "      ?operation        dta:output/rdfs:subPropertyOf*       ?superRuri     .\n" +
+		             "      ?superRuri        rdfs:range       ?superType     .\n" +
+		             "      <" + ruri + ">    rdfs:domain      ?superType     .\n" +
+		             "   }}" ;
+		             ;
+			
+			try{
+				Query query = QueryFactory.create(queryString) ;
+				QueryExecution qexec = QueryExecutionFactory.create(query, model);
+				knownRuriForOutputGetCache.put(ruri, qexec.execAsk());
+			}catch(Exception ex){
+				logger.error("Exception caught while parsing request " + ex);
+				knownRuriForOutputGetCache.put(ruri, false);
+			}
 		}
-	}
-	
-	//========================================================================================== 
-	// METHOD:  isEncapsulatedRuriKnownForOutput
-	//
-	// INPUT:   String (RURI)
-	// OUTPUT:  boolean
-	//
-	// PURPOSE: Determine if this RURI is known in the ontology and is an encapsulated output
-	//          of a GET operation.  (Note: current implementation extends only one
-	//          level deep, ie, one subclass.)
-	//========================================================================================== 
-
-	public boolean isEncapsulatedRuriKnownForOutput(String ruri) 
-	{
-		if (ruri == null)
-			return false;
-
-		String queryString = 
-				JasperOntologyConstants.PREFIXES +
-	             "ASK  WHERE " +
-	             "   {" +
-	             "      ?dta              a                dta:DTA        .\n" +
-	             "      ?dta              dta:operation    ?operation     .\n" +
-	             "      ?operation        dta:kind         dta:Get        .\n" +
-	             "      ?operation        dta:output/rdfs:subPropertyOf*       ?superRuri     .\n" +
-	             "      ?superRuri        rdfs:range       ?superType     .\n" +
-	             "      <" + ruri + ">    rdfs:domain      ?superType     \n" +
-	             "   }" ;
-		
-		try{
-			Query query = QueryFactory.create(queryString) ;
-			QueryExecution qexec = QueryExecutionFactory.create(query, model);
-			return qexec.execAsk();
-		}catch(Exception ex){
-			logger.error("Exception caught while parsing request " + ex);
-			return false;
-		}
+		return knownRuriForOutputGetCache.get(ruri);
 	}
 	
 	//========================================================================================== 
@@ -453,92 +298,47 @@ public class DelegateOntology implements EntryListener<String, String>{
 	//
 	// PURPOSE: Return a list of provide type operations that return the RURI object.
 	//========================================================================================== 
-
 	public ArrayList<String> getProvideOperations(String ruri) 
 	{
-		if (ruri == null)
-			return null;
+		if (ruri == null) return null;
 		
-		String queryString = 
-				JasperOntologyConstants.PREFIXES +
-	             "SELECT ?operation  WHERE \n" +
-	             "   {{\n" +
-	             "      ?dta              a                dta:DTA        .\n" +
-	             "      ?dta              dta:operation    ?operation     .\n" +
-	             "      ?operation        dta:kind         dta:Get        .\n" +
-	             "      ?operation        dta:output/rdfs:subPropertyOf*       <" + ruri + ">  .\n" +
-	             "       }" +
-	             "       UNION" +
-	             "       {" +
-	             "      ?dta           a                dta:DTA        .\n" +
-	             "      ?dta           dta:operation    ?operation     .\n" +
-	             "      ?operation     dta:kind         dta:Get        .\n" +
-	             "      ?operation     dta:output/rdfs:subPropertyOf*       ?superRuri     .\n" +
-	             "      ?superRuri     rdfs:range       ?superType     .\n" +
-	             "      <" + ruri + "> rdfs:domain      ?superType     .\n" +
-	             "   }}" ;
-		
-		Query query = QueryFactory.create(queryString) ;
-		QueryExecution qexec = QueryExecutionFactory.create(query, model);
-		ArrayList<String> array = new ArrayList<String>();
-		try {
-			ResultSet results = qexec.execSelect() ;
-			for ( ; results.hasNext() ; )
-			{
-				QuerySolution soln = results.nextSolution();
-				array.add(soln.get("operation").toString());
-				
+		if(!provideOperationsCache.containsKey(ruri)){
+			String queryString = 
+					JasperOntologyConstants.PREFIXES +
+		             "SELECT ?operation  WHERE \n" +
+		             "   {{\n" +
+		             "      ?dta              a                dta:DTA        .\n" +
+		             "      ?dta              dta:operation    ?operation     .\n" +
+		             "      ?operation        dta:kind         dta:Get        .\n" +
+		             "      ?operation        dta:output/rdfs:subPropertyOf*       <" + ruri + ">  .\n" +
+		             "       }" +
+		             "       UNION" +
+		             "       {" +
+		             "      ?dta           a                dta:DTA        .\n" +
+		             "      ?dta           dta:operation    ?operation     .\n" +
+		             "      ?operation     dta:kind         dta:Get        .\n" +
+		             "      ?operation     dta:output/rdfs:subPropertyOf*       ?superRuri     .\n" +
+		             "      ?superRuri     rdfs:range       ?superType     .\n" +
+		             "      <" + ruri + "> rdfs:domain      ?superType     .\n" +
+		             "   }}" ;
+			
+			Query query = QueryFactory.create(queryString) ;
+			QueryExecution qexec = QueryExecutionFactory.create(query, model);
+			ArrayList<String> array = new ArrayList<String>();
+			try {
+				ResultSet results = qexec.execSelect() ;
+				for ( ; results.hasNext() ; )
+				{
+					QuerySolution soln = results.nextSolution();
+					array.add(soln.get("operation").toString());
+					
+				}
+			}finally{
+				qexec.close();
 			}
-		}finally{
-			qexec.close();
+			provideOperationsCache.put(ruri, array);
 		}
-		return array;	
-	}	
-
-	//========================================================================================== 
-	// METHOD:  getProvideOperationsEncapsulated
-	//
-	// INPUT:   String (RURI)
-	// OUTPUT:  ArrayList<String> (array of strings, each string identifies an operation)
-	//
-	// PURPOSE: Return a list of provide type operations that return an object that
-	//          encapsulates the RURI.  (Note: current implementation extends only one
-	//          level deep, ie, one subclass.)
-	//========================================================================================== 
-
-	public ArrayList<String> getProvideOperationsEncapsulated(String ruri) 
-	{
-		if (ruri == null)
-			return null;
-		
-		String queryString = 
-				JasperOntologyConstants.PREFIXES +
-	             "SELECT ?operation  WHERE \n" +
-	             "   {\n" +
-	             "      ?dta           a                dta:DTA        .\n" +
-	             "      ?dta           dta:operation    ?operation     .\n" +
-	             "      ?operation     dta:kind         dta:Get        .\n" +
-	             "      ?operation     dta:output/rdfs:subPropertyOf*       ?superRuri     .\n" +
-//	             "      ?operation     dta:output       ?superRuri     .\n" +
-	             "      ?superRuri     rdfs:range       ?superType     .\n" +
-	             "      <" + ruri + "> rdfs:domain      ?superType     \n" +
-	             "   }" ;
-		
-		Query query = QueryFactory.create(queryString) ;
-		QueryExecution qexec = QueryExecutionFactory.create(query, model);
-		ArrayList<String> array = new ArrayList<String>();
-		try {
-			ResultSet results = qexec.execSelect() ;
-			for ( ; results.hasNext() ; )
-			{
-				QuerySolution soln = results.nextSolution();
-				array.add(soln.get("operation").toString());
-				
-			}
-		}finally{
-			qexec.close();
-		}
-		return array;	
+		return provideOperationsCache.get(ruri);
 	}	
 
 	//========================================================================================== 
@@ -549,37 +349,38 @@ public class DelegateOntology implements EntryListener<String, String>{
 	//
 	// PURPOSE: Retrieves the input object(s) for the the provide operation.
 	//========================================================================================== 
-
 	public String getProvideOperationInputObject(String oper) 
 	{
-		if (oper == null)
-			return null;
+		if (oper == null) return null;
 
-		String queryString = 
-				JasperOntologyConstants.PREFIXES +
-	             "SELECT ?input  WHERE \n" +
-	             "   {\n" +
-	             "      ?dta            a              dta:DTA        .\n" +
-	             "      ?dta            dta:operation  <" + oper + "> .\n" +
-	             "      <" + oper + ">  dta:kind       dta:Get        .\n" +
-	             "      <" + oper + ">  dta:input      ?input          \n" +
-	             "   }" ;
+		if(!provideOperationInputObjectCache.containsKey(oper)){
+			String queryString = 
+					JasperOntologyConstants.PREFIXES +
+		             "SELECT ?input  WHERE \n" +
+		             "   {\n" +
+		             "      ?dta            a              dta:DTA        .\n" +
+		             "      ?dta            dta:operation  <" + oper + "> .\n" +
+		             "      <" + oper + ">  dta:kind       dta:Get        .\n" +
+		             "      <" + oper + ">  dta:input      ?input          \n" +
+		             "   }" ;
 
-		Query query = QueryFactory.create(queryString) ;
-		QueryExecution qexec = QueryExecutionFactory.create(query, model);
-		ArrayList<String> array = new ArrayList<String>();
-		try {
-			ResultSet results = qexec.execSelect() ;
-			for ( ; results.hasNext() ; )
-			{
-				QuerySolution soln = results.nextSolution();
-				array.add(soln.get("input").toString());
-				
+			Query query = QueryFactory.create(queryString) ;
+			QueryExecution qexec = QueryExecutionFactory.create(query, model);
+			ArrayList<String> array = new ArrayList<String>();
+			try {
+				ResultSet results = qexec.execSelect() ;
+				for ( ; results.hasNext() ; )
+				{
+					QuerySolution soln = results.nextSolution();
+					array.add(soln.get("input").toString());
+					
+				}
+			}finally{
+				qexec.close();
 			}
-		}finally{
-			qexec.close();
+			provideOperationInputObjectCache.put(oper, (array.size()==1)?array.get(0):null);
 		}
-		return (array.size()==1)?array.get(0):null;
+		return provideOperationInputObjectCache.get(oper);
 	}		
 	
 	//========================================================================================== 
@@ -591,45 +392,51 @@ public class DelegateOntology implements EntryListener<String, String>{
 	// PURPOSE: Retrieves the destination queue(s) of the provide operation(s) that supports
 	//          this RURI.
 	//========================================================================================== 
-
 	public String getProvideDestinationQueue(String oper) 
 	{
-		if (oper == null)
-			return null;
+		if (oper == null) return null;
 
-		String queryString = 
-				JasperOntologyConstants.PREFIXES +
-	             "SELECT ?dest  WHERE \n" +
-	             "   {\n" +
-	             "      ?dta            a                dta:DTA        .\n" +
-	             "      ?dta            dta:operation    <" + oper + "> .\n" +
-	             "      <" + oper + ">  dta:kind         dta:Get        .\n" +
-	             "      <" + oper + ">  dta:destination  ?dest           \n" +
-	             "   }" ;
-		
-		Query query = QueryFactory.create(queryString) ;
-		QueryExecution qexec = QueryExecutionFactory.create(query, model);
-		ArrayList<String> array = new ArrayList<String>();
-		
-		try 
-		{
-			ResultSet results = qexec.execSelect() ;
-			for ( ; results.hasNext() ; )
+		if(!provideDestinationQueueCache.containsKey(oper)){
+			String queryString = 
+					JasperOntologyConstants.PREFIXES +
+		             "SELECT ?dest  WHERE \n" +
+		             "   {\n" +
+		             "      ?dta            a                dta:DTA        .\n" +
+		             "      ?dta            dta:operation    <" + oper + "> .\n" +
+		             "      <" + oper + ">  dta:kind         dta:Get        .\n" +
+		             "      <" + oper + ">  dta:destination  ?dest           \n" +
+		             "   }" ;
+			
+			Query query = QueryFactory.create(queryString) ;
+			QueryExecution qexec = QueryExecutionFactory.create(query, model);
+			ArrayList<String> array = new ArrayList<String>();
+			
+			try 
 			{
-				QuerySolution soln = results.nextSolution();
-				array.add(soln.get("dest").asLiteral().getString());
-				
+				ResultSet results = qexec.execSelect() ;
+				for ( ; results.hasNext() ; )
+				{
+					QuerySolution soln = results.nextSolution();
+					array.add(soln.get("dest").asLiteral().getString());
+					
+				}
 			}
+			finally
+			{
+				qexec.close();
+			}
+			provideDestinationQueueCache.put(oper, (array.size()==1)?array.get(0):null);
 		}
-		finally
-		{
-			qexec.close();
-		}
-		return (array.size()==1)?array.get(0):null;	
+		return provideDestinationQueueCache.get(oper);
 	}	
-	
+
 	public JsonObject createJsonSchema(String inputObject) {
-		return createJsonSchema(inputObject,true); 
+		if(inputObject == null) return null;
+		
+		if(!schemaCache.containsKey(inputObject)){
+			schemaCache.put(inputObject, createJsonSchema(inputObject,true));
+		}
+		return schemaCache.get(inputObject);
 	}
 	
 	//========================================================================================== 
@@ -935,6 +742,8 @@ public class DelegateOntology implements EntryListener<String, String>{
         subModel.read(in,"","TURTLE");
         model.addSubModel(subModel);
         dtaSubModels.put(dtaName, subModel);
+        clearCaches();
+        logger.error("#### jOntology added to map - " + dtaName);
     }
     
     public void entryEvicted(EntryEvent<String, String> event) {
@@ -952,6 +761,8 @@ public class DelegateOntology implements EntryListener<String, String>{
         }else{
                 logger.warn("trying to remove dtaName that does not exist in map : " + dtaName);
         }
+        clearCaches();
+        logger.error("#### jOntology removed to map - " + dtaName);
     }
 
     public void entryUpdated(EntryEvent<String, String> event) {

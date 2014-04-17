@@ -4,23 +4,23 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.MapMessage;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
@@ -30,31 +30,35 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Logger;
 import org.jasper.core.UDE;
 import org.jasper.core.constants.JasperConstants;
-import org.jasper.core.constants.JasperConstants.responseCodes;
+import org.jasper.core.constants.JasperConstants.ResponseCodes;
+import org.jasper.core.constants.JasperOntologyConstants;
 import org.jasper.core.delegate.handlers.AdminHandler;
-import org.jasper.core.delegate.handlers.DataConsumer;
+import org.jasper.core.delegate.handlers.DataRequestHandler;
+import org.jasper.core.delegate.handlers.GlobalQHandler;
 import org.jasper.core.delegate.handlers.SparqlHandler;
 import org.jasper.core.notification.triggers.Trigger;
-import org.jasper.core.notification.triggers.TriggerFactory;
-import org.jasper.core.persistence.PersistedObject;
+import org.jasper.core.persistence.PersistedDataReqeust;
+import org.jasper.core.persistence.PersistedSubscriptionReqeust;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
-import org.json.JSONException;
+import org.mule.execution.SuspendXaTransactionInterceptor;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.hp.hpl.jena.rdf.model.Model;
+import com.hazelcast.core.MultiMap;
+import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntModelSpec;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 
-public class Delegate implements Runnable, MessageListener {
-
+public class Delegate {
 	
-	private boolean isShutdown;
 	private Session globalSession;
 	private Queue globalQueue;
 	private MessageConsumer globalDelegateConsumer;
@@ -62,9 +66,6 @@ public class Delegate implements Runnable, MessageListener {
 	private MessageProducer producer;
 	private Destination delegateQ;
 	private MessageConsumer responseConsumer;
-	private ExecutorService delegateHandlers;
-	private ExecutorService dataConsumerService;
-	private DataConsumer[] dataConsumers;
 
 	private Map<String, Message> responseMessages;
 	private Map<String, Object> locks;
@@ -72,160 +73,179 @@ public class Delegate implements Runnable, MessageListener {
 	
 	
 	public String defaultOutput;
-	private Map<String,PersistedObject> sharedData;
-	private String key;
-	private String errorTxt;
-	private BlockingQueue<PersistedObject> workQueue;
-	private String contentType;
-	private String version;
-	private String notification;
-	private String output;
-	private String ruri;
-	private String method;
-	private String subscriptionId;
-	private int expires;
-	private int pollPeriod;
-	private List<Trigger> triggerList;
-	private static final int MILLISECONDS = 1000;
-	private PersistedObject statefulData;
+	private MultiMap<String,PersistedDataReqeust> distributedDataStore;
+	private MultiMap<String, PersistedSubscriptionReqeust>	persistedSubscriptions;
+
 	public int maxExpiry;
 	public int maxPollingInterval;
 	public int minPollingInterval;
-	// used to engineer the number of data consumers to start per delegate
-	private static int numDataConsumers = 1;
+
 	Properties prop = new Properties();
+	
+	private Connection connection = null;
 	private UDE ude;
+	private ExecutorService delegateRequestThreadPool;
 
 	static Logger logger = Logger.getLogger(Delegate.class.getName());
 	static private AtomicInteger count = new AtomicInteger(0);
 
-	public Delegate(UDE ude, Connection connection, Model model,DelegateOntology jOntology) throws JMSException{
-		this.isShutdown = false;
-
-		this.ude = ude;
+	public Delegate(UDE ude){
 		
 		this.responseMessages = new ConcurrentHashMap<String, Message>();
 		this.locks = new ConcurrentHashMap<String, Object>();
+		this.ude = ude;
+		jOntology = new DelegateOntology(ude.getCachingSys(), createJasperOntModel());		
+	}
+	
+    private OntModel createJasperOntModel() {
+    	OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM);
+        for(String prefix:JasperOntologyConstants.PREFIX_MAP.keySet()){
+        	model.setNsPrefix(prefix, JasperOntologyConstants.PREFIX_MAP.get(prefix));
+        }
+        return model;
+    }
+    
+	
+	public void start() throws JMSException{
+		
+    	ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
+        // Create a Connection
+        connectionFactory.setUserName(JasperConstants.JASPER_ADMIN_USERNAME);
+        connectionFactory.setPassword(JasperConstants.JASPER_ADMIN_PASSWORD);
+        connection = connectionFactory.createConnection();
+        connection.start();
+        
+		delegateRequestThreadPool = Executors.newFixedThreadPool(5);
+//        delegateRequestThreadPool = new ThreadPoolExecutor(10, 50, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+//        delegateRequestThreadPool.allowCoreThreadTimeOut(true);
 
-		delegateHandlers = Executors.newFixedThreadPool(2);
-		dataConsumerService = Executors.newCachedThreadPool();
-		this.jOntology = jOntology;
-
-
-		globalSession = connection.createSession(true,Session.SESSION_TRANSACTED);
+		globalSession = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
 		globalQueue = globalSession.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
 		globalDelegateConsumer = globalSession.createConsumer(globalQueue);
+		MessageListener globalListener = new MessageListener() {
+			
+			@Override
+			public void onMessage(Message msg) {
+				processGlobalQMsg(msg);
+				
+			}
+		};
+		globalDelegateConsumer.setMessageListener(globalListener);
 
 		jtaSession = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		producer = jtaSession.createProducer(null);
 		producer.setDeliveryMode(DeliveryMode.PERSISTENT);
 		producer.setTimeToLive(30000);
-
+		
 		delegateQ = jtaSession.createQueue("jms.delegate." + ude.getBrokerTransportIp() + "." + count.getAndIncrement() + ".queue");
 		responseConsumer = jtaSession.createConsumer(delegateQ);
-		responseConsumer.setMessageListener(this);
-		
-		dataConsumers = new DataConsumer[numDataConsumers];
-		
-		for(int i=0;i<dataConsumers.length;i++){
-			dataConsumers[i] = new DataConsumer(ude, this,jOntology,locks,responseMessages);
-			dataConsumerService.execute(dataConsumers[i]);
-		}
-		
-		workQueue  = ude.getCachingSys().getQueue("tasks");
-		sharedData = (Map<String, PersistedObject>) ude.getCachingSys().getMap("sharedData");
-		
-		 try {
-	          //load properties file
-	    		prop.load(new FileInputStream(System.getProperty("delegate-property-file")));
-	    		defaultOutput = prop.getProperty("defaultOutput", "json");
-	    		maxExpiry = Integer.parseInt(prop.getProperty("maxNotificationExpiry","60000"));
-	    		maxPollingInterval = Integer.parseInt(prop.getProperty("maxPollingInterval","60000"));
-	    		minPollingInterval = Integer.parseInt(prop.getProperty("minPollingInterval","2000"));
-	    	} catch (IOException ex) {
-	    		ex.printStackTrace();
-	    	}
-	}
-
-	public void shutdown() throws JMSException {
-		isShutdown = true;
-		for(DataConsumer d:dataConsumers){
-			try {
-				d.shutdown();
-			} catch (JMSException ex) {
-				logger.error("jmsconnection caught while shutting down data consumers",ex);
+		MessageListener delegateQListener = new MessageListener() {
+			
+			@Override
+			public void onMessage(Message msg) {
+				processDelegateQMsg(msg);	
 			}
+		};
+		responseConsumer.setMessageListener(delegateQListener);
+		
+		distributedDataStore = (MultiMap<String, PersistedDataReqeust>) ude.getCachingSys().getMultiMap("distributedDataStore");	
+		persistedSubscriptions = (MultiMap<String, PersistedSubscriptionReqeust>) ude.getCachingSys().getMultiMap("persistedSubscriptions");
+		
+		try {
+          //load properties file
+    		prop.load(new FileInputStream(System.getProperty("delegate-property-file")));
+    		defaultOutput = prop.getProperty("defaultOutput", "json");
+    		maxExpiry = Integer.parseInt(prop.getProperty("maxNotificationExpiry","60000"));
+    		maxPollingInterval = Integer.parseInt(prop.getProperty("maxPollingInterval","60000"));
+    		minPollingInterval = Integer.parseInt(prop.getProperty("minPollingInterval","2000"));
+    	} catch (IOException ex) {
+    		ex.printStackTrace();
+    	}
+	}
+    
+	public void shutdown() throws JMSException {
+		delegateRequestThreadPool.shutdown();
+		try {
+			delegateRequestThreadPool.awaitTermination(5, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			logger.error("delegateReqeustThreadPool interrupted",e);
 		}
-		dataConsumerService.shutdown();
+		
 		producer.close();
 		responseConsumer.close();
 		jtaSession.close();
 		globalDelegateConsumer.close();
 		globalSession.close();
+		connection.stop();
+		connection.close();
+	}
+	
+	public Session getGlobalSession() {
+		return globalSession;
 	}
 
-	public void run() {
-		do {
-			try {
-				Message jmsRequest;
-				do {
-					jmsRequest = globalDelegateConsumer.receive(500);
-				} while (jmsRequest == null && !isShutdown);
-				
-				if (isShutdown)	break;
-
-				if (jmsRequest instanceof ObjectMessage) {
-					ObjectMessage objMessage = (ObjectMessage) jmsRequest;
-					Object obj = objMessage.getObject();
-					if (obj instanceof JasperAdminMessage) {
-						JasperAdminMessage jam = ((JasperAdminMessage) obj);
-						if (jam.getType() == Type.ontologyManagement) {
-							delegateHandlers.submit(new AdminHandler(this,jOntology, jmsRequest, locks,responseMessages));
-							globalSession.commit();
-						}
-					}
-				} else if (jmsRequest instanceof TextMessage) {
-					String text = ((TextMessage) jmsRequest).getText();
-					if (text != null && text.contains("sparql")) {
-						delegateHandlers.submit(new SparqlHandler(this,jOntology, jmsRequest));
-						globalSession.commit();
-					} else if (text != null) {
-						persistData((TextMessage)jmsRequest);
-						globalSession.commit();
-
-					} else {
-						logger.error("Incoming text message has null payload - ignoring " + jmsRequest);
-					}
-				} else {
-					logger.warn("JMS Message neither ObjectMessage nor TextMessage, ignoring request : " + jmsRequest);
-				}
-			} catch (Exception e) {
-				logger.error("Exception caught while listening for request in delegate : ",e);
-			}
-		} while (!isShutdown);
-
+	public Map<String, Object> getLocksMap() {
+		return locks;
+	}
+	
+	public Map<String, Message> getResponsesMap() {
+		return responseMessages;
 	}
 
-	public void onMessage(Message msg) {
-		try {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Message response received = " + msg);
-			}
+	public DelegateOntology getJOntology() {
+		return jOntology;
+	}
 
-			if (locks.containsKey(msg.getJMSCorrelationID())) {
-				responseMessages.put(msg.getJMSCorrelationID(), msg);
-				Object lock = locks.remove(msg.getJMSCorrelationID());
-				synchronized (lock) {
-					lock.notifyAll();
+	protected void processGlobalQMsg(Message jmsRequest) {
+		try{		
+			if(jmsRequest instanceof ObjectMessage && ((ObjectMessage)jmsRequest).getObject() instanceof JasperAdminMessage && ((JasperAdminMessage)((ObjectMessage)jmsRequest).getObject()).getType() == Type.ontologyManagement){
+				delegateRequestThreadPool.submit(new AdminHandler(this, jmsRequest));
+			}else if (jmsRequest instanceof TextMessage && ((TextMessage) jmsRequest).getText().contains("query") ){
+				delegateRequestThreadPool.submit(new SparqlHandler(this, jmsRequest));
+			}else if (jmsRequest instanceof TextMessage	&& ((TextMessage) jmsRequest).getText() !=null){
+				PersistedDataReqeust pData = null;
+				try {
+					pData  = persistDataRequest((TextMessage)jmsRequest);
+				} catch (Exception e) {
+					logger.error("unable to persist data request",e);
 				}
+				delegateRequestThreadPool.submit(new DataRequestHandler(this,pData));
 			} else {
-				logger.error("response with correlationID = " + msg.getJMSCorrelationID()
-						+ " received however no record of sending message with this ID, ignoring");
+				logger.warn("JMS Message neither ObjectMessage nor TextMessage, ignoring request : " + jmsRequest);
 			}
+		}catch (JMSException jmse){
+			logger.error("error occured in processGlobalQMsg", jmse);
+		}	
+	}
 
-		} catch (JMSException jmse) {
-			logger.error("error occured in onMessage", jmse);
+	public void removePersistedReqeust(PersistedDataReqeust request){
+		distributedDataStore.remove(ude.getUdeInstance(), request);
+	}
+
+	public PersistedDataReqeust persistDataRequest(TextMessage jmsRequest) throws JMSException {
+		PersistedDataReqeust persistedDataReqeust = new PersistedDataReqeust(jmsRequest.getJMSCorrelationID(), jmsRequest.getJMSReplyTo(), jmsRequest.getText(), System.currentTimeMillis());
+		distributedDataStore.put(ude.getUdeInstance(), persistedDataReqeust);
+		return persistedDataReqeust;
+		
+	}
+	
+	public void persistSubscriptionRequest(String ruri, String subscriptionId, String correlationID, Destination reply2q, List<Trigger> triggerList, int expiry) {
+		PersistedSubscriptionReqeust persistedSubscriptionReqeust = new PersistedSubscriptionReqeust(ruri,subscriptionId,correlationID,reply2q,triggerList,expiry, System.currentTimeMillis());
+		persistedSubscriptions.put(ruri, persistedSubscriptionReqeust);
+	}
+	
+	public void removePersistedSubscriptionRequest(String ruri, String subscriptionId) {
+		for(PersistedSubscriptionReqeust entry:persistedSubscriptions.get(ruri)){
+			if(entry.getSubscriptionId().equals(subscriptionId)){
+				persistedSubscriptions.remove(ruri, entry);
+				return;
+			}
 		}
+		logger.warn("subscription : " + subscriptionId + " for ruri " + ruri + " not found in persistedSubscriptions map, ignoring reqeust");
+	}
+	
+	public Collection<PersistedSubscriptionReqeust> getDataSubscriptions(String ruri){
+		return persistedSubscriptions.get(ruri);
 	}
 
 	public void sendMessage(Destination destination, Message message) throws JMSException {
@@ -240,21 +260,36 @@ public class Delegate implements Runnable, MessageListener {
 	public TextMessage createTextMessage(String txt) throws JMSException {
 		return jtaSession.createTextMessage(txt);
 	}
-
-	public ObjectMessage createObjectMessage(Serializable obj)
-			throws JMSException {
+	
+	public ObjectMessage createObjectMessage(Serializable obj) throws JMSException {
 		return jtaSession.createObjectMessage(obj);
 	}
 
-	public MapMessage createMapMessage(Map<String, Serializable> map) throws JMSException {
-		MapMessage mapMsg = jtaSession.createMapMessage();
-		for (String key : map.keySet()) {
-			mapMsg.setObject(key, map.get(key));
-		}
-		return mapMsg;
+	protected void processDelegateQMsg(Message msg) {
+		String correlationId = null;
+		try {
+			correlationId = msg.getJMSCorrelationID();
+			if (logger.isDebugEnabled()) {
+				logger.debug("Message response received for correlationID " + correlationId + " = " + msg);
+			}
+
+			if (locks.containsKey(correlationId)) {
+				responseMessages.put(correlationId, msg);
+				Object lock = locks.remove(correlationId);
+				synchronized (lock) {
+					lock.notifyAll();
+				}
+			} else {
+				logger.error("response with correlationID = " + correlationId
+						+ " received however no record of sending message with this ID, ignoring");
+			}
+
+		} catch (JMSException jmse) {
+			logger.error("error occured in processDelegateQMsg for CorrelationID " + correlationId, jmse);
+		}		
 	}
 	
-	public String createJasperResponse(responseCodes respCode, String respMsg, String response, String contentType, String version) {
+	public String createJasperResponse(ResponseCodes respCode, String respMsg, String response, String contentType, String version) {
 		JsonObject jasperResponse = new JsonObject();
 		Map<String,String> map = new HashMap<String,String>();
 		Gson gson = new Gson();
@@ -276,7 +311,6 @@ public class Delegate implements Runnable, MessageListener {
 			map.put(JasperConstants.CONTENT_TYPE_LABEL, "application/json");
 		}
 		
-		JsonObject headers = new JsonObject();
 		JsonElement jsonTree = gson.toJsonTree(map, Map.class);
 		
 		jasperResponse.add(JasperConstants.HEADERS_LABEL, jsonTree);
@@ -297,210 +331,16 @@ public class Delegate implements Runnable, MessageListener {
 		return jasperResponse.toString();
 		
 	}
-	
-	private void processInvalidRequest(TextMessage msg, JasperConstants.responseCodes responseCode, String responseMsg) throws Exception {
-		if(logger.isInfoEnabled()){
-			logger.info("processingInvalidRequest, errorMsg = " + responseMsg + " for request " + msg.getText() + " from " + msg.getJMSReplyTo());
-		}
-		String response = createJasperResponse(responseCode, responseMsg, null, contentType, version);
-        Message message = createTextMessage(response);
 
-        
-        if(msg.getJMSCorrelationID() == null){
-            message.setJMSCorrelationID(msg.getJMSMessageID());
-  	  	}else{
-            message.setJMSCorrelationID(msg.getJMSCorrelationID());
-  	  	}
-        
-        sendMessage(msg.getJMSReplyTo(),message);
-        removeSharedData();
+	public void connectionToRemoteUdeLost(String udeInstance) {
+		Collection<PersistedDataReqeust> failoverRequests = distributedDataStore.remove(udeInstance);
+		logger.error("recieved connection to remote ude lost for " + udeInstance + " getting failoverReqeusts : " + failoverRequests);
+		if(failoverRequests==null)return;
+		for(PersistedDataReqeust entry:failoverRequests){
+			distributedDataStore.put(ude.getUdeInstance(), entry);
+			delegateRequestThreadPool.submit(new DataRequestHandler(this,entry));
+			if(logger.isInfoEnabled()) logger.info("submitted failed over request : " + entry);
+		}
 	}
-	
-	private void persistData(TextMessage txtMsg) throws Exception{
-		String request = txtMsg.getText();
-		boolean requestOK = false;
-		key = txtMsg.getJMSCorrelationID();
-		
-		 if(request == null || request.length() == 0){
-	  	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, "Invalid request received - request is null or empty string");
-	  	    	return;
-	  	    }
-		 
-		 requestOK =  parseJasperRequest(request);
 
-		 if (!requestOK){
-			 processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, errorTxt);
-			 return;
-		 }
-		 
-		 if(ruri.length() == 0){
-	  	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, "Invalid request received - request does not contain a URI");
-	  	    	return;
-	  	    }
-		 
-		// create object that contains stateful data
-		 statefulData = new PersistedObject(key, txtMsg.getJMSCorrelationID(), request, ruri, null,
-				 txtMsg.getJMSReplyTo(), false, null, output, version, contentType, method, expires);
-		 
-		 if(subscriptionId != null){
-			 statefulData.setSubscriptionId(subscriptionId);
-		 }
-	  	   
-		 if(triggerList != null){
-			 statefulData.setTriggers(triggerList);
-			 statefulData.setNotification(notification);
-			 statefulData.setIsNotificationRequest(true);
-		 }
-
-		 sharedData.put(key, statefulData);
-		 workQueue.offer(statefulData);
-		 cleanup();
-	}
-	
-	private void removeSharedData(){
-		sharedData.remove(key);
-	}
-	
-	private boolean parseJasperRequest(String req) {
-		boolean validMsg = false;
-		expires = -1;
-		pollPeriod = -1;
-		
-		try {
-			JsonElement jelement = new JsonParser().parse(req);
-			JsonObject jsonObj = jelement.getAsJsonObject();
-			// parse out mandatory parameters
-			ruri = jsonObj.get(JasperConstants.REQUEST_URI_LABEL).getAsString();
-			version = jsonObj.get(JasperConstants.VERSION_LABEL).getAsString();
-			method = jsonObj.get(JasperConstants.METHOD_LABEL).getAsString();
-			
-			if(ruri != null && version != null && method != null) {
-				validMsg = true;
-			}	
-			
-			if(!isValidMethod(method)){
-				validMsg = false;
-				errorTxt = ("Invalid request type: " + method);
-			}
-			
-			if(jsonObj.has(JasperConstants.HEADERS_LABEL)){
-				Map<String, String> headers = getMap(jsonObj.get(JasperConstants.HEADERS_LABEL).getAsJsonObject());
-				for(String s:headers.keySet()){
-					switch (s.toLowerCase()) {
-					case JasperConstants.POLL_PERIOD_LABEL :
-						try{
-							pollPeriod = Integer.parseInt(headers.get(s));
-							pollPeriod = (pollPeriod * MILLISECONDS); // convert to milliseconds
-						}catch(JSONException ex){
-							pollPeriod = maxPollingInterval;
-						}
-						break;
-					case JasperConstants.EXPIRES_LABEL :
-						try{
-							expires = Integer.parseInt(headers.get(s));
-							expires = (expires * MILLISECONDS); // convert to milliseconds
-						} catch(JSONException ex){
-							expires = maxExpiry;
-						}
-						break;
-					case JasperConstants.CONTENT_TYPE_LABEL :
-						contentType = headers.get(s);
-						break;
-					case JasperConstants.SUBSCRIPTION_ID_LABEL :
-						subscriptionId = headers.get(s);
-						break;
-					case JasperConstants.RESPONSE_TYPE_LABEL :
-						output = headers.get(s);
-						break;
-					}
-				}
-					
-			}
-			
-			if(jsonObj.has(JasperConstants.RULE_LABEL)){
-				notification = jsonObj.get(JasperConstants.RULE_LABEL).getAsString();
-				triggerList = new ArrayList<Trigger>();
-			}
-			
-			if(notification != null){
-				if(expires == -1) expires = maxExpiry; // if not supplied set to max
-				if(expires > maxExpiry) expires = maxExpiry;
-				if(pollPeriod == -1) pollPeriod = maxPollingInterval; // if not supplied set to max
-				if(pollPeriod < minPollingInterval) pollPeriod = minPollingInterval;
-				if(pollPeriod > maxPollingInterval) pollPeriod = maxPollingInterval;
-				if(pollPeriod > expires) pollPeriod = (int) expires;
-				if(output == null) output = defaultOutput;
-				
-				parseTrigger(notification);
-			}
-			
-		} catch (JSONException e) {
-			logger.error("Exception caught while creating JSONObject " + e);
-			validMsg = false;
-			errorTxt = "Invalid / Malformed JSON object received";
-		}
-		
-		return validMsg;
-		
-	}
-		
-		private Map<String, String> getMap(JsonObject json) {
-			Map<String, String> map = new HashMap<String, String>();
-			for(Entry<String, JsonElement> entry:json.entrySet()){
-				map.put(entry.getKey(),entry.getValue().getAsString());
-			}
-			return map;
-		}
-	
-	/*
-	 * Parses out the different trigger types from the inbound notification string
-	 * Will create and link a trigger for each function in the inbound request
-	 */
-	private void parseTrigger(String notification){
-		String[] triggers = notification.split("&");
-		String[] tmp = new String[triggers.length];
-		String[] parms = new String[triggers.length];
-		String[] functions = new String[triggers.length];
-		for(int i=0;i<triggers.length;i++){
-			tmp = triggers[i].split("\\(");
-			if(tmp[0] != null) {
-				functions[i] = tmp[0];
-				parms[i] = tmp[1];
-				parms[i] = parms[i].replaceFirst("\\)", "");
-			}
-			
-		}
-		TriggerFactory factory = new TriggerFactory();
-		Trigger trigger;
-		String[] triggerParms;
-		for(int i=0; i<functions.length;i++){
-			triggerParms = parms[i].split(",");
-			trigger = factory.createTrigger(functions[i], expires, pollPeriod, triggerParms);
-			if(trigger != null){
-				trigger.setNotificationExpiry();
-				triggerList.add(trigger);
-			}
-			else{
-				logger.error("Invalid notification request received - cannot create rule: " + triggerParms.toString());
-			}
-		}		
-	}
-	
-	private boolean isValidMethod(String method){
-		if((!method.equalsIgnoreCase(JasperConstants.GET)) && (!method.equalsIgnoreCase(JasperConstants.POST))
-				&& (!method.equalsIgnoreCase(JasperConstants.SUBSCRIBE)) && (!method.equalsIgnoreCase(JasperConstants.PUBLISH))){
-			return false;
-		}
-		return true;
-	}
-	
-	private void cleanup(){
-		key            = null;
-		contentType    = null;
-		version        = null;
-		notification   = null;
-		triggerList    = null;
-		subscriptionId = null;
-	}
-	
 }

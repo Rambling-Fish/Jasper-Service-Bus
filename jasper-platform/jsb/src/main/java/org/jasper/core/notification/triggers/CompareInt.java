@@ -9,7 +9,8 @@ import org.jasper.core.notification.util.JsonResponseParser;
 
 import com.google.gson.JsonElement;
 
-public class CompareInt extends Trigger implements Serializable{
+public class CompareInt implements Trigger, Serializable{
+
 	private static final long serialVersionUID = -4016629738650948052L;
 	private String left;
 	private String right;
@@ -18,8 +19,7 @@ public class CompareInt extends Trigger implements Serializable{
 	private float y;
 	static Logger logger = Logger.getLogger(CompareInt.class.getName());
 	
-	public CompareInt(int expiry, int polling, String left, String operand, String right) {
-		super(expiry, polling);
+	public CompareInt(String left, String operand, String right) {
 		this.left    = left;
 		this.right   = right;
 		this.operand = operand;
@@ -37,7 +37,6 @@ public class CompareInt extends Trigger implements Serializable{
 		
 	}
 	
-	@Override
 	public boolean evaluate(JsonElement response){
 		JsonResponseParser respParser = new JsonResponseParser();
 		

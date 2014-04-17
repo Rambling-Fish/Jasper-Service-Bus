@@ -70,7 +70,7 @@ public class TestDataHandler extends TestCase {
 //		System.out.println("==========================");
 //		System.out.println("RUNNING DATA HANDLER TESTS");
 //		System.out.println("==========================");
-//		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.BADREQUEST, errorTxt, null, null, null)).thenReturn(errorResp);
+//		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.BADREQUEST, errorTxt, null, null, null)).thenReturn(errorResp);
 //		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
 //		
 //		classUnderTest.run();	
@@ -186,7 +186,7 @@ public class TestDataHandler extends TestCase {
 //	public void testNoRURI() throws Exception{
 //		when(mockRequest.getText()).thenReturn(noRURIReqeuest);
 //		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
-//		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.BADREQUEST, errorTxt2, null, null, null)).thenReturn(errorResp);
+//		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.BADREQUEST, errorTxt2, null, null, null)).thenReturn(errorResp);
 //		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
 //
 //		classUnderTest.run();
@@ -201,7 +201,7 @@ public class TestDataHandler extends TestCase {
 //		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
 //		when(mockRequest.getJMSCorrelationID()).thenReturn(null);
 //		when(mockRequest.getJMSMessageID()).thenReturn(corrID);
-//		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.BADREQUEST, errorTxt3, null, contentType, version)).thenReturn(errorResp);
+//		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.BADREQUEST, errorTxt3, null, contentType, version)).thenReturn(errorResp);
 //		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
 //
 //		classUnderTest.run();
@@ -217,7 +217,7 @@ public class TestDataHandler extends TestCase {
 //		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
 //		when(mockRequest.getJMSCorrelationID()).thenReturn(null);
 //		when(mockRequest.getJMSMessageID()).thenReturn(corrID);
-//		when(mockDelegate.createJasperResponse(JasperConstants.responseCodes.BADREQUEST, errorTxt4, null, contentType, version)).thenReturn(errorResp);
+//		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.BADREQUEST, errorTxt4, null, contentType, version)).thenReturn(errorResp);
 //		when(mockDelegate.createTextMessage(errorResp)).thenReturn(mockResp);
 //
 //		classUnderTest.run();
@@ -228,7 +228,7 @@ public class TestDataHandler extends TestCase {
 //		MockitoAnnotations.initMocks(this);
 //		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
 //		ipAddr = InetAddress.getLocalHost().getHostAddress();
-//		cachingSys   = new PersistenceFacade(ipAddr, hazelcastGroup, "testPassword");
+//		cachingSys   = new PersistenceFacadeImpl(ipAddr, hazelcastGroup, "testPassword");
 //		when(mockRequest.getJMSCorrelationID()).thenReturn(corrID);
 //		when(mockRequest.getJMSReplyTo()).thenReturn(mockDest);
 //		when(mockUDE.getCachingSys()).thenReturn(cachingSys);

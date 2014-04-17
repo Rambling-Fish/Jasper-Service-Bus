@@ -44,13 +44,13 @@ public class TestPersistence extends TestCase {
 	}
 	
 	/*
-	 * This tests the PersistenceFacade class
+	 * This tests the PersistenceFacadeImpl class
 	 */
 	@Test
 	public void testPersistenceFacade() throws Exception {
 		MultiMap<String,String> multiMap;
 		Map<String,String> myMap;
-		cachingSys = new PersistenceFacade(props);
+		cachingSys = new PersistenceFacadeImpl(props);
 		multiMap = (MultiMap<String, String>) cachingSys.getMultiMap("testMap");
 		myMap = (Map<String, String>) cachingSys.getMap("aMap");
 		Object myObj = cachingSys.getSharedMemoryInstance();
@@ -71,7 +71,7 @@ public class TestPersistence extends TestCase {
 	public void testMemoryCache() throws Exception {
 		HazelcastInstance inst;
 		MemoryCache cache = new MemoryCache(ipAddr, "group", "password");
-		cachingSys = new PersistenceFacade(props);
+		cachingSys = new PersistenceFacadeImpl(props);
 		inst = (HazelcastInstance) cachingSys.getSharedMemoryInstance();
 		cache.setHazelcastInstance(inst);
 		cache.shutdown();

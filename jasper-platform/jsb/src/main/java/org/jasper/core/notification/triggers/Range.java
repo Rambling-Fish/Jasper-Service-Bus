@@ -9,22 +9,17 @@ import org.jasper.core.notification.util.JsonResponseParser;
 
 import com.google.gson.JsonElement;
 
-public class Range extends Trigger implements Serializable{
+public class Range implements Trigger, Serializable{
 	private static final long serialVersionUID = -4016645138650948052L;
 	private String left;
-	private String minString;
-	private String maxString;
 	private float min;
 	private float max;
 	private float x;
 	static Logger logger = Logger.getLogger(Range.class.getName());
 
 	
-	public Range(int expiry, int polling, String left, String min, String max) {
-		super(expiry, polling);
+	public Range(String left, String min, String max) {
 		this.left    = left;
-		this.minString   = min;
-		this.maxString = max;
 
 		try{
 			if(!left.startsWith("http")){
@@ -38,7 +33,6 @@ public class Range extends Trigger implements Serializable{
 		
 	}
 	
-	@Override
 	public boolean evaluate(JsonElement response){
 		JsonResponseParser respParser = new JsonResponseParser();
 		

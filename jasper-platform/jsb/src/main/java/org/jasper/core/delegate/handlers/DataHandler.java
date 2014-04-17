@@ -60,7 +60,7 @@ public class DataHandler implements Runnable {
 		}
 	}
 	
-	private void processInvalidRequest(TextMessage msg, JasperConstants.responseCodes responseCode, String responseMsg) throws Exception {
+	private void processInvalidRequest(TextMessage msg, JasperConstants.ResponseCodes responseCode, String responseMsg) throws Exception {
 		if(logger.isInfoEnabled()){
 			logger.info("processingInvalidRequest, errorMsg = " + responseMsg + " for request " + msg.getText() + " from " + msg.getJMSReplyTo());
 		}
@@ -84,19 +84,19 @@ public class DataHandler implements Runnable {
   	    key = txtMsg.getJMSCorrelationID();   
 
   	    if(request == null || request.length() == 0){
-  	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, "Invalid request received - request is null or empty string");
+  	    	processInvalidRequest(txtMsg, JasperConstants.ResponseCodes.BADREQUEST, "Invalid request received - request is null or empty string");
   	    	return;
   	    }
   	     	    
   	    requestOK =  parseJasperRequest(request);
 
   	    if (!requestOK){
-  	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, errorTxt);
+  	    	processInvalidRequest(txtMsg, JasperConstants.ResponseCodes.BADREQUEST, errorTxt);
   	    	return;
   	    }
   	    
   	    if(ruri == null || ruri.length() == 0){
-  	    	processInvalidRequest(txtMsg, JasperConstants.responseCodes.BADREQUEST, "Invalid request received - request does not contain a URI");
+  	    	processInvalidRequest(txtMsg, JasperConstants.ResponseCodes.BADREQUEST, "Invalid request received - request does not contain a URI");
   	    	return;
   	    }
   	    
@@ -138,9 +138,8 @@ public class DataHandler implements Runnable {
 		String[] triggerParms;
 		for(int i=0; i<functions.length;i++){
 			triggerParms = parms[i].split(",");
-			trigger = factory.createTrigger(functions[i], expires, pollPeriod, triggerParms);
+			trigger = factory.createTrigger(functions[i], triggerParms);
 			if(trigger != null){
-				trigger.setNotificationExpiry();
 				triggerList.add(trigger);
 			}
 			else{

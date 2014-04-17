@@ -33,9 +33,9 @@ public class SparqlHandler implements Runnable {
 
 
 
-	public SparqlHandler(Delegate delegate, DelegateOntology jOntology, Message jmsRequest) {
+	public SparqlHandler(Delegate delegate, Message jmsRequest) {
 		this.delegate = delegate;
-		this.jOntology = jOntology;
+		this.jOntology = delegate.getJOntology();
 		this.jmsRequest = jmsRequest;
 		
 	}
@@ -52,14 +52,14 @@ public class SparqlHandler implements Runnable {
 				// We only support json or xml as output formats
 				if(!output.equalsIgnoreCase("json") && (!output.equalsIgnoreCase("xml"))){
 					errorMsg="Output must be set to json or xml";
-					processInvalidRequest((TextMessage) jmsRequest, JasperConstants.responseCodes.BADREQUEST, errorMsg);
+					processInvalidRequest((TextMessage) jmsRequest, JasperConstants.ResponseCodes.BADREQUEST, errorMsg);
 					return;
 				}
 				sendResponse((TextMessage)jmsRequest, jOntology.queryModel(queryString, output));
 			}
 			else{
 				errorMsg = "Invalid SPARQL query received";
-				processInvalidRequest((TextMessage)jmsRequest, JasperConstants.responseCodes.BADREQUEST, errorMsg);
+				processInvalidRequest((TextMessage)jmsRequest, JasperConstants.ResponseCodes.BADREQUEST, errorMsg);
 			}
 		}catch (Exception e){
 			logger.error("Exception caught processing SPARQL request " ,e);
@@ -118,7 +118,7 @@ public class SparqlHandler implements Runnable {
 	 * Currently this occurs if incoming URI cannot be mapped to a JTA or the
 	 * incoming correlationID is not unique
 	 */
-	private void processInvalidRequest(TextMessage msg, JasperConstants.responseCodes responseCode, String responseMsg) throws Exception {
+	private void processInvalidRequest(TextMessage msg, JasperConstants.ResponseCodes responseCode, String responseMsg) throws Exception {
 		if(logger.isInfoEnabled()){
 			logger.info("processingInvalidRequest, errorMsg = " + responseMsg + " for request " + msg.getText() + " from " + msg.getJMSReplyTo());
 		}
@@ -152,7 +152,7 @@ public class SparqlHandler implements Runnable {
 	}
         
 	private void sendResponse(TextMessage msg, String response) throws JMSException {
-		JasperConstants.responseCodes code = JasperConstants.responseCodes.OK;
+		JasperConstants.ResponseCodes code = JasperConstants.ResponseCodes.OK;
 		String jsonResponse = delegate.createJasperResponse(code, "Success", response, contentType, version);
 		Message message = delegate.createTextMessage(jsonResponse);      
 		String correlationID = msg.getJMSCorrelationID();

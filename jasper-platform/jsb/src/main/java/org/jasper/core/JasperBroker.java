@@ -328,7 +328,12 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
             if(logger.isInfoEnabled()){
                 logger.info(info.getUserName() + " registered");
             }
-            if(!info.getUserName().contains("jsc")) notifyDelegate(Command.jta_connect, info.getUserName());
+            
+            String adminQ = licenseKeySys.getClientAdminQueue(info.getPassword());
+            if(adminQ != null){
+            	notifyDelegate(Command.jta_connect, info.getUserName(),adminQ);
+            }
+            
         }else{
         	String errorMsg = "license key already registered on " + lookupUde(key);
             logger.error(info.getUserName() + " registration failed due to " + errorMsg);
@@ -457,9 +462,12 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
         	}
     		ConnectionContext jtaConnectionContext = jtaConnectionContextMap.remove(key);
     		updateResources(key, false);
-    		
-            if(jtaConnectionContext !=null && !info.getUserName().contains("jsc")) notifyDelegate(Command.jta_disconnect, info.getUserName());     
-    		
+
+            String adminQ = licenseKeySys.getClientAdminQueue(info.getPassword());
+            if(adminQ != null){
+            	notifyDelegate(Command.jta_disconnect, info.getUserName(),adminQ); 
+        	}
+    		    		
     		if(logger.isInfoEnabled()) logger.info("connection for " + info.getUserName() + " removed, updated local and remote maps");
     		
     	}else if(jsbConnectionInfoMap.containsKey(key) && !((JasperBrokerService)this.getBrokerService()).isStopping()){
@@ -467,7 +475,7 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
         	synchronized(registeredLicenseKeys){
         		registeredLicenseKeys.remove(licenseKeySys.getUdeDeploymentAndInstance(key));
         	}
-        	ude.auditMap(licenseKeySys.getUdeDeploymentAndInstance(key));
+        	ude.remoteUdeConnectionDropped(info.getClientId(), info.getClientIp(), info.getUserName(), info.getPassword());
     		if(logger.isInfoEnabled()) logger.info("connection for UDE " + info.getUserName() + " removed, updated local and remote maps");    		
     	}
         super.removeConnection(context, info, error);
@@ -483,9 +491,9 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
 		}
 	}
 
-	private void notifyDelegate(Command command, String jtaName) {
+	private void notifyDelegate(Command command, String jtaName, String adminQ) {
         try {
-            JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, command, jtaName);
+            JasperAdminMessage jam = new JasperAdminMessage(Type.ontologyManagement, command, jtaName, adminQ);
             Message message = session.createObjectMessage(jam);
             producer.send(globalQ, message);
         }
