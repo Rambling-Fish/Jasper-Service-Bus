@@ -6,7 +6,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -58,6 +60,8 @@ public class Jsc implements MessageListener  {
 	
 	private ScheduledExecutorService mapAuditExecutor;
 	
+	private ExecutorService asyncEventHandlingExecutor;
+	
 	private int jscTimeout = 0;
 	private int jscPollPeriod = 0;
 
@@ -66,6 +70,21 @@ public class Jsc implements MessageListener  {
 	
 	public Jsc(Properties prop){
 		this.prop = prop;
+	}
+	
+	class AsyncReponseHandler implements Runnable{
+		private Listener listener;
+		private Response response;
+
+		public AsyncReponseHandler(Listener listener, Response response) {
+			this.listener = listener;
+			this.response = response;
+		}
+		
+		public void run(){
+			listener.processMessage(response);
+			log.info("JSC: TIMECHECK request from UDE completed at " + System.currentTimeMillis());
+		}
 	}
 	
 	public void init() throws JMSException {
@@ -131,6 +150,8 @@ public class Jsc implements MessageListener  {
 			log.error("Exception when connecting to UDE",e);
 			throw e;
 		}
+		
+		asyncEventHandlingExecutor = Executors.newFixedThreadPool(2);
 		
 		mapAuditExecutor = Executors.newSingleThreadScheduledExecutor();
 		Runnable command = new Runnable() {
@@ -252,8 +273,8 @@ public class Jsc implements MessageListener  {
 	}
 	
 	private void processAsyncResponse(Message msg) throws JMSException {
-		Listener listener = asyncResponses.remove(msg.getJMSCorrelationID());
-		listener.processMessage(toResponsefromJson(((TextMessage)msg).getText()));
+		Listener listener = asyncResponses.get(msg.getJMSCorrelationID());
+		asyncEventHandlingExecutor.submit(new AsyncReponseHandler(listener, toResponsefromJson(((TextMessage)msg).getText())) );
 	}
 	
 	private Response processSyncRequest(Request request){
