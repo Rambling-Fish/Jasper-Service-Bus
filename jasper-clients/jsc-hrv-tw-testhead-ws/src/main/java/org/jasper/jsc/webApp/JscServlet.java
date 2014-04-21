@@ -9,7 +9,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -128,7 +127,6 @@ public class JscServlet extends HttpServlet {
 				 */
 				recordT2();
 				
-				byte[] bytearray = response.getPayload();
 				String decoded = null;
 				
 				try {
@@ -152,7 +150,7 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 
 		    	recordT3();
-		    	Response sms_response = jsc.post(request);
+		    	jsc.post(request);
 		    	recordT4();
 		    	removePostResponseLock(logId);
 		    	
@@ -177,7 +175,6 @@ public class JscServlet extends HttpServlet {
 				 */
 				recordT2();
 								
-				byte[] bytearray = response.getPayload();
 				String decoded = null;
 				
 				try {
@@ -201,7 +198,7 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 
 		    	recordT3();
-		    	Response sms_response = jsc.post(request);
+		    	jsc.post(request);
 		    	recordT4();
 		    	removePostResponseLock(logId);
 				
@@ -226,7 +223,6 @@ public class JscServlet extends HttpServlet {
 				 */
 				recordT2();
 								
-				byte[] bytearray = response.getPayload();
 				String decoded = null;
 				
 				try {
@@ -248,8 +244,9 @@ public class JscServlet extends HttpServlet {
 		    	parameters.put("http://coralcea.ca/jasper/Sms/logId", logId);
 
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
-				recordT3();
-		    	Response sms_response = jsc.post(request);
+				
+		    	recordT3();
+		    	jsc.post(request);
 		    	recordT4();
 		    	removePostResponseLock(logId);
 				
@@ -274,7 +271,6 @@ public class JscServlet extends HttpServlet {
 				 */
 				recordT2();
 				
-				byte[] bytearray = response.getPayload();
 				String decoded = null;
 				
 				try {
@@ -296,8 +292,9 @@ public class JscServlet extends HttpServlet {
 		    	parameters.put("http://coralcea.ca/jasper/Sms/logId", logId);
 
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
+		    	
 		    	recordT3();
-		    	Response sms_response = jsc.post(request);
+		    	jsc.post(request);
 		    	recordT4();
 		    	removePostResponseLock(logId);
 		    	
@@ -332,7 +329,6 @@ public class JscServlet extends HttpServlet {
 				 */
 				recordT2();
 				
-				byte[] bytearray = response.getPayload();
 				String decoded = null;
 				
 				try {
@@ -354,8 +350,9 @@ public class JscServlet extends HttpServlet {
 		    	parameters.put("http://coralcea.ca/jasper/Sms/logId", logId);
 
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
+		    	
 		    	recordT3();
-		    	Response sms_response = jsc.post(request);
+		    	jsc.post(request);
 		    	recordT4();
 		    	removePostResponseLock(logId);
 		    	
@@ -390,7 +387,6 @@ public class JscServlet extends HttpServlet {
 				 */
 				recordT2();
 		    	
-				byte[] bytearray = response.getPayload();
 				String decoded = null;
 				
 				try {
@@ -412,8 +408,9 @@ public class JscServlet extends HttpServlet {
 		    	parameters.put("http://coralcea.ca/jasper/Sms/logId", logId);
 
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
+		    	
 		    	recordT3();
-		    	Response sms_response = jsc.post(request);
+		    	jsc.post(request);
 		    	recordT4();
 		    	removePostResponseLock(logId);
 		    	
