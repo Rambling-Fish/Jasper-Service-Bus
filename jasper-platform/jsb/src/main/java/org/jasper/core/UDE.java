@@ -290,22 +290,6 @@ public class UDE {
 	public boolean isClusterEnabled(){
 		return clusterEnabled;
 	}
-	
-//	public void auditMap(String udeInstance){
-//		Map<String,PersistedObject> sharedData;
-//		BlockingQueue<PersistedObject> workQueue;
-//		sharedData = (Map<String, PersistedObject>) cachingSys.getMap("sharedData");
-//		workQueue = cachingSys.getQueue("tasks");
-//		PersistedObject statefulData;
-//
-//		for(String s:sharedData.keySet()){
-//			statefulData = sharedData.get(s);
-//			// Only resubmit jobs to queue for UDE that has gone down
-//			if(statefulData != null && statefulData.getUDEInstance().equals(udeInstance)){
-//				workQueue.offer(statefulData);
-//			}
-//		}
-//	}
 
 	public void remoteUdeConnectionDropped(String clientId, String clientIp, String username, String password) {
 		delegate.connectionToRemoteUdeLost(licenseKeySys.getUdeInstance(password)); 

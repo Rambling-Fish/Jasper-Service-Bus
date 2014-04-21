@@ -27,7 +27,7 @@ public class AggregateDataProcessor implements DataProcessor {
 	}
     
     public JsonElement process(){
-    	return cache;
+    	return (cache.size()==0)?null:cache;
     }
 	
 }

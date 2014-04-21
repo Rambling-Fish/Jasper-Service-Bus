@@ -3,9 +3,9 @@ package org.jasper.core.delegate.handlers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Map.Entry;
 
 import javax.jms.Destination;
 import javax.jms.JMSException;
@@ -22,13 +22,13 @@ import org.jasper.core.exceptions.JasperRequestException;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.notification.triggers.TriggerFactory;
 import org.jasper.core.persistence.PersistedDataReqeust;
-import org.jasper.core.persistence.PersistedObject;
 import org.jasper.core.persistence.PersistedSubscriptionReqeust;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 public class DataRequestHandler implements Runnable {
 
@@ -67,10 +67,10 @@ public class DataRequestHandler implements Runnable {
 			}
 		}
 	}
-	
-	
 
 	private void processRequest(String correlationID, Destination reply2q, String request, long timestampMillis) throws JMSException, JasperRequestException {
+		
+		//TODO add catch of parse exception and throw JasperReqeustException
 		JsonElement jsonRequest = jsonParser.parse(request);
 		
 		String method = null;
@@ -92,12 +92,7 @@ public class DataRequestHandler implements Runnable {
 			logger.error("ruri is null, sending back error response for reqeust for correlation ID " + correlationID);
 			throw new JasperRequestException(JasperConstants.ResponseCodes.BADREQUEST, ruri + " is null");
 		}
-		
-		if (!jOntology.isRuriKnownForOutputGet(ruri)){
-			logger.error("ruri " + ruri + " is not known sending back error response for correlationID " + correlationID);
-			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is not known");
-		}
-		
+				
 		switch (method.toLowerCase()) {
 		case JasperConstants.GET:
 			processGetRequest(jsonRequest, ruri, correlationID, reply2q, timestampMillis);
@@ -118,13 +113,13 @@ public class DataRequestHandler implements Runnable {
 		
 	}
 
-	private void processPostRequest(JsonElement jsonRequest, String ruri, String correlationID, Destination reply2q, long timestampMillis) throws JasperRequestException {
-		logger.error("");
-		throw new JasperRequestException(JasperConstants.ResponseCodes.BADREQUEST, "unsupported method type ");		
-	}
-
 	private void processSubscribeRequest(JsonElement jsonRequest, String ruri, String correlationID, Destination reply2q) throws JasperRequestException {
 
+		if (!jOntology.isRuriKnownForInputPublish(ruri)){
+			logger.error("ruri " + ruri + " is not PUBLISHED by any DTA, cannont SUBSCRIBE to unpublished data, sending back error response for correlationID " + correlationID);
+			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, "ruri " + ruri + " is not PUBLISHED by any DTA, cannont SUBSCRIBE to unpublished data");
+		}
+		
 		String subscriptionId = null;
 		if (jsonRequest.isJsonObject() && jsonRequest.getAsJsonObject().has(JasperConstants.HEADERS_LABEL) && jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).isJsonObject()
 				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().has(JasperConstants.SUBSCRIPTION_ID_LABEL)
@@ -189,16 +184,70 @@ public class DataRequestHandler implements Runnable {
 
 	private void sendPublishToSubscribers(String ruri, JsonElement data) throws JMSException {
 		for(PersistedSubscriptionReqeust sub:delegate.getDataSubscriptions(ruri)){
-			if(isCriteriaMet(data, sub.getTriggerList())){
-				Message msg = delegate.createTextMessage(data.toString());
+			
+			JsonElement responsesThatMeetCriteria = extractResponsesThatMeetCriteria(data, sub.getTriggerList());
+			if(responsesThatMeetCriteria != null){
+				Message msg = delegate.createTextMessage(responsesThatMeetCriteria.toString());
 				msg.setJMSCorrelationID(sub.getCorrelationID());
 				msg.setStringProperty(JasperConstants.SUBSCRIPTION_ID_LABEL, sub.getSubscriptionId());  // may not need this
 				delegate.sendMessage(sub.getReply2q(), msg);
 			}
 		}		
 	}
+	
+	private void processPostRequest(JsonElement jsonRequest, String ruri, String correlationID, Destination reply2q, long timestampMillis) throws JasperRequestException, JMSException {
+		if (!jOntology.isRuriKnownForInputPost(ruri)){
+			logger.error("ruri " + ruri + " is not known for POST sending back error response for correlationID " + correlationID);
+			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is not known for POST");
+		}
+		
+		String processing_scheme;
+		if (jsonRequest.isJsonObject() && jsonRequest.getAsJsonObject().has(JasperConstants.HEADERS_LABEL) && jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).isJsonObject()
+				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().has("processing-scheme")
+				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get("processing-scheme").isJsonPrimitive()
+				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get("processing-scheme").getAsJsonPrimitive().isString()) {
+			processing_scheme = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get("processing-scheme").getAsJsonPrimitive().getAsString();
+		} else {
+			processing_scheme = JasperConstants.DEFAULT_PROCESSING_SCHEME;
+		}
+
+		DataProcessor dataProcessor = DataProcessorFactory.createDataProcessor(processing_scheme);
+		
+		ArrayList<String> operations = jOntology.fetchPostOperations(ruri);
+		
+		JsonObject parameters = getRequestParameters(jsonRequest);
+		
+		//TODO re-write to do operations in parallel, currently done sequentially.
+		for(String operation:operations){
+			JsonObject inputObject = getInputObject(jOntology.fetchPostOperationInputObject(operation),parameters);
+			if(inputObject == null)
+			{
+				continue;
+			}
+			JsonElement response = sendAndWaitforResponse(jOntology.fetchPostDestinationQueue(operation),inputObject.toString());
+			if (response != null) {
+				dataProcessor.add(response);
+			}else{
+				//TODO determine if we need return NULL response back to client?
+				logger.error("POST response returned NULL");
+			}
+		}
+		
+		JsonElement postResponse = dataProcessor.process();	
+		
+		if(postResponse != null){
+			sendResponse(correlationID, reply2q, postResponse.toString());
+		}else{
+			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " POST did not return 200 OK from DTAs, request failed");
+		}
+	}
 
 	private void processGetRequest(JsonElement jsonRequest, String ruri, String correlationID, Destination reply2q, long timestampMillis) throws JMSException, JasperRequestException {
+		
+		if (!jOntology.isRuriKnownForOutputGet(ruri)){
+			logger.error("ruri " + ruri + " is not known sending back error response for correlationID " + correlationID);
+			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is not known");
+		}
 		
 		String processing_scheme;
 		if (jsonRequest.isJsonObject() && jsonRequest.getAsJsonObject().has(JasperConstants.HEADERS_LABEL) && jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).isJsonObject()
@@ -228,7 +277,7 @@ public class DataRequestHandler implements Runnable {
 				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.POLL_PERIOD_LABEL).getAsJsonPrimitive().isNumber()) {
 			polling_period = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.POLL_PERIOD_LABEL).getAsJsonPrimitive().getAsInt();
 		} else {
-			polling_period = (rule==null)?delegate.maxPollingInterval:0;
+			polling_period = (rule!=null)?delegate.maxPollingInterval:0;
 		}
 		polling_period = (polling_period > delegate.maxPollingInterval)?delegate.maxPollingInterval:polling_period;
 		polling_period = (polling_period < delegate.minPollingInterval && polling_period > 0)?delegate.minPollingInterval:polling_period;
@@ -240,7 +289,7 @@ public class DataRequestHandler implements Runnable {
 				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).getAsJsonPrimitive().isNumber()) {
 			expiry = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).getAsJsonPrimitive().getAsInt();
 		} else {
-			expiry = (rule==null)?delegate.maxExpiry:0;
+			expiry = (rule!=null)?delegate.maxExpiry:0;
 		}
 		
 		expiry = (expiry > delegate.maxExpiry)?delegate.maxExpiry:expiry;
@@ -257,7 +306,8 @@ public class DataRequestHandler implements Runnable {
 				throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is known, but we could not get a valid response, check parameters");
 			}
 			
-			if(isCriteriaMet(response, triggerList)){
+			JsonElement responsesThatMeetCriteria = extractResponsesThatMeetCriteria(response, triggerList);
+			if(responsesThatMeetCriteria != null){
 				sendResponse(correlationID, reply2q, response.toString());
 			}else{
 				logger.error("response from getResponse is does not match rule, and expiry = 0, unable to respond with valid response for correlationID " + correlationID);
@@ -266,12 +316,16 @@ public class DataRequestHandler implements Runnable {
 			
 		}else{
 			do{
-				response = getResponse(ruri, parameters, processing_scheme);
-				if(isCriteriaMet(response, triggerList) || ( (System.currentTimeMillis()+polling_period) > (timestampMillis+expiry) ) ){
+				response = extractResponsesThatMeetCriteria(getResponse(ruri, parameters, processing_scheme),triggerList);
+				if(response != null || ( System.currentTimeMillis() > (timestampMillis+expiry) ) ){
 					break;
 				}
 				try {
-					Thread.sleep(polling_period);
+					if( (System.currentTimeMillis() + polling_period) < (timestampMillis + expiry) ){
+						Thread.sleep(polling_period);
+					}else{
+						Thread.sleep(timestampMillis + expiry - System.currentTimeMillis()); 
+					}
 				} catch (InterruptedException e) {
 					logger.error("pooling sleep interrupted", e);
 				}
@@ -295,19 +349,15 @@ public class DataRequestHandler implements Runnable {
 		return (parameters == null)?new JsonObject():parameters;
 	}
 
-	private boolean isCriteriaMet(JsonElement response,List<Trigger> triggerList) {
-		if(response == null) return false;
-		if(triggerList == null) return true;
-	
-		boolean result = false;
-		JsonArray matchedValues = null;
-	
-
+	private JsonElement extractResponsesThatMeetCriteria(JsonElement response,List<Trigger> triggerList) {
+		if(response == null) return null;
+		if(triggerList == null) return response;
+		
 		if (response.isJsonArray()) {
-			matchedValues = new JsonArray();
+			JsonArray matchedValues = new JsonArray();
 			JsonArray jsonArray = response.getAsJsonArray();
 			if (jsonArray.size() == 0)
-				return false;
+				return null;
 			for (int i = 0; i < triggerList.size(); i++) {
 				for (JsonElement item : jsonArray) {
 					if (triggerList.get(i).evaluate(item)) {
@@ -316,20 +366,19 @@ public class DataRequestHandler implements Runnable {
 				}
 			}
 			if (matchedValues.size() > 0) {
-				result = true;
+				return matchedValues;
 			}
 		} else {
-			for (int i = 0; i < triggerList.size(); i++) {
-				if (triggerList.get(i).evaluate(response)) {
-					result = true;
+			for (Trigger trigger:triggerList) {
+				if (trigger.evaluate(response)) {
+					return response;
 				}
 			}
 		}
-
-		return result;
+		return null;
 	}
 	
-	private List<Trigger> parseTriggers(String rule){
+	private List<Trigger> parseTriggers(String rule) throws JasperRequestException{
 		if(rule == null) return null;
 		String[] triggers = rule.split("&");
 		String[] tmp = new String[triggers.length];
@@ -356,6 +405,7 @@ public class DataRequestHandler implements Runnable {
 			}
 			else{
 				logger.error("Invalid notification request received - cannot create rule: " + triggerParms.toString());
+				throw new JasperRequestException(JasperConstants.ResponseCodes.BADREQUEST,  "bad rule : " + rule);
 			}
 		}	
 		return triggerList;
@@ -451,15 +501,17 @@ public class DataRequestHandler implements Runnable {
 		}
 
 		String responseString = null;
-		if (response != null && response.getJMSCorrelationID().equals(correlationID) && response instanceof TextMessage) {
+		if (response != null && response.getJMSCorrelationID().equals(correlationID) && response instanceof TextMessage && response.getIntProperty("code") == 200) {
 			responseString = ((TextMessage) response).getText();
+			if(responseString == null) responseString = "{\"http://coralcea.ca/jasper/responseCode\" : 200,\"http://coralcea.ca/jasper/responseReason\" : \"OK\"}";
 		}
 		
-
+		//TODO added creation of error repsonses based on response code and possible timeout
+		
 		JsonElement responseObject = null;
 		try {
 			responseObject = jsonParser.parse(responseString);
-		} catch (Exception e) {
+		} catch (JsonSyntaxException e) {
 			logger.error("response from DTA is not a valid JsonReponse, response string = " + responseString);
 		}
 
@@ -640,6 +692,7 @@ public class DataRequestHandler implements Runnable {
 		case "array":
 		case "Array":
 			// TODO add array validation
+			logger.error("array validation isn't currently supported");
 			return false;
 		case "integer":
 		case "Integer":

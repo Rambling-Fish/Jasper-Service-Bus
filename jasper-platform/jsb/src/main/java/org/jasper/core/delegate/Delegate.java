@@ -6,10 +6,8 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -38,14 +36,12 @@ import org.jasper.core.constants.JasperConstants.ResponseCodes;
 import org.jasper.core.constants.JasperOntologyConstants;
 import org.jasper.core.delegate.handlers.AdminHandler;
 import org.jasper.core.delegate.handlers.DataRequestHandler;
-import org.jasper.core.delegate.handlers.GlobalQHandler;
 import org.jasper.core.delegate.handlers.SparqlHandler;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.persistence.PersistedDataReqeust;
 import org.jasper.core.persistence.PersistedSubscriptionReqeust;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
-import org.mule.execution.SuspendXaTransactionInterceptor;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -116,8 +112,6 @@ public class Delegate {
         connection.start();
         
 		delegateRequestThreadPool = Executors.newFixedThreadPool(5);
-//        delegateRequestThreadPool = new ThreadPoolExecutor(10, 50, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-//        delegateRequestThreadPool.allowCoreThreadTimeOut(true);
 
 		globalSession = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
 		globalQueue = globalSession.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);

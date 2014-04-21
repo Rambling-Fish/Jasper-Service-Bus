@@ -20,6 +20,7 @@ import com.google.gson.JsonPrimitive;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.IMap;
+import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntProperty;
 import com.hp.hpl.jena.ontology.OntResource;
@@ -50,6 +51,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 	private Map<String, String>	provideDestinationQueueCache;
 	private Map<String, Set<String>> superPropertyList;
 	private Map<String, Set<String>> subPropertyList;
+	private Map<String, Boolean>	knownRuriForInputPublishCache;
 	
 	static Logger logger = Logger.getLogger(DelegateOntology.class.getName());
 
@@ -77,6 +79,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 		provideDestinationQueueCache = new ConcurrentHashMap<String,String>();
 		superPropertyList = new ConcurrentHashMap<String,Set<String>>();
 		subPropertyList = new ConcurrentHashMap<String,Set<String>>();
+		knownRuriForInputPublishCache = new ConcurrentHashMap<String,Boolean>();
 		
 		for(String dtaName:dtaTriples.keySet()){
 			Model subModel = ModelFactory.createDefaultModel();
@@ -97,6 +100,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 		provideDestinationQueueCache.clear();
 		superPropertyList.clear();
 		subPropertyList.clear();
+		knownRuriForInputPublishCache.clear();
 	}
 
 
@@ -231,9 +235,12 @@ public class DelegateOntology implements EntryListener<String, String>{
 		if(!subPropertyList.containsKey(ruri)){
 			Set<String> fullList = new HashSet<String>();
 			
-			OntProperty property = model.getObjectProperty(ruri);
-			OntResource range = property.getRange();
-			Set<Resource> list = model.listSubjectsWithProperty(RDFS.domain, range).toSet();
+			OntClass ontClass = model.getOntClass(ruri);
+			if(ontClass == null){
+				//TODO add null set to map to cache
+				return null;
+			}
+			Set<Resource> list = model.listSubjectsWithProperty(RDFS.domain, ontClass).toSet();
 			for(Resource r:list){
 				fullList.add(r.getURI());
 				fullList.addAll(getSubProperties(r.getURI()));
@@ -289,6 +296,42 @@ public class DelegateOntology implements EntryListener<String, String>{
 		}
 		return knownRuriForOutputGetCache.get(ruri);
 	}
+	
+	
+	public boolean isRuriKnownForInputPublish(String ruri) {
+		if (ruri == null) return false;			
+		
+		if(!knownRuriForInputPublishCache.containsKey(ruri)){
+			String queryString = 
+					JasperOntologyConstants.PREFIXES +
+		             "ASK  WHERE " +
+		             "   {{" +
+		             "         ?dta    a                               dta:DTA       .\n" +
+		             "         ?dta   dta:request                     ?req         .\n" +
+		             "         ?req   dta:kind                        dta:Publish       .\n" +
+		             "         ?req   dta:input/rdfs:subPropertyOf*   <" + ruri + "> .\n" +
+		             "   }" + 
+		             "       UNION" +
+		             "   {" +
+		             "      ?dta              a                dta:DTA        .\n" +
+		             "      ?dta        dta:request    ?req     .\n" +
+		             "      ?req        dta:kind         dta:Publish        .\n" +
+		             "      ?req        dta:input/rdfs:subPropertyOf*       ?superRuri     .\n" +
+		             "      ?superRuri        rdfs:range       ?superType     .\n" +
+		             "      <" + ruri + ">    rdfs:domain      ?superType     .\n" +
+		             "   }}" ;
+		             ;
+			try{
+				Query query = QueryFactory.create(queryString) ;
+				QueryExecution qexec = QueryExecutionFactory.create(query, model);
+				knownRuriForInputPublishCache.put(ruri, qexec.execAsk());
+			}catch(Exception ex){
+				logger.error("Exception caught while parsing request " + ex);
+				knownRuriForInputPublishCache.put(ruri, false);
+			}
+		}
+		return knownRuriForInputPublishCache.get(ruri);
+	}	
 	
 	//========================================================================================== 
 	// METHOD:  getProvideOperations
@@ -453,8 +496,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 		JsonObject objDesc = new JsonObject();
 		JsonArray reqArray = new JsonArray();
 
-		if (!isRuriKnownForInputGet(inputObject))
-		{
+		if (!isRuriKnownForInputGet(inputObject) && !isRuriKnownForInputPost(inputObject))		{
 			return null;
 		}
 		
@@ -743,7 +785,6 @@ public class DelegateOntology implements EntryListener<String, String>{
         model.addSubModel(subModel);
         dtaSubModels.put(dtaName, subModel);
         clearCaches();
-        logger.error("#### jOntology added to map - " + dtaName);
     }
     
     public void entryEvicted(EntryEvent<String, String> event) {
@@ -762,10 +803,147 @@ public class DelegateOntology implements EntryListener<String, String>{
                 logger.warn("trying to remove dtaName that does not exist in map : " + dtaName);
         }
         clearCaches();
-        logger.error("#### jOntology removed to map - " + dtaName);
     }
 
     public void entryUpdated(EntryEvent<String, String> event) {
         if(logger.isInfoEnabled())logger.info("entry uptdated - event = " + event);
     }
+    
+
+	//========================================================================================== 
+	// METHOD:  fetchPostOperations
+	//
+	// INPUT:   String (RURI)
+	// OUTPUT:  ArrayList<String> (array of strings, each string identifies an operation)
+	//
+	// PURPOSE: Return a list of provide type operations that return the RURI object.
+	//========================================================================================== 
+
+	public ArrayList<String> fetchPostOperations(String ruri) 
+	{
+		if (ruri == null)
+			return null;
+		
+		String queryString = 
+				JasperOntologyConstants.PREFIXES +
+	             "SELECT ?operation  WHERE \n" +
+	             "   {{\n" +
+	             "      ?dta              a                dta:DTA        .\n" +
+	             "      ?dta              dta:operation    ?operation     .\n" +
+	             "      ?operation        dta:kind         dta:Post       .\n" +
+	             "      ?operation        dta:input/rdfs:subPropertyOf*       <" + ruri + ">  .\n" +
+	             "       }" +
+	             "       UNION" +
+	             "       {" +
+	             "      ?dta           a                dta:DTA        .\n" +
+	             "      ?dta           dta:operation    ?operation     .\n" +
+	             "      ?operation     dta:kind         dta:Post       .\n" +
+	             "      ?operation     dta:input/rdfs:subPropertyOf*       ?superRuri     .\n" +
+	             "      ?superRuri     rdfs:range       ?superType     .\n" +
+	             "      <" + ruri + "> rdfs:domain      ?superType     .\n" +
+	             "   }}" ;
+		
+		Query query = QueryFactory.create(queryString) ;
+		QueryExecution qexec = QueryExecutionFactory.create(query, model);
+		ArrayList<String> array = new ArrayList<String>();
+		try {
+			ResultSet results = qexec.execSelect() ;
+			for ( ; results.hasNext() ; )
+			{
+				QuerySolution soln = results.nextSolution();
+				array.add(soln.get("operation").toString());
+				
+			}
+		}finally{
+			qexec.close();
+		}
+		return array;	
+	}	
+	//========================================================================================== 
+	// METHOD:  fetchPostOperationInputObject
+	//
+	// INPUT:   String (RURI of the operation)
+	// OUTPUT:  String (RURI of the input object)
+	//
+	// PURPOSE: Retrieves the input object(s) for the the post operation.
+	//========================================================================================== 
+
+	public String fetchPostOperationInputObject(String oper) 
+	{
+		if (oper == null)
+			return null;
+
+		String queryString = 
+				JasperOntologyConstants.PREFIXES +
+	             "SELECT ?input  WHERE \n" +
+	             "   {\n" +
+	             "      ?dta            a              dta:DTA        .\n" +
+	             "      ?dta            dta:operation  <" + oper + "> .\n" +
+	             "      <" + oper + ">  dta:kind       dta:Post        .\n" +
+	             "      <" + oper + ">  dta:input      ?input          \n" +
+	             "   }" ;
+
+		Query query = QueryFactory.create(queryString) ;
+		QueryExecution qexec = QueryExecutionFactory.create(query, model);
+		ArrayList<String> array = new ArrayList<String>();
+		try {
+			ResultSet results = qexec.execSelect() ;
+			for ( ; results.hasNext() ; )
+			{
+				QuerySolution soln = results.nextSolution();
+				array.add(soln.get("input").toString());
+				
+			}
+		}finally{
+			qexec.close();
+		}
+		return (array.size()==1)?array.get(0):null;
+	}
+	
+	//========================================================================================== 
+	// METHOD:  fetchPostDestinationQueue
+	//
+	// INPUT:   String (RURI of the operation)
+	// OUTPUT:  ArrayList<String> (array of strings, each string identifies a queue)
+	//
+	// PURPOSE: Retrieves the destination queue(s) of the post operation(s) that supports
+	//          this RURI.
+	//========================================================================================== 
+
+	public String fetchPostDestinationQueue(String oper) 
+	{
+		if (oper == null)
+			return null;
+
+		String queryString = 
+				JasperOntologyConstants.PREFIXES +
+	             "SELECT ?dest  WHERE \n" +
+	             "   {\n" +
+	             "      ?dta            a                dta:DTA        .\n" +
+	             "      ?dta            dta:operation    <" + oper + "> .\n" +
+	             "      <" + oper + ">  dta:kind         dta:Post        .\n" +
+	             "      <" + oper + ">  dta:destination  ?dest           \n" +
+	             "   }" ;
+		
+		Query query = QueryFactory.create(queryString) ;
+		QueryExecution qexec = QueryExecutionFactory.create(query, model);
+		ArrayList<String> array = new ArrayList<String>();
+		
+		try 
+		{
+			ResultSet results = qexec.execSelect() ;
+			for ( ; results.hasNext() ; )
+			{
+				QuerySolution soln = results.nextSolution();
+				array.add(soln.get("dest").asLiteral().getString());
+				
+			}
+		}
+		finally
+		{
+			qexec.close();
+		}
+		return (array.size()==1)?array.get(0):null;	
+	}
+    
 }
