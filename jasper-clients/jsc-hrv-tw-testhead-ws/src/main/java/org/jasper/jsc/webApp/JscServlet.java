@@ -61,7 +61,7 @@ public class JscServlet extends HttpServlet {
 	long ts4recv200okfromUde = 0;
 	long tsTotal = 0;
 
-	boolean receivedSmsPost200ok = false;
+	boolean receivedSmsPostResponse = false;
 	
 	private class LocalStatistics{
 		private boolean isConnected;
@@ -152,7 +152,7 @@ public class JscServlet extends HttpServlet {
 		    	recordT3();
 		    	jsc.post(request);
 		    	recordT4();
-		    	removePostResponseLock(logId);
+		    	removeSmsPostResponseLock(logId);
 		    	
 				stats.incrementNumRequest();
 			}
@@ -200,7 +200,7 @@ public class JscServlet extends HttpServlet {
 		    	recordT3();
 		    	jsc.post(request);
 		    	recordT4();
-		    	removePostResponseLock(logId);
+		    	removeSmsPostResponseLock(logId);
 				
 				stats.incrementNumRequest();
 			}
@@ -248,7 +248,7 @@ public class JscServlet extends HttpServlet {
 		    	recordT3();
 		    	jsc.post(request);
 		    	recordT4();
-		    	removePostResponseLock(logId);
+		    	removeSmsPostResponseLock(logId);
 				
 				stats.incrementNumRequest();
 			}
@@ -296,7 +296,7 @@ public class JscServlet extends HttpServlet {
 		    	recordT3();
 		    	jsc.post(request);
 		    	recordT4();
-		    	removePostResponseLock(logId);
+		    	removeSmsPostResponseLock(logId);
 		    	
 				stats.incrementNumRequest();
 			}
@@ -354,7 +354,7 @@ public class JscServlet extends HttpServlet {
 		    	recordT3();
 		    	jsc.post(request);
 		    	recordT4();
-		    	removePostResponseLock(logId);
+		    	removeSmsPostResponseLock(logId);
 		    	
 				stats.incrementNumRequest();
 			}
@@ -412,7 +412,7 @@ public class JscServlet extends HttpServlet {
 		    	recordT3();
 		    	jsc.post(request);
 		    	recordT4();
-		    	removePostResponseLock(logId);
+		    	removeSmsPostResponseLock(logId);
 		    	
 				stats.incrementNumRequest();
 			}
@@ -520,9 +520,10 @@ public class JscServlet extends HttpServlet {
     		log.info("JSC_HRV: TIMECHECK sms post 200ok received ..... t4[" + ts4recv200okfromUde + "] " + tsTotal);
     }
     
-    private void removePostResponseLock(String logId)
+    private void removeSmsPostResponseLock(String logId)
     {
 		if(locks.containsKey(logId)){
+			receivedSmsPostResponse = true;
 			Object lock = locks.remove(logId);
 			synchronized (lock) {
 				lock.notifyAll();
@@ -623,7 +624,7 @@ public class JscServlet extends HttpServlet {
 		// record timestamp #1 just prior to sending the TEST HTTP request to the NC (or BM) DTA
 		// and reset the 200ok flag  
 		recordT1();
-		receivedSmsPost200ok = false;
+		receivedSmsPostResponse = false;
 		
 		// send the HTTP request
 		try {
@@ -651,7 +652,7 @@ public class JscServlet extends HttpServlet {
 		synchronized (lock) {
 			locks.put(idString, lock);
 			int count = 0;
-		    while (receivedSmsPost200ok == false) {
+		    while (receivedSmsPostResponse == false) {
 		    	try {
 					lock.wait(10000);  // timeout is 10 sec
 				} catch (InterruptedException e) {
@@ -662,7 +663,7 @@ public class JscServlet extends HttpServlet {
 		    }
 		}
 
-		if (receivedSmsPost200ok == false)
+		if (receivedSmsPostResponse == false)
 		{
 			response.setStatus(504);
 			log.info("JSC_HRV: TIMECHECK timed out waiting for SMS POST 200 OK");
