@@ -39,7 +39,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class Jsc implements MessageListener  {
+public class Jsc {
 
 	private static final String DELEGATE_GLOBAL_QUEUE = "jms.jasper.delegate.global.queue";
 
@@ -53,8 +53,10 @@ public class Jsc implements MessageListener  {
 	private Session session = null;
 	private Queue globalDelegateQueue;
 	private MessageProducer producer;
-	private Queue jscQueue;
-	private MessageConsumer responseConsumer;
+	private Queue jscSyncQueue;
+	private Queue jscAsyncQueue;
+	private MessageConsumer syncResponseConsumer;
+	private MessageConsumer asyncResponseConsumer;
 	private Map<String,Message> responses;
 	private Map<String,Object> locks;
 	
@@ -143,9 +145,27 @@ public class Jsc implements MessageListener  {
 			producer.setDeliveryMode(DeliveryMode.PERSISTENT);
 			producer.setTimeToLive(30000);
 			
-			jscQueue = session.createQueue("jms.jsc." + System.nanoTime() + ".queue");
-	        responseConsumer = session.createConsumer(jscQueue);
-	        responseConsumer.setMessageListener(this);
+			jscSyncQueue = session.createQueue("jms.jsc." + System.nanoTime() + ".sync.queue");
+	        syncResponseConsumer = session.createConsumer(jscSyncQueue);
+	        MessageListener messageListenerForSyncResponse = new MessageListener() {
+				
+				public void onMessage(Message msg) {
+					onMessageForSyncResponse(msg);
+				}
+			};
+			syncResponseConsumer.setMessageListener(messageListenerForSyncResponse);
+			
+			jscAsyncQueue = session.createQueue("jms.jsc." + System.nanoTime() + ".async.queue");
+	        asyncResponseConsumer = session.createConsumer(jscAsyncQueue);
+	        MessageListener messageListenerForAsyncResponse = new MessageListener() {
+				
+				public void onMessage(Message msg) {
+					onMessageForAsyncResponse(msg);
+				}
+			};
+			asyncResponseConsumer.setMessageListener(messageListenerForAsyncResponse);
+
+			
 		} catch (JMSException e) {
 			log.error("Exception when connecting to UDE",e);
 			throw e;
@@ -181,7 +201,8 @@ public class Jsc implements MessageListener  {
 		}
     	
 		try {
-	    	responseConsumer.close();
+	    	syncResponseConsumer.close();
+	    	asyncResponseConsumer.close();
 	    	producer.close();
 	    	session.close();
 	    	connection.stop();
@@ -241,42 +262,43 @@ public class Jsc implements MessageListener  {
 			request.setHeaders(headers);
 			request.setMethod(Method.SUBSCRIBE);
 			listeners.put(listener,request);
-			processAsyncRequest(listener,request);
+			asyncResponses.put(subscriptionID,listener);
+			try{	
+				TextMessage message = session.createTextMessage(toJsonFromRequest(request));
+				message.setJMSCorrelationID(subscriptionID);
+				message.setStringProperty("subscription-id", subscriptionID);
+				message.setJMSReplyTo(jscAsyncQueue);
+				producer.send(message);
+			}catch (JMSException e){
+				log.error("JMSException when sending request : " + request + " for listener " + listener, e);
+				return false;
+			}
+			
 			return true;
 		}
 	}
 	
 	public boolean deregisterListener(Listener listener){
 		Request request = listeners.remove(listener);
+		String subscriptionID = request.getHeaders().get("subscription-id");
+		asyncResponses.remove(subscriptionID);
 		if(request != null){
 			Map<String,String> headers = request.getHeaders();
 			headers.put(RequestHeaders.EXPIRES, "0");
 			request.setMethod(Method.SUBSCRIBE);
-			processAsyncRequest(listener,request);
-		}
+			try{	
+				TextMessage message = session.createTextMessage(toJsonFromRequest(request));
+				message.setJMSCorrelationID(subscriptionID);
+				message.setStringProperty("subscription-id", subscriptionID);
+				message.setJMSReplyTo(jscAsyncQueue);
+				producer.send(message);
+			}catch (JMSException e){
+				log.error("JMSException when sending request : " + request + " for listener " + listener, e);
+				return false;
+			}		}
 		return true;
 	}
-	
-	private void processAsyncRequest(Listener listener, Request request) {
-		try{	
-			TextMessage message = session.createTextMessage(toJsonFromRequest(request));
-
-			String correlationID = UUID.randomUUID().toString();
-			message.setJMSCorrelationID(correlationID);
-			message.setJMSReplyTo(jscQueue);
-			
-			asyncResponses.put(correlationID,listener);
-			producer.send(message);
-		}catch (JMSException e){
-			log.error("JMSException when sending request : " + request + " for listener " + listener, e);
-		}
-	}
-	
-	private void processAsyncResponse(Message msg) throws JMSException {
-		Listener listener = asyncResponses.get(msg.getJMSCorrelationID());
-		asyncEventHandlingExecutor.submit(new AsyncReponseHandler(listener, toResponsefromJson(((TextMessage)msg).getText())) );
-	}
-	
+		
 	private Response processSyncRequest(Request request){
 		try{
 			
@@ -284,7 +306,7 @@ public class Jsc implements MessageListener  {
 
 			String correlationID = UUID.randomUUID().toString();
 			message.setJMSCorrelationID(correlationID);
-			message.setJMSReplyTo(jscQueue);
+			message.setJMSReplyTo(jscSyncQueue);
 			
 			Message responseJmsMsg = null;
 			Object lock = new Object();
@@ -375,7 +397,7 @@ public class Jsc implements MessageListener  {
 		return result;
 	}
 
-	public void onMessage(Message msg) {
+	public void onMessageForSyncResponse(Message msg) {
 		try{
 			if(msg.getJMSCorrelationID() == null){
 				log.warn("jms response message received with null JMSCorrelationID, ignoring message.");
@@ -390,15 +412,31 @@ public class Jsc implements MessageListener  {
 				synchronized (lock) {
 					lock.notifyAll();
 				}
-			}else if (asyncResponses.containsKey(msg.getJMSCorrelationID())){
-				processAsyncResponse(msg);
 			}else{
 				log.error("response with correlationID = " + msg.getJMSCorrelationID() + " received however no record of sending message with this ID, ignoring");
 			}
 
 		} catch (JMSException e) {
-			log.error("Exception when storing response received in onMessage",e);
+			log.error("JMSException when processing sync reponse",e);
 		}		
+	}
+	
+	public void onMessageForAsyncResponse(Message msg) {
+		try{
+			if(msg.getJMSCorrelationID() == null){
+				log.warn("jms response message received with null JMSCorrelationID, ignoring message.");
+				return;
+			}
+			
+			Listener listener = asyncResponses.get(msg.getJMSCorrelationID());
+			asyncEventHandlingExecutor.submit(new AsyncReponseHandler(listener, toResponsefromJson(((TextMessage)msg).getText())) );
+
+		} catch (JMSException e) {
+			log.error("JMSException when processing async reponse",e);
+		} catch (Exception e){
+			log.error("Exception when processing async reponse",e);
+
+		}
 	}
 	
 }
