@@ -58,10 +58,11 @@ public class JscServlet extends HttpServlet {
 	long ts1sendRest2NcDta = 0;
 	long ts2recvPubfromUde = 0;
 	long ts3sendPosttoUde = 0;
-	long ts4recv200okfromUde = 0;
+	long ts4recvPostResponsefromUde = 0;
 	long tsTotal = 0;
 
 	boolean receivedSmsPostResponse = false;
+	Response sms_response = null;
 	
 	private class LocalStatistics{
 		private boolean isConnected;
@@ -150,7 +151,7 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 
 		    	recordT3();
-		    	jsc.post(request);
+		    	sms_response = jsc.post(request);
 		    	recordT4();
 		    	removeSmsPostResponseLock(logId);
 		    	
@@ -198,7 +199,7 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 
 		    	recordT3();
-		    	jsc.post(request);
+		    	sms_response = jsc.post(request);
 		    	recordT4();
 		    	removeSmsPostResponseLock(logId);
 				
@@ -246,7 +247,7 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 				
 		    	recordT3();
-		    	jsc.post(request);
+		    	sms_response = jsc.post(request);
 		    	recordT4();
 		    	removeSmsPostResponseLock(logId);
 				
@@ -294,7 +295,7 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 		    	
 		    	recordT3();
-		    	jsc.post(request);
+		    	sms_response = jsc.post(request);
 		    	recordT4();
 		    	removeSmsPostResponseLock(logId);
 		    	
@@ -352,7 +353,7 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 		    	
 		    	recordT3();
-		    	jsc.post(request);
+		    	sms_response = jsc.post(request);
 		    	recordT4();
 		    	removeSmsPostResponseLock(logId);
 		    	
@@ -410,7 +411,7 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 		    	
 		    	recordT3();
-		    	jsc.post(request);
+		    	sms_response = jsc.post(request);
 		    	recordT4();
 		    	removeSmsPostResponseLock(logId);
 		    	
@@ -511,13 +512,13 @@ public class JscServlet extends HttpServlet {
     
     private void recordT4()
     {
-    	ts4recv200okfromUde = System.currentTimeMillis();
-    	tsTotal = ts4recv200okfromUde - ts1sendRest2NcDta;
+    	ts4recvPostResponsefromUde = System.currentTimeMillis();
+    	tsTotal = ts4recvPostResponsefromUde - ts1sendRest2NcDta;
     	
     	if (tsTotal > 50)
-    		log.info("JSC_HRV: TIMECHECK sms post 200ok received ..... t4[" + ts4recv200okfromUde + "] --- " + tsTotal);
+    		log.info("JSC_HRV: TIMECHECK sms post response received .. t4[" + ts4recvPostResponsefromUde + "] --- " + tsTotal);
     	else
-    		log.info("JSC_HRV: TIMECHECK sms post 200ok received ..... t4[" + ts4recv200okfromUde + "] " + tsTotal);
+    		log.info("JSC_HRV: TIMECHECK sms post response received .. t4[" + ts4recvPostResponsefromUde + "] " + tsTotal);
     }
     
     private void removeSmsPostResponseLock(String logId)
@@ -622,7 +623,7 @@ public class JscServlet extends HttpServlet {
 		conn.setRequestProperty("Connection", "true");
 		
 		// record timestamp #1 just prior to sending the TEST HTTP request to the NC (or BM) DTA
-		// and reset the 200ok flag  
+		// and reset the post received flag  
 		recordT1();
 		receivedSmsPostResponse = false;
 		
@@ -646,7 +647,7 @@ public class JscServlet extends HttpServlet {
 		}
 
 		// need to wait for sms post response before returning 200 OK to caller
-		// Lock and wait for 200ok flag to be set (or timeout and return 504 timeout to caller)
+		// Lock and wait for post received flag to be set (or timeout and return 504 timeout to caller)
 		
 		Object lock = new Object();
 		synchronized (lock) {
@@ -666,12 +667,14 @@ public class JscServlet extends HttpServlet {
 		if (receivedSmsPostResponse == false)
 		{
 			response.setStatus(504);
-			log.info("JSC_HRV: TIMECHECK timed out waiting for SMS POST 200 OK");
+			log.info("JSC_HRV: TIMECHECK timed out waiting for SMS POST Response");
 		}
 		else
 		{
-			long ts200ok = System.currentTimeMillis();
-			log.info("JSC_HRV: TIMECHECK 200 OK ...................... tE[" + ts200ok + "] " + (ts200ok - ts1sendRest2NcDta));
+			long tsPostResponse = System.currentTimeMillis();
+			log.info("JSC_HRV: TIMECHECK CODE=" + sms_response.getCode() + " .................... tE[" + tsPostResponse + "] " + (tsPostResponse - ts1sendRest2NcDta));
+			
+			response.setStatus(sms_response.getCode());
 		}
 			
 		response.setContentType("application/json");
