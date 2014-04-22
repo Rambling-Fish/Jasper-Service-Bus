@@ -124,7 +124,7 @@ public class DataRequestHandler implements Runnable {
 		if (jsonRequest.isJsonObject() && jsonRequest.getAsJsonObject().has(JasperConstants.HEADERS_LABEL) && jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).isJsonObject()
 				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().has(JasperConstants.SUBSCRIPTION_ID_LABEL)
 				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.SUBSCRIPTION_ID_LABEL).isJsonPrimitive()
-				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.SUBSCRIPTION_ID_LABEL).getAsJsonPrimitive().isNumber()) {
+				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.SUBSCRIPTION_ID_LABEL).getAsJsonPrimitive().isString()) {
 			subscriptionId = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.SUBSCRIPTION_ID_LABEL).getAsJsonPrimitive().getAsString();
 		}else{
 			logger.error("susbcription request does not contain subcription ID, returning bad reqeust response");
@@ -187,10 +187,7 @@ public class DataRequestHandler implements Runnable {
 			
 			JsonElement responsesThatMeetCriteria = extractResponsesThatMeetCriteria(data, sub.getTriggerList());
 			if(responsesThatMeetCriteria != null){
-				Message msg = delegate.createTextMessage(responsesThatMeetCriteria.toString());
-				msg.setJMSCorrelationID(sub.getCorrelationID());
-				msg.setStringProperty(JasperConstants.SUBSCRIPTION_ID_LABEL, sub.getSubscriptionId());  // may not need this
-				delegate.sendMessage(sub.getReply2q(), msg);
+				sendResponse(sub.getCorrelationID(), sub.getReply2q(), responsesThatMeetCriteria.toString());
 			}
 		}		
 	}
