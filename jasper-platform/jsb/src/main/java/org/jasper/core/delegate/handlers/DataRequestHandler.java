@@ -23,6 +23,7 @@ import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.notification.triggers.TriggerFactory;
 import org.jasper.core.persistence.PersistedDataReqeust;
 import org.jasper.core.persistence.PersistedSubscriptionReqeust;
+import org.jasper.core.util.JsonLDTransformer;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -38,6 +39,8 @@ public class DataRequestHandler implements Runnable {
 	private Map<String, Object>		locks;
 	private Map<String, Message>	responses;
 	private PersistedDataReqeust	persistedRequest;
+	private JsonLDTransformer       jsonLDTransformer;
+	private String                  response_type;
 
 	private static Logger			logger	= Logger.getLogger(DataRequestHandler.class.getName());
 
@@ -48,6 +51,7 @@ public class DataRequestHandler implements Runnable {
 		this.locks = delegate.getLocksMap();
 		this.responses = delegate.getResponsesMap();
 		this.persistedRequest = persistedRequest;
+		jsonLDTransformer = new JsonLDTransformer();
 	}
 
 	@Override
@@ -91,6 +95,15 @@ public class DataRequestHandler implements Runnable {
 		}else{
 			logger.error("ruri is null, sending back error response for reqeust for correlation ID " + correlationID);
 			throw new JasperRequestException(JasperConstants.ResponseCodes.BADREQUEST, ruri + " is null");
+		}
+		
+		if (jsonRequest.isJsonObject() && jsonRequest.getAsJsonObject().has(JasperConstants.HEADERS_LABEL) && jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).isJsonObject()
+				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().has(JasperConstants.RESPONSE_TYPE_LABEL)
+				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.RESPONSE_TYPE_LABEL).isJsonPrimitive()
+				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.RESPONSE_TYPE_LABEL).getAsJsonPrimitive().isString()) {
+			response_type = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.RESPONSE_TYPE_LABEL).getAsJsonPrimitive().getAsString();
+		} else {
+			response_type = JasperConstants.DEFAULT_RESPONSE_TYPE;
 		}
 				
 		switch (method.toLowerCase()) {
@@ -187,7 +200,13 @@ public class DataRequestHandler implements Runnable {
 			
 			JsonElement responsesThatMeetCriteria = extractResponsesThatMeetCriteria(data, sub.getTriggerList());
 			if(responsesThatMeetCriteria != null){
-				sendResponse(sub.getCorrelationID(), sub.getReply2q(), responsesThatMeetCriteria.toString());
+				if(response_type.equalsIgnoreCase("application/json-ld")){
+					JsonElement jsonLDResponse = jsonLDTransformer.parseResponse(responsesThatMeetCriteria);
+					sendResponse(sub.getCorrelationID(), sub.getReply2q(), jsonLDResponse.toString());
+				}
+				else{
+					sendResponse(sub.getCorrelationID(), sub.getReply2q(), responsesThatMeetCriteria.toString());
+				}
 			}
 		}		
 	}
@@ -233,7 +252,13 @@ public class DataRequestHandler implements Runnable {
 		JsonElement postResponse = dataProcessor.process();	
 		
 		if(postResponse != null){
-			sendResponse(correlationID, reply2q, postResponse.toString());
+			if(response_type.equalsIgnoreCase("application/json-ld")){
+				JsonElement jsonLDResponse = jsonLDTransformer.parseResponse(postResponse);
+				sendResponse(correlationID, reply2q, jsonLDResponse.toString());
+			}
+			else{
+				sendResponse(correlationID, reply2q, postResponse.toString());
+			}
 		}else{
 			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " POST did not return 200 OK from DTAs, request failed");
 		}
@@ -305,7 +330,13 @@ public class DataRequestHandler implements Runnable {
 			
 			JsonElement responsesThatMeetCriteria = extractResponsesThatMeetCriteria(response, triggerList);
 			if(responsesThatMeetCriteria != null){
-				sendResponse(correlationID, reply2q, response.toString());
+				if(response_type.equalsIgnoreCase("application/json-ld")){
+					JsonElement jsonLDResponse = jsonLDTransformer.parseResponse(responsesThatMeetCriteria);
+					sendResponse(correlationID, reply2q, jsonLDResponse.toString());
+				}
+				else{
+					sendResponse(correlationID, reply2q, responsesThatMeetCriteria.toString());
+				}
 			}else{
 				logger.error("response from getResponse is does not match rule, and expiry = 0, unable to respond with valid response for correlationID " + correlationID);
 				throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " cannot be found matching rule : " + rule);
@@ -331,7 +362,11 @@ public class DataRequestHandler implements Runnable {
 			if (response == null) {
 				logger.error("responses from polling getResponse is null, sending back error response for correlationID " + correlationID);
 				throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is known, but we could not get a valid response before request expired");
-			}else{
+			}else if(response_type.equalsIgnoreCase("application/json-ld")){
+				JsonElement jsonLDResponse = jsonLDTransformer.parseResponse(response);
+				sendResponse(correlationID, reply2q, jsonLDResponse.toString());
+			}
+			else{
 				sendResponse(correlationID, reply2q, response.toString());
 			}
 			
