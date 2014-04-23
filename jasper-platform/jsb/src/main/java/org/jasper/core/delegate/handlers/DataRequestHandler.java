@@ -200,7 +200,7 @@ public class DataRequestHandler implements Runnable {
 			
 			JsonElement responsesThatMeetCriteria = extractResponsesThatMeetCriteria(data, sub.getTriggerList());
 			if(responsesThatMeetCriteria != null){
-				if(response_type.equalsIgnoreCase("application/json-ld")){
+				if(response_type.equalsIgnoreCase("application/ld+json")){
 					JsonElement jsonLDResponse = jsonLDTransformer.parseResponse(responsesThatMeetCriteria);
 					sendResponse(sub.getCorrelationID(), sub.getReply2q(), jsonLDResponse.toString());
 				}
@@ -252,7 +252,7 @@ public class DataRequestHandler implements Runnable {
 		JsonElement postResponse = dataProcessor.process();	
 		
 		if(postResponse != null){
-			if(response_type.equalsIgnoreCase("application/json-ld")){
+			if(response_type.equalsIgnoreCase("application/ld+json")){
 				JsonElement jsonLDResponse = jsonLDTransformer.parseResponse(postResponse);
 				sendResponse(correlationID, reply2q, jsonLDResponse.toString());
 			}
@@ -330,7 +330,7 @@ public class DataRequestHandler implements Runnable {
 			
 			JsonElement responsesThatMeetCriteria = extractResponsesThatMeetCriteria(response, triggerList);
 			if(responsesThatMeetCriteria != null){
-				if(response_type.equalsIgnoreCase("application/json-ld")){
+				if(response_type.equalsIgnoreCase("application/ld+json")){
 					JsonElement jsonLDResponse = jsonLDTransformer.parseResponse(responsesThatMeetCriteria);
 					sendResponse(correlationID, reply2q, jsonLDResponse.toString());
 				}
@@ -362,7 +362,7 @@ public class DataRequestHandler implements Runnable {
 			if (response == null) {
 				logger.error("responses from polling getResponse is null, sending back error response for correlationID " + correlationID);
 				throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is known, but we could not get a valid response before request expired");
-			}else if(response_type.equalsIgnoreCase("application/json-ld")){
+			}else if(response_type.equalsIgnoreCase("application/ld+json")){
 				JsonElement jsonLDResponse = jsonLDTransformer.parseResponse(response);
 				sendResponse(correlationID, reply2q, jsonLDResponse.toString());
 			}
