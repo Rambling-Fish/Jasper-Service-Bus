@@ -25,6 +25,9 @@ public class TestJsonLDTransformer extends TestCase {
 	 */
 	@Test
 	public void testPrimitiveArray(){
+		System.out.println("=================================");
+		System.out.println("RUNNING JSON-LD TRANSFORMER TESTS");
+		System.out.println("=================================");
 		JsonArray primitiveArr  = new JsonArray();
 		JsonElement prim1 = jParser.parse("one");
 		JsonElement prim2 = jParser.parse("two");
