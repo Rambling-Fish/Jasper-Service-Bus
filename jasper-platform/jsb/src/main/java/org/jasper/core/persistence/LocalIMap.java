@@ -135,6 +135,21 @@ public class LocalIMap<K, V> implements IMap {
 		return (listener != null);
 	}
 	
+	@Override
+	public Set keySet() {
+		return localmap.keySet();
+	}
+
+	@Override
+	public Collection values() {
+		return localmap.values();
+	}
+
+	@Override
+	public Set entrySet() {
+		return localmap.entrySet();
+	}
+	
 
 	
 	//################
@@ -359,24 +374,6 @@ public class LocalIMap<K, V> implements IMap {
 	public boolean evict(Object key) {
 		// TODO Auto-generated method stub
 		return false;
-	}
-
-	@Override
-	public Set keySet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Collection values() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Set entrySet() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override

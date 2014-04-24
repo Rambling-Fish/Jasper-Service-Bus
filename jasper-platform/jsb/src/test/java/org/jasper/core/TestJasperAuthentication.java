@@ -55,7 +55,7 @@ public class TestJasperAuthentication extends TestCase {
 		when(mockUDE.getUdeLicense().getNumOfConsumers()).thenReturn(1);
 		when(mockUDE.getUdeLicense().getNumOfPublishers()).thenReturn(1);
 
-		cachingSys = PersistenceFacadeFactory.getFacade(ipAddr, hazelcastGroup, "testPassword");
+		cachingSys = PersistenceFacadeFactory.getNonClusteredFacade();
 		JasperAuthenticationPlugin authPlugin = new JasperAuthenticationPlugin(mockUDE, cachingSys, classUnderTest);
 		authPlugin.installPlugin(mockBroker);
 		cachingSys.shutdown();

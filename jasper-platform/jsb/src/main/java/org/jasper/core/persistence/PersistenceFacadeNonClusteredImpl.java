@@ -3,6 +3,7 @@ package org.jasper.core.persistence;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.MultiMap;
@@ -34,8 +35,7 @@ public class PersistenceFacadeNonClusteredImpl implements PersistenceFacade {
 	}
 	@Override
 	public BlockingQueue<PersistedObject> getQueue(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		return new LinkedBlockingQueue<PersistedObject>();
 	}
 	@Override
 	public void shutdown() {

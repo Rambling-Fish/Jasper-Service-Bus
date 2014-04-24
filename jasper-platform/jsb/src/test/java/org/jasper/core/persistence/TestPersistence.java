@@ -37,9 +37,7 @@ public class TestPersistence extends TestCase {
 		System.out.println("RUNNING PERSISTENCE TESTS");
 		System.out.println("=========================");
 
-		cachingSys = PersistenceFacadeFactory.getFacade(ipAddr, hazelcastGroup, password);
-		cachingSys.shutdown();
-		cachingSys = PersistenceFacadeFactory.getFacade(props);
+		cachingSys = PersistenceFacadeFactory.getNonClusteredFacade();
 		cachingSys.shutdown();
 	}
 	
@@ -50,33 +48,31 @@ public class TestPersistence extends TestCase {
 	public void testPersistenceFacade() throws Exception {
 		MultiMap<String,String> multiMap;
 		Map<String,String> myMap;
-		cachingSys = new PersistenceFacadeImpl(props);
+		cachingSys = PersistenceFacadeFactory.getNonClusteredFacade();
 		multiMap = cachingSys.getMultiMap("testMap");
 		myMap = cachingSys.getMap("aMap");
-		Object myObj = cachingSys.getSharedMemoryInstance();
 		BlockingQueue myQ = cachingSys.getQueue("myQ");
 		
 		TestCase.assertNotNull(multiMap);
 		TestCase.assertNotNull(myMap);
-		TestCase.assertNotNull(myObj);
 		TestCase.assertNotNull(myQ);
 		
 		cachingSys.shutdown();
 	}
 	
-	/*
-	 * This tests the MemoryCache class
-	 */
-	@Test
-	public void testMemoryCache() throws Exception {
-		HazelcastInstance inst;
-		MemoryCache cache = new MemoryCache(ipAddr, "group", "password");
-		cachingSys = new PersistenceFacadeImpl(props);
-		inst = (HazelcastInstance) cachingSys.getSharedMemoryInstance();
-		cache.setHazelcastInstance(inst);
-		cache.shutdown();
-		cachingSys.shutdown();
-	}
+//	/*
+//	 * This tests the MemoryCache class
+//	 */
+//	@Test
+//	public void testMemoryCache() throws Exception {
+//		HazelcastInstance inst;
+//		MemoryCache cache = new MemoryCache(ipAddr, "group", "password");
+//		cachingSys = PersistenceFacadeFactory.getNonClusteredFacade();
+//		inst = (HazelcastInstance) cachingSys.getSharedMemoryInstance();
+//		cache.setHazelcastInstance(inst);
+//		cache.shutdown();
+//		cachingSys.shutdown();
+//	}
 	
 	/*
 	 * This tests the PersistedObject class
