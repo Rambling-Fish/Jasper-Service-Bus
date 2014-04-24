@@ -64,6 +64,8 @@ public class JscServlet extends HttpServlet {
 	boolean receivedSmsPostResponse = false;
 	Response sms_response = null;
 	
+	String dtaServerIp = null;
+	
 	private class LocalStatistics{
 		private boolean isConnected;
 		private AtomicInteger numberOfRequests;
@@ -101,6 +103,17 @@ public class JscServlet extends HttpServlet {
 		locks = new ConcurrentHashMap<String, Object>();
 		try {
 			jsc.init();
+			
+			// example DTA Server IP entry in jsc-hrv-tw-testhead.properties for case where DTA Server is remote:   
+			//
+			// 1. remote DTA Server:
+			// dta.serverip=192.168.1.115
+			//
+			// 2. Local DTA Server (in this scenario the entry can be omitted.  It will default to 127.0.0.1)
+			// dta.serverip=127.0.0.1
+			
+			dtaServerIp = (getProperties().getProperty("dta.serverip") != null) ? getProperties().getProperty("dta.serverip") : "127.0.0.1";
+
 			setupCallNurseSubscription();
 			setupCancelCallNurseSubscription();
 			setupEmergencySubscription();
@@ -547,32 +560,32 @@ public class JscServlet extends HttpServlet {
 		if (requestPath.equalsIgnoreCase("/callNurse"))
 		{
 			idString = new String("cn-" + stats.getNumberOfRequests());
-			urlString = new String("http://127.0.0.1:8082/rnc/callNurse?http://coralcea.ca/jasper/NurseCall/location=" + idString);
+			urlString = new String("http://" + dtaServerIp + ":8082/rnc/callNurse?http://coralcea.ca/jasper/NurseCall/location=" + idString);
 		}
 		else if (requestPath.equalsIgnoreCase("/cancelCallNurse"))
 		{	
 			idString = new String("ccn-" + stats.getNumberOfRequests());
-			urlString = new String("http://127.0.0.1:8082/rnc/cancelCallNurse?http://coralcea.ca/jasper/NurseCall/location=" + idString);
+			urlString = new String("http://" + dtaServerIp + ":8082/rnc/cancelCallNurse?http://coralcea.ca/jasper/NurseCall/location=" + idString);
 		}
 		else if (requestPath.equalsIgnoreCase("/emergency"))
 		{	
 			idString = new String("e-" + stats.getNumberOfRequests());
-			urlString = new String("http://127.0.0.1:8082/rnc/emergency?http://coralcea.ca/jasper/NurseCall/location=" + idString);
+			urlString = new String("http://" + dtaServerIp + ":8082/rnc/emergency?http://coralcea.ca/jasper/NurseCall/location=" + idString);
 		}
 		else if (requestPath.equalsIgnoreCase("/cancelEmergency"))
 		{	
 			idString = new String("ce-" + stats.getNumberOfRequests());
-			urlString = new String("http://127.0.0.1:8082/rnc/cancelEmergency?http://coralcea.ca/jasper/NurseCall/location=" + idString);
+			urlString = new String("http://" + dtaServerIp + ":8082/rnc/cancelEmergency?http://coralcea.ca/jasper/NurseCall/location=" + idString);
 		}
 		else if (requestPath.equalsIgnoreCase("/roomTempUpdate"))
 		{	
 			idString = new String("rtu-" + stats.getNumberOfRequests());
-			urlString = new String("http://127.0.0.1:8083/rbm/roomTempUpdate?http://coralcea.ca/jasper/BuildingMgmt/roomID=" + idString + "&http://coralcea.ca/jasper/BuildingMgmt/temperature=19");
+			urlString = new String("http://" + dtaServerIp + ":8083/rbm/roomTempUpdate?http://coralcea.ca/jasper/BuildingMgmt/roomID=" + idString + "&http://coralcea.ca/jasper/BuildingMgmt/temperature=19");
 		}
 		else if (requestPath.equalsIgnoreCase("/doorStateChange"))
 		{	
 			idString = new String("dsc-" + stats.getNumberOfRequests());
-			urlString = new String("http://127.0.0.1:8083/rbm/doorStateChange?http://coralcea.ca/jasper/BuildingMgmt/doorID=" + idString + "&http://coralcea.ca/jasper/BuildingMgmt/doorState=open");
+			urlString = new String("http://" + dtaServerIp + ":8083/rbm/doorStateChange?http://coralcea.ca/jasper/BuildingMgmt/doorID=" + idString + "&http://coralcea.ca/jasper/BuildingMgmt/doorState=open");
 		}
 		else if (requestPath.equalsIgnoreCase("/stats"))
 		{	
@@ -588,6 +601,7 @@ public class JscServlet extends HttpServlet {
 			response.setStatus(400);
 			return;
 		}
+		log.info("urlString= " + urlString);
 		
 		URL url = null;
 		try {
