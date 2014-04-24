@@ -89,10 +89,10 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
 
         jsbConnectionInfoMap = new ConcurrentHashMap<String, ConnectionInfo>();
         jtaConnectionContextMap = new ConcurrentHashMap<String, ConnectionContext>();
-        registeredLicenseKeys = (MultiMap<String, String>) cachingSys.getMultiMap("registeredLicenseKeys");
+        registeredLicenseKeys = cachingSys.getMultiMap("registeredLicenseKeys");
         registeredLicenseKeys.addEntryListener (this, true);
-        registeredResources = (Map<String,Integer>) cachingSys.getMap("registeredResources");
-        dtaResources = (Map<String,String>) cachingSys.getMap("dtaResources");
+        registeredResources = cachingSys.getMap("registeredResources");
+        dtaResources = cachingSys.getMap("dtaResources");
         
         //initialize license key total consumers and producers map
         calculateClusterResourceTotals();

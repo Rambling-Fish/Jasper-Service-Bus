@@ -68,7 +68,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 
 	public DelegateOntology(PersistenceFacade cachingSys, OntModel model){
 		this.model = model;
-		dtaTriples = (IMap<String, String>) cachingSys.getMap("dtaTriples");
+		dtaTriples = cachingSys.getMap("dtaTriples");
 		dtaTriples.addEntryListener(this, true);
 		dtaSubModels = new HashMap<String,Model>();
 		

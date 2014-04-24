@@ -142,8 +142,8 @@ public class Delegate {
 		};
 		responseConsumer.setMessageListener(delegateQListener);
 		
-		distributedDataStore = (MultiMap<String, PersistedDataReqeust>) ude.getCachingSys().getMultiMap("distributedDataStore");	
-		persistedSubscriptions = (MultiMap<String, PersistedSubscriptionReqeust>) ude.getCachingSys().getMultiMap("persistedSubscriptions");
+		distributedDataStore = ude.getCachingSys().getMultiMap("distributedDataStore");	
+		persistedSubscriptions = ude.getCachingSys().getMultiMap("persistedSubscriptions");
 		
 		try {
           //load properties file

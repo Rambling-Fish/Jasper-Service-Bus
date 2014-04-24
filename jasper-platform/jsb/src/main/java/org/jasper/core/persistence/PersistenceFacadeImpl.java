@@ -1,9 +1,9 @@
 package org.jasper.core.persistence;
 
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 
+import com.hazelcast.core.IMap;
 import com.hazelcast.core.MultiMap;
 
 public class PersistenceFacadeImpl implements PersistenceFacade {
@@ -25,16 +25,16 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
 	 * @see org.jasper.core.persistence.PersistenceFacade#getMultiMap(java.lang.String)
 	 */
 	@Override
-	public MultiMap<?,?> getMultiMap(String name) {
-		return memCache.getMultiMap(name);
+	public <K, V> MultiMap<K, V> getMultiMap(String name) {
+		return (MultiMap<K, V>) memCache.getMultiMap(name);
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.jasper.core.persistence.PersistenceFacade#getMap(java.lang.String)
 	 */
 	@Override
-	public Map<?,?> getMap(String name) {
-		return memCache.getMap(name);
+	public <K, V> IMap<K, V> getMap(String name) {
+		return (IMap<K, V>) memCache.getMap(name);
 	}
 	
 	/* (non-Javadoc)
