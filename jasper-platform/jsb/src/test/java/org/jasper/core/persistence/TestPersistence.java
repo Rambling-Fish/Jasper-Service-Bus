@@ -51,8 +51,8 @@ public class TestPersistence extends TestCase {
 		MultiMap<String,String> multiMap;
 		Map<String,String> myMap;
 		cachingSys = new PersistenceFacadeImpl(props);
-		multiMap = (MultiMap<String, String>) cachingSys.getMultiMap("testMap");
-		myMap = (Map<String, String>) cachingSys.getMap("aMap");
+		multiMap = cachingSys.getMultiMap("testMap");
+		myMap = cachingSys.getMap("aMap");
 		Object myObj = cachingSys.getSharedMemoryInstance();
 		BlockingQueue myQ = cachingSys.getQueue("myQ");
 		
