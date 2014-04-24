@@ -43,6 +43,7 @@ public class JscServlet extends HttpServlet {
 	static Logger log = Logger.getLogger(JscServlet.class.getName());
 	private Map<String, String> uriMapper = new HashMap<String, String>();
 	private String rule;
+	private static int MILLISECONDS = 1000;
 	
 	private Jsc jsc;
 
@@ -175,14 +176,14 @@ public class JscServlet extends HttpServlet {
 					headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive(str.replaceFirst(RequestHeaders.RESPONSE_TYPE+"=", "")));
 				}else if(str.startsWith(RequestHeaders.EXPIRES)){
 					try{
-						int expires = Integer.parseInt(str.replaceFirst(RequestHeaders.EXPIRES+"=", ""));
+						int expires = (Integer.parseInt(str.replaceFirst(RequestHeaders.EXPIRES+"=", "")) * MILLISECONDS);
 						headers.add(RequestHeaders.EXPIRES, new JsonPrimitive(expires));
 					}catch (NumberFormatException e){
 						log.error("unanable to parse expires, expires set to : " + (str.replaceFirst(RequestHeaders.EXPIRES+"=", "")),e);
 					}
 				}else if(str.startsWith(RequestHeaders.POLL_PERIOD)){
 					try{
-						int pollPeriod = Integer.parseInt(str.replaceFirst(RequestHeaders.POLL_PERIOD+"=", ""));
+						int pollPeriod = (Integer.parseInt(str.replaceFirst(RequestHeaders.POLL_PERIOD+"=", "")) * MILLISECONDS);
 						headers.add(RequestHeaders.POLL_PERIOD, new JsonPrimitive(pollPeriod));
 					}catch (NumberFormatException e){
 						log.error("unanable to parse poll period, expires set to : " + (str.replaceFirst(RequestHeaders.POLL_PERIOD+"=", "")),e);
