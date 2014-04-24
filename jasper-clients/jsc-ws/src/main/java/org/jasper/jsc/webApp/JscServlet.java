@@ -34,6 +34,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 @WebServlet("/")
 public class JscServlet extends HttpServlet {
@@ -125,7 +126,7 @@ public class JscServlet extends HttpServlet {
     	String ruri = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):null;
     	ruri = URLDecoder.decode(ruri, "UTF-8");
     	if(uriMapper.containsKey(ruri)) ruri = uriMapper.get(ruri); // check if short form is being used and switch to long form URI
-		Map<String, String> headers = getHeaders(request);
+		JsonObject headers = getHeaders(request);
 		Map<String, String> parameters;
 		if(ruri.equalsIgnoreCase("sparql")){
 			parameters = getSparqlParameters(request);
@@ -135,6 +136,7 @@ public class JscServlet extends HttpServlet {
 		}
 		
 		byte[] payload = getPayload(request);
+		
 		Request jReq = new Request(Method.GET, ruri, headers, parameters, rule, payload);
     	
 		Response jscResponse = jsc.get(jReq);
@@ -158,29 +160,40 @@ public class JscServlet extends HttpServlet {
         }
     }
 
-    private Map<String, String> getHeaders(HttpServletRequest request) {
-    	Map<String, String> map = new HashMap<String, String>();
+    private JsonObject getHeaders(HttpServletRequest request) {
+
+    	JsonObject headers = new JsonObject();
     	
     	String contentType = (request.getContentType() != null)?request.getContentType():"application/json";
-		map.put(RequestHeaders.CONTENT_TYPE, contentType );
+    	headers.add(RequestHeaders.CONTENT_TYPE, new JsonPrimitive(contentType) );
  
 		if(request.getQueryString() !=null){
 			String[] result = request.getQueryString().split("\\?");
     	
 			for(String str:result){
 				if(str.startsWith(RequestHeaders.RESPONSE_TYPE)){
-					map.put(RequestHeaders.RESPONSE_TYPE, str.replaceFirst(RequestHeaders.RESPONSE_TYPE+"=", ""));
+					headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive(str.replaceFirst(RequestHeaders.RESPONSE_TYPE+"=", "")));
 				}else if(str.startsWith(RequestHeaders.EXPIRES)){
-					map.put(RequestHeaders.EXPIRES, str.replaceFirst(RequestHeaders.EXPIRES+"=", ""));
+					try{
+						int expires = Integer.parseInt(str.replaceFirst(RequestHeaders.EXPIRES+"=", ""));
+						headers.add(RequestHeaders.EXPIRES, new JsonPrimitive(expires));
+					}catch (NumberFormatException e){
+						log.error("unanable to parse expires, expires set to : " + (str.replaceFirst(RequestHeaders.EXPIRES+"=", "")),e);
+					}
 				}else if(str.startsWith(RequestHeaders.POLL_PERIOD)){
-					map.put(RequestHeaders.POLL_PERIOD, str.replaceFirst(RequestHeaders.POLL_PERIOD+"=", ""));
+					try{
+						int pollPeriod = Integer.parseInt(str.replaceFirst(RequestHeaders.POLL_PERIOD+"=", ""));
+						headers.add(RequestHeaders.POLL_PERIOD, new JsonPrimitive(pollPeriod));
+					}catch (NumberFormatException e){
+						log.error("unanable to parse poll period, expires set to : " + (str.replaceFirst(RequestHeaders.POLL_PERIOD+"=", "")),e);
+					}
 				}else if(str.startsWith(RequestHeaders.PROCESSING_SCHEME)){
-					map.put(RequestHeaders.PROCESSING_SCHEME, str.replaceFirst(RequestHeaders.PROCESSING_SCHEME+"=", ""));
+					headers.add(RequestHeaders.PROCESSING_SCHEME, new JsonPrimitive(str.replaceFirst(RequestHeaders.PROCESSING_SCHEME+"=", "")));
 				}
 			}
     	}
    
-    	return map;
+    	return headers;
 	}
     
     private Map<String, String> getSparqlParameters(HttpServletRequest request) {
@@ -269,7 +282,7 @@ public class JscServlet extends HttpServlet {
 	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 		Map<String,String> parameters = new HashMap<String, String>();
-		Map<String,String> headers = this.getHeaders(request);
+		JsonObject headers = this.getHeaders(request);
 		String contentType = request.getHeader(RequestHeaders.CONTENT_TYPE);
 		String ruri = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):null;
 	

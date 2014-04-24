@@ -16,7 +16,7 @@ public class Request {
 	
 	private Method method;
 	private String ruri;
-	private Map<String,String> headers;
+	private JsonObject headers;
 	private JsonObject parameters;
 	private String rule;
 	private byte[] payload;
@@ -25,25 +25,37 @@ public class Request {
 		super();
 		this.method = method;
 		this.ruri = ruri;
-		this.headers = headers;
+		this.headers = convertMapToJsonObject(headers);
 		this.parameters = null;
 		this.rule = null;
 		this.payload = null;
 	}
 	
+	public Request(Method method, String ruri,JsonObject headers, Map<String, String> parameters) {
+		this(method, ruri, headers, convertMapToJsonObject(parameters), null, null);
+	}
+	
 	public Request(Method method, String ruri, Map<String, String> headers, Map<String, String> parameters) {
-		this(method, ruri, headers, parseParameters(parameters), null, null);
+		this(method, ruri, headers, convertMapToJsonObject(parameters), null, null);
 	}
 	
 	public Request(Method method, String ruri, Map<String, String> headers, Map<String, String> parameters, String rule) {
-		this(method, ruri, headers, parseParameters(parameters), rule, null);
+		this(method, ruri, headers, convertMapToJsonObject(parameters), rule, null);
 	}
 	
 	public Request(Method method, String ruri, Map<String, String> headers,	Map<String, String> parameters, String rule, byte[] payload) {
-		this(method, ruri, headers, parseParameters(parameters), rule, payload);
+		this(method, ruri, headers, convertMapToJsonObject(parameters), rule, payload);
+	}
+	
+	public Request(Method method, String ruri, JsonObject headers,	Map<String, String> parameters, String rule, byte[] payload) {
+		this(method, ruri, headers, convertMapToJsonObject(parameters), rule, payload);
 	}
 	
 	public Request(Method method, String ruri, Map<String, String> headers, JsonObject parameters) {
+		this(method, ruri, headers, parameters, null, null);
+	}
+	
+	public Request(Method method, String ruri, JsonObject headers, JsonObject parameters) {
 		this(method, ruri, headers, parameters, null, null);
 	}
 	
@@ -51,7 +63,15 @@ public class Request {
 		this(method, ruri, headers, parameters, rule, null);
 	}
 	
+	public Request(Method method, String ruri, JsonObject headers, JsonObject parameters, String rule) {
+		this(method, ruri, headers, parameters, rule, null);
+	}
+	
 	public Request(Method method, String ruri, Map<String, String> headers,	JsonObject parameters, String rule, byte[] payload) {
+		this(method, ruri, convertMapToJsonObject(headers), parameters, rule, null);
+	}
+	
+	public Request(Method method, String ruri, JsonObject headers,	JsonObject parameters, String rule, byte[] payload) {
 		super();
 		this.method = method;
 		this.ruri = ruri;
@@ -61,7 +81,7 @@ public class Request {
 		this.payload = payload;
 	}
 	
-	private static JsonObject parseParameters(Map<String, String> params) {
+	private static JsonObject convertMapToJsonObject(Map<String, String> params) {
 		JsonObject result = new JsonObject();
 		JsonParser jParser = new JsonParser();
 		
@@ -89,10 +109,10 @@ public class Request {
 	public void setRuri(String ruri) {
 		this.ruri = ruri;
 	}
-	public Map<String, String> getHeaders() {
+	public JsonObject getHeaders() {
 		return headers;
 	}
-	public void setHeaders(Map<String, String> headers) {
+	public void setHeaders(JsonObject headers) {
 		this.headers = headers;
 	}
 	public JsonObject getParameters() {
@@ -111,7 +131,19 @@ public class Request {
 		return result;
 	}
 	public void parseAndSetParameters(Map<String, String> parameters) {
-		this.parameters = parseParameters(parameters);
+		this.parameters = convertMapToJsonObject(parameters);
+	}
+	public Map<String, String> getHeadersAsMap() {
+		 Map<String, String> result = new HashMap<String, String>();
+		
+		 for(Entry<String, JsonElement> entry:headers.entrySet()){
+			 result.put(entry.getKey(), entry.getValue().toString());
+		 }
+		 
+		return result;
+	}
+	public void parseAndSetHeaders(Map<String, String> headers) {
+		this.headers = convertMapToJsonObject(headers);
 	}
 	public String getRule() {
 		return rule;

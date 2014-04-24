@@ -256,9 +256,9 @@ public class Jsc {
 		if(listeners.containsKey(listener)){
 			return false;
 		}else{
-			Map<String,String> headers = request.getHeaders();
+			JsonObject headers = request.getHeaders();
 			String subscriptionID = UUID.randomUUID().toString();
-			headers.put("subscription-id", subscriptionID);
+			headers.addProperty("subscription-id", subscriptionID);
 			request.setHeaders(headers);
 			request.setMethod(Method.SUBSCRIBE);
 			listeners.put(listener,request);
@@ -280,11 +280,11 @@ public class Jsc {
 	
 	public boolean deregisterListener(Listener listener){
 		Request request = listeners.remove(listener);
-		String subscriptionID = request.getHeaders().get("subscription-id");
+		String subscriptionID = request.getHeaders().get("subscription-id").getAsString();
 		asyncResponses.remove(subscriptionID);
 		if(request != null){
-			Map<String,String> headers = request.getHeaders();
-			headers.put(RequestHeaders.EXPIRES, "0");
+			JsonObject headers = request.getHeaders();
+			headers.addProperty(RequestHeaders.EXPIRES, "0");
 			request.setMethod(Method.SUBSCRIBE);
 			try{	
 				TextMessage message = session.createTextMessage(toJsonFromRequest(request));
