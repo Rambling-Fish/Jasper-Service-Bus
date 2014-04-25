@@ -33,6 +33,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 public class JscFunctionalTests {
 
@@ -155,7 +156,7 @@ public class JscFunctionalTests {
 		});
 		
 		System.out.println("jsc-ws sim send msg");
-		Response response = jscUnderTest.get(new Request(Method.GET, "http://jasper.com/testRequest", null));
+		Response response = jscUnderTest.get(new Request(Method.GET, "http://jasper.com/testRequest", new JsonObject()));
 		String responseString = new String(response.getPayload());
 		System.out.println("jsc-ws sim recv resp");
 

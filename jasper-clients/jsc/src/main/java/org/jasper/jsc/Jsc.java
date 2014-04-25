@@ -244,6 +244,7 @@ public class Jsc {
 	}
 	
 	public Response post(Request request){
+		if(log.isInfoEnabled())log.info("post request recieved " + toJsonFromRequest(request));
 		if(request.getMethod() != Method.POST){
 			log.error("400 Bad Request returned. Incorrect method type, expecting POST but received " + request.getMethod());
 			return new Response(400, "Bad Request", "Incorrect method type, expecting POST but received " + request.getMethod() ,null,null);
@@ -312,6 +313,7 @@ public class Jsc {
 			Object lock = new Object();
 			synchronized (lock) {
 				locks.put(correlationID, lock);
+				if(log.isDebugEnabled())log.debug("sending request for cID " + correlationID + " = " + toJsonFromRequest(request));
 				producer.send(message);
 			    int count = 0;
 			    while(!responses.containsKey(correlationID)){
@@ -325,6 +327,8 @@ public class Jsc {
 			    }
 			    responseJmsMsg = responses.remove(correlationID);
 			}
+			if(log.isDebugEnabled())log.debug("responseJmsMsg for cID " + correlationID + "= " + responseJmsMsg);
+
 			
 			if(responseJmsMsg == null){
 				log.warn("jms response from UDE is null for request <" + request + "> with correlationID = " + correlationID + " returning null");
@@ -399,6 +403,7 @@ public class Jsc {
 
 	public void onMessageForSyncResponse(Message msg) {
 		try{
+			if(log.isDebugEnabled())log.debug("recieved sync response for " + msg.getJMSCorrelationID() + " " + msg);
 			if(msg.getJMSCorrelationID() == null){
 				log.warn("jms response message received with null JMSCorrelationID, ignoring message.");
 				return;
@@ -423,6 +428,7 @@ public class Jsc {
 	
 	public void onMessageForAsyncResponse(Message msg) {
 		try{
+			if(log.isDebugEnabled())log.debug("recieved async response for " + msg.getJMSCorrelationID() + " "+ msg);
 			if(msg.getJMSCorrelationID() == null){
 				log.warn("jms response message received with null JMSCorrelationID, ignoring message.");
 				return;

@@ -22,10 +22,14 @@ public class Request {
 	private byte[] payload;
 	
 	public Request(Method method, String ruri, Map<String, String> headers) {
+		this(method,ruri,convertMapToJsonObject(headers));
+	}
+	
+	public Request(Method method, String ruri, JsonObject headers) {
 		super();
 		this.method = method;
 		this.ruri = ruri;
-		this.headers = convertMapToJsonObject(headers);
+		this.headers = headers;
 		this.parameters = null;
 		this.rule = null;
 		this.payload = null;

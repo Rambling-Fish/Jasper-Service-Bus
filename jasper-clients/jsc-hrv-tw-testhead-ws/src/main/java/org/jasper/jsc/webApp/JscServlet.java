@@ -9,14 +9,12 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -32,9 +30,9 @@ import org.jasper.jsc.Response;
 import org.jasper.jsc.constants.RequestHeaders;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 @WebServlet("/")
 public class JscServlet extends HttpServlet {
@@ -76,8 +74,8 @@ public class JscServlet extends HttpServlet {
 			numberOfRequests = new AtomicInteger();
 			numberOfResponses200ok = new AtomicInteger();
 		}
-		public AtomicInteger getNumberOfRequests() {
-			return numberOfRequests;
+		public int getNumberOfRequestsAndIncrement() {
+			return numberOfRequests.getAndIncrement();
 		}
 		public void setNumberOfRequests(AtomicInteger numberOfRequests) {
 			this.numberOfRequests = numberOfRequests;
@@ -120,17 +118,18 @@ public class JscServlet extends HttpServlet {
 			// 1. remote DTA Server:
 			// dta.serverip=192.168.1.115
 			//
-			// 2. Local DTA Server (in this scenario the entry can be omitted.  It will default to 127.0.0.1)
-			// dta.serverip=127.0.0.1
+			// 2. Local DTA Server (in this scenario the entry can be omitted.  It will default to 0.0.0.0)
+			// dta.serverip=0.0.0.0
 			
-			dtaServerIp = (getProperties().getProperty("dta.serverip") != null) ? getProperties().getProperty("dta.serverip") : "127.0.0.1";
+			dtaServerIp = getProperties().getProperty("dta.serverip","0.0.0.0");
 
-			setupCallNurseSubscription();
-			setupCancelCallNurseSubscription();
-			setupEmergencySubscription();
-			setupCancelEmergencySubscription();
-			setupBldgMgmtTempUpdateSubscription();
-			setupBldgMgmtDoorUpdateSubscription();
+			callNurseListener        = setupSubscription("http://coralcea.ca/jasper/NurseCall/callNurse");
+			cancelCallNurseListener  = setupSubscription("http://coralcea.ca/jasper/NurseCall/cancelCallNurse");
+			emergencyListener        = setupSubscription("http://coralcea.ca/jasper/NurseCall/emergency");
+			cancelEmergencyListener  = setupSubscription("http://coralcea.ca/jasper/NurseCall/cancelEmergency");
+			tempUpdateListener       = setupSubscription("http://coralcea.ca/jasper/BuildingMgmt/roomTempUpdate");
+			doorUpdateListener       = setupSubscription("http://coralcea.ca/jasper/BuildingMgmt/doorStateChange");
+
 		} 
 		catch (JMSException e) {
 			log.error("Exception occurred during initialization " + e);
@@ -138,387 +137,91 @@ public class JscServlet extends HttpServlet {
 		stats.setConnected(true);
     }
 	
-    private void setupCallNurseSubscription() {
-    	
-    	Map<String, String> headers = new HashMap<String, String>();
-    	headers.put(RequestHeaders.RESPONSE_TYPE, "application/json");
-		Request request = new Request(Method.SUBSCRIBE, "http://coralcea.ca/jasper/NurseCall/callNurse", headers);
-		callNurseListener = new Listener() {
-			
-			public void processMessage(Response response) {
+	 private Listener setupSubscription(String ruri) {
+		 	    	
+		 JsonObject headers = new JsonObject();
+		 headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/json"));
+		 
+		 Request request = new Request(Method.SUBSCRIBE, ruri, headers);
+		 Listener listener = new Listener() {
 				
-				recordT2();
-				
-				String decoded = null;
-				
-				try {
-					decoded = new String(response.getPayload(), "UTF-8");
-				} 
-				catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-				
-		    	String logId = parseLocation(decoded);
+				public void processMessage(Response response) {
+					
+					recordT2();
 
-		    	// send 
-		    	Map<String, String> headers = new HashMap<String, String>();
-		    	Map<String, String> parameters = new HashMap<String, String>();
-		    	headers.put(RequestHeaders.RESPONSE_TYPE, "application/json");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/toSms", "to");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/fromSms", "from");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/bodySms", "callNurse");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/logId", logId);
-
-		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
-
-		    	recordT3();
-		    	Response sms_response = jsc.post(request);
-		    	recordT4();
-		    	
-				if (locks.containsKey(logId)) {
-					responses.put(logId, sms_response);
-					Object lock = locks.remove(logId);
-					synchronized (lock) {
-						lock.notifyAll();
+					String decoded = null;
+					
+					try {
+						decoded = new String(response.getPayload(), "UTF-8");
+					} 
+					catch (UnsupportedEncodingException e) {
+						log.error("UnsupportedEncodingException, unable to parse payload",e);
 					}
-				} else {
-					log.error("response with IdString = " + logId
-							+ " received however no record of sending message with this ID, ignoring");
-				}
-			}
-		};
+			    	if(log.isDebugEnabled())log.debug("decoded string " + decoded);
+			    	String logId = getLogId(decoded);
+			    	if(log.isDebugEnabled())log.debug("logId string " + logId);
 
-		jsc.registerListener(callNurseListener , request);
-	}
 
-    private void setupCancelCallNurseSubscription() {
-    	
-    	Map<String, String> headers = new HashMap<String, String>();
-    	headers.put(RequestHeaders.RESPONSE_TYPE, "application/json");
-		Request request = new Request(Method.SUBSCRIBE, "http://coralcea.ca/jasper/NurseCall/cancelCallNurse", headers);
-		cancelCallNurseListener = new Listener() {
-			
-			public void processMessage(Response response) {
+			    	// send 
+			    	JsonObject headers = new JsonObject();
+			    	JsonObject parameters = new JsonObject();
+			    	headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/json"));
+			    	parameters.add("http://coralcea.ca/jasper/Sms/toSms", new JsonPrimitive("to"));
+			    	parameters.add("http://coralcea.ca/jasper/Sms/fromSms", new JsonPrimitive("from"));
+			    	parameters.add("http://coralcea.ca/jasper/Sms/bodySms", new JsonPrimitive("smsBodyText"));
+			    	parameters.add("http://coralcea.ca/jasper/Sms/logId", new JsonPrimitive(logId));
 
-				recordT2();
-								
-				String decoded = null;
-				
-				try {
-					decoded = new String(response.getPayload(), "UTF-8");
-				} 
-				catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-				
-		    	String logId = parseLocation(decoded);
-
-		    	// send 
-		    	Map<String, String> headers = new HashMap<String, String>();
-		    	Map<String, String> parameters = new HashMap<String, String>();
-		    	headers.put(RequestHeaders.RESPONSE_TYPE, "application/json");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/toSms", "to");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/fromSms", "from");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/bodySms", "cancelCallNurse");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/logId", logId);
-
-		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
-
-		    	recordT3();
-		    	Response sms_response = jsc.post(request);
-		    	recordT4();
-		    	
-				if (locks.containsKey(logId)) {
-					responses.put(logId, sms_response);
-					Object lock = locks.remove(logId);
-					synchronized (lock) {
-						lock.notifyAll();
+			    	if(log.isDebugEnabled())log.debug("building Post Request for " + logId);
+			    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
+			    	if(log.isDebugEnabled())log.debug("Post Request built " + request);
+			    	
+			    	recordT3();
+			    	if(log.isDebugEnabled())log.debug("about to send post request " + request);
+			    	Response sms_response = jsc.post(request);
+			    	recordT4();
+			    	
+					if (locks.containsKey(logId)) {
+						responses.put(logId, sms_response);
+						Object lock = locks.remove(logId);
+						synchronized (lock) {
+							lock.notifyAll();
+						}
+					} else {
+						log.error("response with IdString = " + logId
+								+ " received however no record of sending message with this ID, ignoring");
 					}
-				} else {
-					log.error("response with IdString = " + logId
-							+ " received however no record of sending message with this ID, ignoring");
 				}
-			}
-		};
-		
-		jsc.registerListener(cancelCallNurseListener , request);
-	}
+			};
 
-    private void setupEmergencySubscription() {
-    	
-    	Map<String, String> headers = new HashMap<String, String>();
-    	headers.put(RequestHeaders.RESPONSE_TYPE, "application/json");
-		Request request = new Request(Method.SUBSCRIBE, "http://coralcea.ca/jasper/NurseCall/emergency", headers);
-		emergencyListener = new Listener() {
-			
-			public void processMessage(Response response) {
+			jsc.registerListener(listener , request);
+			return listener;
+		}
 
-				recordT2();
-								
-				String decoded = null;
-				
-				try {
-					decoded = new String(response.getPayload(), "UTF-8");
-				}
-				catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-				
-		    	String logId = parseLocation(decoded);
-
-		    	// send 
-		    	Map<String, String> headers = new HashMap<String, String>();
-		    	Map<String, String> parameters = new HashMap<String, String>();
-		    	headers.put(RequestHeaders.RESPONSE_TYPE, "application/json");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/toSms", "to");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/fromSms", "from");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/bodySms", "emergency");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/logId", logId);
-
-		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
-				
-		    	recordT3();
-		    	Response sms_response = jsc.post(request);
-		    	recordT4();
-		    	
-				if (locks.containsKey(logId)) {
-					responses.put(logId, sms_response);
-					Object lock = locks.remove(logId);
-					synchronized (lock) {
-						lock.notifyAll();
-					}
-				} else {
-					log.error("response with IdString = " + logId
-							+ " received however no record of sending message with this ID, ignoring");
-				}
-			}
-		};
-
-		jsc.registerListener(emergencyListener , request);
-	}
-
-    private void setupCancelEmergencySubscription() {
-    	
-    	Map<String, String> headers = new HashMap<String, String>();
-    	headers.put(RequestHeaders.RESPONSE_TYPE, "application/json");
-		Request request = new Request(Method.SUBSCRIBE, "http://coralcea.ca/jasper/NurseCall/cancelEmergency", headers);
-		cancelEmergencyListener = new Listener() {
-			
-			public void processMessage(Response response) {
-
-				recordT2();
-				
-				String decoded = null;
-				
-				try {
-					decoded = new String(response.getPayload(), "UTF-8");
-				}
-				catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-				
-		    	String logId = parseLocation(decoded);
-
-		    	// send 
-		    	Map<String, String> headers = new HashMap<String, String>();
-		    	Map<String, String> parameters = new HashMap<String, String>();
-		    	headers.put(RequestHeaders.RESPONSE_TYPE, "application/json");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/toSms", "to");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/fromSms", "from");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/bodySms", "cancelEmergency");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/logId", logId);
-
-		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
-		    	
-		    	recordT3();
-		    	Response sms_response = jsc.post(request);
-		    	recordT4();
-		    	
-		    	if (locks.containsKey(logId)) {
-					responses.put(logId, sms_response);
-					Object lock = locks.remove(logId);
-					synchronized (lock) {
-						lock.notifyAll();
-					}
-				} else {
-					log.error("response with IdString = " + logId
-							+ " received however no record of sending message with this ID, ignoring");
-				}
-			}
-		};
-		
-		jsc.registerListener(cancelEmergencyListener , request);
-	}
-
-    private String parseLocation(String decoded)
+    private String getLogId(String decoded)
     {
     	JsonParser parser = new JsonParser();
     	JsonObject jObj = (JsonObject)parser.parse(decoded);
 
-		JsonElement location = jObj.get("http://coralcea.ca/jasper/NurseCall/location");
-
-		return location.getAsString();
+    	if(jObj.has("http://coralcea.ca/jasper/NurseCall/location")){
+    		return jObj.get("http://coralcea.ca/jasper/NurseCall/location").getAsString();
+    	}else if(jObj.has("http://coralcea.ca/jasper/BuildingMgmt/roomID")){
+    		return jObj.get("http://coralcea.ca/jasper/BuildingMgmt/roomID").getAsString();
+    	}else if(jObj.has("http://coralcea.ca/jasper/BuildingMgmt/doorID")){
+    		return jObj.get("http://coralcea.ca/jasper/BuildingMgmt/doorID").getAsString();
+    	}else{
+    		return null;
+    	}
     }
-
-    private void setupBldgMgmtTempUpdateSubscription() {
-    	
-    	Map<String, String> headers = new HashMap<String, String>();
-    	headers.put(RequestHeaders.RESPONSE_TYPE, "application/json");
-		Request request = new Request(Method.SUBSCRIBE, "http://coralcea.ca/jasper/BuildingMgmt/roomTempUpdate", headers);
-		tempUpdateListener = new Listener() {
-			
-			public void processMessage(Response response) {
-
-				recordT2();
-				
-				String decoded = null;
-				
-				try {
-					decoded = new String(response.getPayload(), "UTF-8");
-				}
-				catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-				
-		    	String logId = parseRoomId(decoded);
-
-		    	// send 
-		    	Map<String, String> headers = new HashMap<String, String>();
-		    	Map<String, String> parameters = new HashMap<String, String>();
-		    	headers.put(RequestHeaders.RESPONSE_TYPE, "application/json");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/toSms", "to");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/fromSms", "from");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/bodySms", "roomTempUpdate");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/logId", logId);
-
-		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
-		    	
-		    	recordT3();
-		    	Response sms_response = jsc.post(request);
-		    	recordT4();
-		    	
-				if (locks.containsKey(logId)) {
-					responses.put(logId, sms_response);
-					Object lock = locks.remove(logId);
-					synchronized (lock) {
-						lock.notifyAll();
-					}
-				} else {
-					log.error("response with IdString = " + logId
-							+ " received however no record of sending message with this ID, ignoring");
-				}
-			}
-		};
-		
-		jsc.registerListener(tempUpdateListener , request);
-	}
-
-    private String parseRoomId(String decoded)
-    {
-    	JsonParser parser = new JsonParser();
-    	JsonObject jObj = (JsonObject)parser.parse(decoded);
-
-		JsonElement roomId = jObj.get("http://coralcea.ca/jasper/BuildingMgmt/roomID");
-
-		return roomId.getAsString();
-    }
-
-    private void setupBldgMgmtDoorUpdateSubscription() {
-    	
-    	Map<String, String> headers = new HashMap<String, String>();
-    	headers.put(RequestHeaders.RESPONSE_TYPE, "application/json");
-		Request request = new Request(Method.SUBSCRIBE, "http://coralcea.ca/jasper/BuildingMgmt/doorStateChange", headers);
-		doorUpdateListener = new Listener() {
-			
-			public void processMessage(Response response) {
-
-				recordT2();
-		    	
-				String decoded = null;
-				
-				try {
-					decoded = new String(response.getPayload(), "UTF-8");
-				}
-				catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-				
-		    	String logId = parseDoorId(decoded);
-
-		    	// send 
-		    	Map<String, String> headers = new HashMap<String, String>();
-		    	Map<String, String> parameters = new HashMap<String, String>();
-		    	headers.put(RequestHeaders.RESPONSE_TYPE, "application/json");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/toSms", "to");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/fromSms", "from");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/bodySms", "doorStateChange");
-		    	parameters.put("http://coralcea.ca/jasper/Sms/logId", logId);
-
-		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
-		    	
-		    	recordT3();
-		    	Response sms_response = jsc.post(request);
-		    	recordT4();
-		    	
-				if (locks.containsKey(logId)) {
-					responses.put(logId, sms_response);
-					Object lock = locks.remove(logId);
-					synchronized (lock) {
-						lock.notifyAll();
-					}
-				} else {
-					log.error("response with IdString = " + logId
-							+ " received however no record of sending message with this ID, ignoring");
-				}
-			}
-		};
-
-		jsc.registerListener(doorUpdateListener , request);
-	}
-
-    private String parseDoorId(String decoded)
-    {
-    	JsonParser parser = new JsonParser();
-    	JsonObject jObj = (JsonObject)parser.parse(decoded);
-
-		JsonElement doorId = jObj.get("http://coralcea.ca/jasper/BuildingMgmt/doorID");
-
-		return doorId.getAsString();
-    }
-
-    private void unSubscribeCallNurse() {
-    	jsc.deregisterListener(callNurseListener);
-	}
-
-    private void unSubscribeCancelCallNurse() {
-    	jsc.deregisterListener(cancelCallNurseListener);
-	}
-
-    private void unSubscribeEmergency() {
-    	jsc.deregisterListener(emergencyListener);
-	}
-
-    private void unSubscribeCancelEmergency() {
-    	jsc.deregisterListener(cancelEmergencyListener);
-	}
-
-    private void unSubscribeRoomTempUpdate() {
-    	jsc.deregisterListener(tempUpdateListener);
-	}
-
-    private void unSubscribeDoorStateChange() {
-    	jsc.deregisterListener(doorUpdateListener);
-	}
 
 	public void destroy() {
 		if(log.isInfoEnabled()) log.info("jsc-hrv-tw-testhead destroy");
 		
-    	unSubscribeCallNurse();
-    	unSubscribeCancelCallNurse();
-    	unSubscribeEmergency();
-    	unSubscribeCancelEmergency();
-    	unSubscribeRoomTempUpdate();
-    	unSubscribeDoorStateChange();
+    	jsc.deregisterListener(callNurseListener);
+    	jsc.deregisterListener(cancelCallNurseListener);
+    	jsc.deregisterListener(emergencyListener);
+    	jsc.deregisterListener(cancelEmergencyListener);
+    	jsc.deregisterListener(tempUpdateListener);
+    	jsc.deregisterListener(doorUpdateListener);
 
     	jsc.destroy();
 
@@ -546,26 +249,29 @@ public class JscServlet extends HttpServlet {
 		return prop;
 	}
     
-    private void recordT1()
-    {
+    private void recordT1() {
+    	if(!log.isInfoEnabled()) return;
 		ts1sendRest2NcDta = System.currentTimeMillis();
 		log.info("JSC_HRV: TIMECHECK send REST HTTP NC/BM ........ t1[" + ts1sendRest2NcDta + "]");
     }
     
     private void recordT2()
     {
+    	if(!log.isInfoEnabled()) return;
     	ts2recvPubfromUde = System.currentTimeMillis();
     	log.info("JSC_HRV: TIMECHECK async publish received ...... t2[" + ts2recvPubfromUde + "] " + (ts2recvPubfromUde - ts1sendRest2NcDta));
     }
     
     private void recordT3()
     {
+    	if(!log.isInfoEnabled()) return;
     	ts3sendPosttoUde = System.currentTimeMillis();
     	log.info("JSC_HRV: TIMECHECK sms post request sent ....... t3[" + ts3sendPosttoUde + "] " + (ts3sendPosttoUde - ts1sendRest2NcDta));
     }
     
     private void recordT4()
     {
+    	if(!log.isInfoEnabled()) return;
     	ts4recvPostResponsefromUde = System.currentTimeMillis();
     	tsTotal = ts4recvPostResponsefromUde - ts1sendRest2NcDta;
     	
@@ -581,38 +287,39 @@ public class JscServlet extends HttpServlet {
 
 		// send HTTP rest call to NurseCall/BuildingManagement DTA
 		String urlString= null;
+		int requestNum = stats.getNumberOfRequestsAndIncrement();
 		String idString = null;
 		
 		String requestPath = request.getPathInfo();
 		
 		if (requestPath.equalsIgnoreCase("/callNurse"))
 		{
-			idString = new String("cn-" + stats.getNumberOfRequests());
+			idString = new String("cn-" + requestNum);
 			urlString = new String("http://" + dtaServerIp + ":8082/rnc/callNurse?http://coralcea.ca/jasper/NurseCall/location=" + idString);
 		}
 		else if (requestPath.equalsIgnoreCase("/cancelCallNurse"))
 		{	
-			idString = new String("ccn-" + stats.getNumberOfRequests());
+			idString = new String("ccn-" + requestNum);
 			urlString = new String("http://" + dtaServerIp + ":8082/rnc/cancelCallNurse?http://coralcea.ca/jasper/NurseCall/location=" + idString);
 		}
 		else if (requestPath.equalsIgnoreCase("/emergency"))
 		{	
-			idString = new String("e-" + stats.getNumberOfRequests());
+			idString = new String("e-" + requestNum);
 			urlString = new String("http://" + dtaServerIp + ":8082/rnc/emergency?http://coralcea.ca/jasper/NurseCall/location=" + idString);
 		}
 		else if (requestPath.equalsIgnoreCase("/cancelEmergency"))
 		{	
-			idString = new String("ce-" + stats.getNumberOfRequests());
+			idString = new String("ce-" + requestNum);
 			urlString = new String("http://" + dtaServerIp + ":8082/rnc/cancelEmergency?http://coralcea.ca/jasper/NurseCall/location=" + idString);
 		}
 		else if (requestPath.equalsIgnoreCase("/roomTempUpdate"))
 		{	
-			idString = new String("rtu-" + stats.getNumberOfRequests());
+			idString = new String("rtu-" + requestNum);
 			urlString = new String("http://" + dtaServerIp + ":8083/rbm/roomTempUpdate?http://coralcea.ca/jasper/BuildingMgmt/roomID=" + idString + "&http://coralcea.ca/jasper/BuildingMgmt/temperature=19");
 		}
 		else if (requestPath.equalsIgnoreCase("/doorStateChange"))
 		{	
-			idString = new String("dsc-" + stats.getNumberOfRequests());
+			idString = new String("dsc-" + requestNum);
 			urlString = new String("http://" + dtaServerIp + ":8083/rbm/doorStateChange?http://coralcea.ca/jasper/BuildingMgmt/doorID=" + idString + "&http://coralcea.ca/jasper/BuildingMgmt/doorState=open");
 		}
 		else if (requestPath.equalsIgnoreCase("/stats"))
@@ -623,15 +330,13 @@ public class JscServlet extends HttpServlet {
 			return;
 		}
 		
-    	stats.incrementNumRequest();   	
-
 		if (urlString == null)
 		{
 			log.error("invalid http path");
 			response.setStatus(400);
 			return;
 		}
-		log.info("urlString= " + urlString);
+		if(log.isInfoEnabled())log.info("urlString= " + urlString);
 		
 		URL url = null;
 		try {
@@ -662,7 +367,6 @@ public class JscServlet extends HttpServlet {
 			return;
 		}
 
-		conn.setRequestProperty("User-Agent", "Mozilla/5.0");
 		conn.setRequestProperty("Keep-Alive", "true");
 		conn.setRequestProperty("Connection", "true");
 		
@@ -714,14 +418,22 @@ public class JscServlet extends HttpServlet {
 		{
 			response.setStatus(504);
 			log.error("SMS Post response == null for " + idString);
-			log.info("JSC_HRV: TIMECHECK timed out waiting for SMS POST Response");
+			response.setContentType("text/plain");
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write("504 - SMS Post resposne was null");
+			if(log.isInfoEnabled()) log.info("JSC_HRV: TIMECHECK timed out waiting for SMS POST Response");
 		}
 		else
 		{
-			long tsPostResponse = System.currentTimeMillis();
-			log.info("JSC_HRV: TIMECHECK CODE=" + sms_response.getCode() + " .................... tE[" + tsPostResponse + "] " + (tsPostResponse - ts1sendRest2NcDta));
+			if(log.isInfoEnabled()) {
+				long tsPostResponse = System.currentTimeMillis();
+				log.info("JSC_HRV: TIMECHECK CODE=" + sms_response.getCode() + " .................... tE[" + tsPostResponse + "] " + (tsPostResponse - ts1sendRest2NcDta));
+			}
 			
 			response.setStatus(sms_response.getCode());
+			response.setContentType("text/plain");
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(sms_response.getCode() + " - sms response code");
 			
 			if (sms_response.getCode() == 200) {
 				stats.incrementNumResponses200ok();
@@ -731,8 +443,6 @@ public class JscServlet extends HttpServlet {
 			}
 		}
 			
-		response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
     }
 
 }

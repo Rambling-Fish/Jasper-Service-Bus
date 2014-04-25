@@ -193,6 +193,7 @@ public class Delegate {
 	protected void processGlobalQMsg(Message jmsRequest) {
 		try{		
 			if(jmsRequest instanceof ObjectMessage && ((ObjectMessage)jmsRequest).getObject() instanceof JasperAdminMessage && ((JasperAdminMessage)((ObjectMessage)jmsRequest).getObject()).getType() == Type.ontologyManagement){
+				if(logger.isInfoEnabled()) logger.info("recieved Admin request : " + ((JasperAdminMessage)((ObjectMessage)jmsRequest).getObject()).toString());
 				delegateRequestThreadPool.submit(new AdminHandler(this, jmsRequest));
 			}else if (jmsRequest instanceof TextMessage && ((TextMessage) jmsRequest).getText().contains("query") ){
 				delegateRequestThreadPool.submit(new SparqlHandler(this, jmsRequest));
