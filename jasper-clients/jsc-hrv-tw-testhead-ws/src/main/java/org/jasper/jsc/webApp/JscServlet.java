@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jms.JMSException;
+import javax.jms.Message;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -54,32 +55,38 @@ public class JscServlet extends HttpServlet {
 	Listener doorUpdateListener = null;
 
 	private Map<String,Object> locks;
+	private Map<String, Response> responses;
 	
 	long ts1sendRest2NcDta = 0;
 	long ts2recvPubfromUde = 0;
 	long ts3sendPosttoUde = 0;
 	long ts4recvPostResponsefromUde = 0;
 	long tsTotal = 0;
-
-	boolean receivedSmsPostResponse = false;
-	Response sms_response = null;
 	
 	String dtaServerIp = null;
 	
 	private class LocalStatistics{
 		private boolean isConnected;
 		private AtomicInteger numberOfRequests;
+		private AtomicInteger numberOfResponses200ok;
 		
 		public LocalStatistics(boolean isConnected) {
 			super();
 			this.isConnected = isConnected;
 			numberOfRequests = new AtomicInteger();
+			numberOfResponses200ok = new AtomicInteger();
 		}
 		public AtomicInteger getNumberOfRequests() {
 			return numberOfRequests;
 		}
 		public void setNumberOfRequests(AtomicInteger numberOfRequests) {
 			this.numberOfRequests = numberOfRequests;
+		}
+		public AtomicInteger getNumberOfResponses200ok() {
+			return numberOfResponses200ok;
+		}
+		public void setNumberOfResponses200ok(AtomicInteger numberOfResponses200ok) {
+			this.numberOfRequests = numberOfResponses200ok;
 		}
 		public boolean isConnected() {
 			return isConnected;
@@ -89,6 +96,9 @@ public class JscServlet extends HttpServlet {
 		}
 		public void incrementNumRequest(){
 			numberOfRequests.incrementAndGet();
+		}
+		public void incrementNumResponses200ok(){
+			numberOfResponses200ok.incrementAndGet();
 		}
 	}
 	
@@ -101,6 +111,7 @@ public class JscServlet extends HttpServlet {
 	public void init(){
 		jsc = new Jsc(getProperties());
 		locks = new ConcurrentHashMap<String, Object>();
+		responses = new ConcurrentHashMap<String, Response>();
 		try {
 			jsc.init();
 			
@@ -135,10 +146,7 @@ public class JscServlet extends HttpServlet {
 		callNurseListener = new Listener() {
 			
 			public void processMessage(Response response) {
-				/*
-				 * increment count
-				 * send back SMS POST with location
-				 */
+				
 				recordT2();
 				
 				String decoded = null;
@@ -164,11 +172,19 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 
 		    	recordT3();
-		    	sms_response = jsc.post(request);
+		    	Response sms_response = jsc.post(request);
 		    	recordT4();
-		    	removeSmsPostResponseLock(logId);
 		    	
-				stats.incrementNumRequest();
+				if (locks.containsKey(logId)) {
+					responses.put(logId, sms_response);
+					Object lock = locks.remove(logId);
+					synchronized (lock) {
+						lock.notifyAll();
+					}
+				} else {
+					log.error("response with IdString = " + logId
+							+ " received however no record of sending message with this ID, ignoring");
+				}
 			}
 		};
 
@@ -183,10 +199,7 @@ public class JscServlet extends HttpServlet {
 		cancelCallNurseListener = new Listener() {
 			
 			public void processMessage(Response response) {
-				/*
-				 * increment count
-				 * send back SMS POST with location
-				 */
+
 				recordT2();
 								
 				String decoded = null;
@@ -212,11 +225,19 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 
 		    	recordT3();
-		    	sms_response = jsc.post(request);
+		    	Response sms_response = jsc.post(request);
 		    	recordT4();
-		    	removeSmsPostResponseLock(logId);
-				
-				stats.incrementNumRequest();
+		    	
+				if (locks.containsKey(logId)) {
+					responses.put(logId, sms_response);
+					Object lock = locks.remove(logId);
+					synchronized (lock) {
+						lock.notifyAll();
+					}
+				} else {
+					log.error("response with IdString = " + logId
+							+ " received however no record of sending message with this ID, ignoring");
+				}
 			}
 		};
 		
@@ -231,10 +252,7 @@ public class JscServlet extends HttpServlet {
 		emergencyListener = new Listener() {
 			
 			public void processMessage(Response response) {
-				/*
-				 * increment count
-				 * send back SMS POST with location
-				 */
+
 				recordT2();
 								
 				String decoded = null;
@@ -260,11 +278,19 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 				
 		    	recordT3();
-		    	sms_response = jsc.post(request);
+		    	Response sms_response = jsc.post(request);
 		    	recordT4();
-		    	removeSmsPostResponseLock(logId);
-				
-				stats.incrementNumRequest();
+		    	
+				if (locks.containsKey(logId)) {
+					responses.put(logId, sms_response);
+					Object lock = locks.remove(logId);
+					synchronized (lock) {
+						lock.notifyAll();
+					}
+				} else {
+					log.error("response with IdString = " + logId
+							+ " received however no record of sending message with this ID, ignoring");
+				}
 			}
 		};
 
@@ -279,10 +305,7 @@ public class JscServlet extends HttpServlet {
 		cancelEmergencyListener = new Listener() {
 			
 			public void processMessage(Response response) {
-				/*
-				 * increment count
-				 * send back SMS POST with location
-				 */
+
 				recordT2();
 				
 				String decoded = null;
@@ -308,11 +331,19 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 		    	
 		    	recordT3();
-		    	sms_response = jsc.post(request);
+		    	Response sms_response = jsc.post(request);
 		    	recordT4();
-		    	removeSmsPostResponseLock(logId);
 		    	
-				stats.incrementNumRequest();
+		    	if (locks.containsKey(logId)) {
+					responses.put(logId, sms_response);
+					Object lock = locks.remove(logId);
+					synchronized (lock) {
+						lock.notifyAll();
+					}
+				} else {
+					log.error("response with IdString = " + logId
+							+ " received however no record of sending message with this ID, ignoring");
+				}
 			}
 		};
 		
@@ -337,10 +368,7 @@ public class JscServlet extends HttpServlet {
 		tempUpdateListener = new Listener() {
 			
 			public void processMessage(Response response) {
-				/*
-				 * increment count
-				 * send back SMS POST with roomId
-				 */
+
 				recordT2();
 				
 				String decoded = null;
@@ -366,15 +394,23 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 		    	
 		    	recordT3();
-		    	sms_response = jsc.post(request);
+		    	Response sms_response = jsc.post(request);
 		    	recordT4();
-		    	removeSmsPostResponseLock(logId);
 		    	
-				stats.incrementNumRequest();
+				if (locks.containsKey(logId)) {
+					responses.put(logId, sms_response);
+					Object lock = locks.remove(logId);
+					synchronized (lock) {
+						lock.notifyAll();
+					}
+				} else {
+					log.error("response with IdString = " + logId
+							+ " received however no record of sending message with this ID, ignoring");
+				}
 			}
 		};
+		
 		jsc.registerListener(tempUpdateListener , request);
-    	
 	}
 
     private String parseRoomId(String decoded)
@@ -395,10 +431,7 @@ public class JscServlet extends HttpServlet {
 		doorUpdateListener = new Listener() {
 			
 			public void processMessage(Response response) {
-				/*
-				 * increment count
-				 * send back SMS POST with doorId
-				 */
+
 				recordT2();
 		    	
 				String decoded = null;
@@ -424,15 +457,23 @@ public class JscServlet extends HttpServlet {
 		    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 		    	
 		    	recordT3();
-		    	sms_response = jsc.post(request);
+		    	Response sms_response = jsc.post(request);
 		    	recordT4();
-		    	removeSmsPostResponseLock(logId);
 		    	
-				stats.incrementNumRequest();
+				if (locks.containsKey(logId)) {
+					responses.put(logId, sms_response);
+					Object lock = locks.remove(logId);
+					synchronized (lock) {
+						lock.notifyAll();
+					}
+				} else {
+					log.error("response with IdString = " + logId
+							+ " received however no record of sending message with this ID, ignoring");
+				}
 			}
 		};
+
 		jsc.registerListener(doorUpdateListener , request);
-    	
 	}
 
     private String parseDoorId(String decoded)
@@ -534,24 +575,11 @@ public class JscServlet extends HttpServlet {
     		log.info("JSC_HRV: TIMECHECK sms post response received .. t4[" + ts4recvPostResponsefromUde + "] " + tsTotal);
     }
     
-    private void removeSmsPostResponseLock(String logId)
-    {
-		if(locks.containsKey(logId)){
-			receivedSmsPostResponse = true;
-			Object lock = locks.remove(logId);
-			synchronized (lock) {
-				lock.notifyAll();
-			}
-		}
-		else {
-			log.error("lock id not found : " + logId );
-		}
-    }
-    
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
 
+    	Response sms_response = null;
+
 		// send HTTP rest call to NurseCall/BuildingManagement DTA
-   	
 		String urlString= null;
 		String idString = null;
 		
@@ -595,6 +623,8 @@ public class JscServlet extends HttpServlet {
 			return;
 		}
 		
+    	stats.incrementNumRequest();   	
+
 		if (urlString == null)
 		{
 			log.error("invalid http path");
@@ -637,9 +667,7 @@ public class JscServlet extends HttpServlet {
 		conn.setRequestProperty("Connection", "true");
 		
 		// record timestamp #1 just prior to sending the TEST HTTP request to the NC (or BM) DTA
-		// and reset the post received flag  
 		recordT1();
-		receivedSmsPostResponse = false;
 		
 		// send the HTTP request
 		try {
@@ -663,11 +691,13 @@ public class JscServlet extends HttpServlet {
 		// need to wait for sms post response before returning 200 OK to caller
 		// Lock and wait for post received flag to be set (or timeout and return 504 timeout to caller)
 		
+		//log.error("sent publish for ID = " + idString);
+		
 		Object lock = new Object();
 		synchronized (lock) {
 			locks.put(idString, lock);
 			int count = 0;
-		    while (receivedSmsPostResponse == false) {
+		    while (!responses.containsKey(idString)) {
 		    	try {
 					lock.wait(10000);  // timeout is 10 sec
 				} catch (InterruptedException e) {
@@ -678,9 +708,12 @@ public class JscServlet extends HttpServlet {
 		    }
 		}
 
-		if (receivedSmsPostResponse == false)
+		sms_response = responses.remove(idString);
+		
+		if (sms_response == null)
 		{
 			response.setStatus(504);
+			log.error("SMS Post response == null for " + idString);
 			log.info("JSC_HRV: TIMECHECK timed out waiting for SMS POST Response");
 		}
 		else
@@ -689,6 +722,13 @@ public class JscServlet extends HttpServlet {
 			log.info("JSC_HRV: TIMECHECK CODE=" + sms_response.getCode() + " .................... tE[" + tsPostResponse + "] " + (tsPostResponse - ts1sendRest2NcDta));
 			
 			response.setStatus(sms_response.getCode());
+			
+			if (sms_response.getCode() == 200) {
+				stats.incrementNumResponses200ok();
+			}
+			else {
+				log.error("statusCode= " + sms_response.getCode() + " for " + idString);
+			}
 		}
 			
 		response.setContentType("application/json");
