@@ -50,6 +50,9 @@ public class AdminHandler implements Runnable {
 				case jta_connect:
 					handleConnect();
 					break;
+				case get_ontology:
+					handleGetOntology();
+					break;
 				default:
 					logger.error("Invalid Jasper Admin Message received - ignoring " + jam.getCommand());
 					break;
@@ -59,6 +62,13 @@ public class AdminHandler implements Runnable {
 		}
 	}
 	
+	private void handleGetOntology() throws JMSException {
+		String[] serilaizedModels = jOntology.getSerializedModels();
+		Message msg = delegate.createObjectMessage(serilaizedModels);
+        msg.setJMSCorrelationID(jmsRequest.getJMSCorrelationID());
+	    delegate.sendMessage(jmsRequest.getJMSReplyTo(), msg);		
+	}
+
 	private void handleDisconnect(){
 		if(jam.getDetails()[0] !=null && jam.getDetails()[0] instanceof String && ((String) jam.getDetails()[0]).length() > 0){
 			jOntology.remove((String)jam.getDetails()[0]);

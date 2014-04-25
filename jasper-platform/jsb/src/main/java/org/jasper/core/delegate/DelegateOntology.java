@@ -1,11 +1,13 @@
 package org.jasper.core.delegate;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -761,6 +763,17 @@ public class DelegateOntology implements EntryListener<String, String>{
                 logger.warn("trying to add an invalid entry to our dtaTriples Map. dtaName : " + dtaName + " triples : " + triples);
         }
     }
+    
+	public String[] getSerializedModels() {
+		ArrayList<String> list = new ArrayList<String>();
+		for( Entry<String, Model> entry:dtaSubModels.entrySet()){
+			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			entry.getValue().write(byteArrayOutputStream, "TURTLE", "");
+			String subModel = new String(byteArrayOutputStream.toByteArray());
+			list.add(subModel );
+		}
+		return (list.size()>0)?list.toArray(new String[0]):new String[0];
+	}
 		
     public void remove(String dtaName) {
         if(dtaName != null && dtaName.length() > 0){
