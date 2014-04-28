@@ -214,12 +214,14 @@ public class Delegate {
 	}
 
 	public void removePersistedRequest(PersistedDataRequest request){
+		if(logger.isDebugEnabled()) logger.debug("persisted request removed : " + request.getCorrelationID());
 		distributedDataStore.remove(ude.getUdeInstance(), request);
 	}
 
 	public PersistedDataRequest persistDataRequest(TextMessage jmsRequest) throws JMSException {
 		PersistedDataRequest persistedDataRequest = new PersistedDataRequest(jmsRequest.getJMSCorrelationID(), jmsRequest.getJMSReplyTo(), jmsRequest.getText(), System.currentTimeMillis());
 		distributedDataStore.put(ude.getUdeInstance(), persistedDataRequest);
+		if(logger.isDebugEnabled()) logger.debug("persisted request added : " + persistedDataRequest.getCorrelationID());
 		return persistedDataRequest;
 		
 	}
