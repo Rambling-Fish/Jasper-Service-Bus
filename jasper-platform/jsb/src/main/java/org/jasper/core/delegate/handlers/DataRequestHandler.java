@@ -151,7 +151,8 @@ public class DataRequestHandler implements Runnable {
 				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).getAsJsonPrimitive().isNumber()) {
 			expiry = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).getAsJsonPrimitive().getAsInt();
 		} else {
-			expiry = delegate.maxExpiry;
+			//IF no expire, then set to -1 and never expire
+			expiry = -1;
 		}
 		
 		String rule;
@@ -165,10 +166,10 @@ public class DataRequestHandler implements Runnable {
 		
 		List<Trigger> triggerList = parseTriggers(rule);
 		
-		if(expiry > 0){
-			delegate.persistSubscriptionRequest(ruri,subscriptionId,correlationID,reply2q,triggerList,expiry);
-		}else{
+		if(expiry == 0){
 			delegate.removePersistedSubscriptionRequest(ruri,subscriptionId);
+		}else{
+			delegate.persistSubscriptionRequest(ruri,subscriptionId,correlationID,reply2q,triggerList,expiry);
 		}
 		
 	}
@@ -197,7 +198,11 @@ public class DataRequestHandler implements Runnable {
 
 	private void sendPublishToSubscribers(String ruri, JsonElement data) throws JMSException {
 		for(PersistedSubscriptionReqeust sub:delegate.getDataSubscriptions(ruri)){
-			
+			if(sub.getExpiry() > 0 && System.currentTimeMillis() > (sub.getTimestampMillis() + sub.getExpiry()) ){
+				delegate.removePersistedSubscriptionRequest(ruri, sub.getSubscriptionId());
+				continue;
+			}
+				
 			JsonElement responsesThatMeetCriteria = extractResponsesThatMeetCriteria(data, sub.getTriggerList());
 			if(responsesThatMeetCriteria != null){
 				if(response_type.equalsIgnoreCase("application/ld+json")){

@@ -225,6 +225,12 @@ public class Delegate {
 	}
 	
 	public void persistSubscriptionRequest(String ruri, String subscriptionId, String correlationID, Destination reply2q, List<Trigger> triggerList, int expiry) {
+		for(PersistedSubscriptionReqeust entry:persistedSubscriptions.get(ruri)){
+			if(entry.getSubscriptionId().equals(subscriptionId)){
+				persistedSubscriptions.remove(ruri, entry);
+				if(logger.isInfoEnabled()) logger.info("updating subscription, removing old and will add new for ruri : " + ruri + " and subscriptionId : " + subscriptionId);
+			}
+		}
 		PersistedSubscriptionReqeust persistedSubscriptionReqeust = new PersistedSubscriptionReqeust(ruri,subscriptionId,correlationID,reply2q,triggerList,expiry, System.currentTimeMillis());
 		persistedSubscriptions.put(ruri, persistedSubscriptionReqeust);
 	}
