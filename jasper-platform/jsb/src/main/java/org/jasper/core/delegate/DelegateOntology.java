@@ -245,7 +245,9 @@ public class DelegateOntology implements EntryListener<String, String>{
 			Set<Resource> list = model.listSubjectsWithProperty(RDFS.domain, ontClass).toSet();
 			for(Resource r:list){
 				fullList.add(r.getURI());
-				fullList.addAll(getSubProperties(r.getURI()));
+				Set<String> subprops = getSubProperties(r.getURI());
+				if (subprops != null)
+					fullList.addAll(subprops);
 			}
 			
 			subPropertyList.put(ruri, fullList);
