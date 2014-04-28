@@ -236,7 +236,7 @@ public class Delegate {
 				return;
 			}
 		}
-		logger.warn("subscription : " + subscriptionId + " for ruri " + ruri + " not found in persistedSubscriptions map, ignoring reqeust");
+		logger.warn("subscription : " + subscriptionId + " for ruri " + ruri + " not found in persistedSubscriptions map, ignoring request");
 	}
 	
 	public Collection<PersistedSubscriptionRequest> getDataSubscriptions(String ruri){

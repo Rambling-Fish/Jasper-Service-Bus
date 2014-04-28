@@ -129,8 +129,8 @@ public class DataRequestHandler implements Runnable {
 	private void processSubscribeRequest(JsonElement jsonRequest, String ruri, String correlationID, Destination reply2q) throws JasperRequestException {
 
 		if (!jOntology.isRuriKnownForInputPublish(ruri)){
-			logger.error("ruri " + ruri + " is not PUBLISHED by any DTA, cannont SUBSCRIBE to unpublished data, sending back error response for correlationID " + correlationID);
-			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, "ruri " + ruri + " is not PUBLISHED by any DTA, cannont SUBSCRIBE to unpublished data");
+			logger.error("ruri " + ruri + " is not PUBLISHED by any DTA, cannot SUBSCRIBE to unpublished data, sending back error response for correlationID " + correlationID);
+			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, "ruri " + ruri + " is not PUBLISHED by any DTA, cannot SUBSCRIBE to unpublished data");
 		}
 		
 		String subscriptionId = null;
@@ -140,7 +140,7 @@ public class DataRequestHandler implements Runnable {
 				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.SUBSCRIPTION_ID_LABEL).getAsJsonPrimitive().isString()) {
 			subscriptionId = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.SUBSCRIPTION_ID_LABEL).getAsJsonPrimitive().getAsString();
 		}else{
-			logger.error("susbcription request does not contain subcription ID, returning bad reqeust response");
+			logger.error("susbcription request does not contain subcription ID, returning bad request response");
 			throw new JasperRequestException(JasperConstants.ResponseCodes.BADREQUEST, "susbcription request does not contain subcription ID");
 		}
 		
@@ -338,7 +338,7 @@ public class DataRequestHandler implements Runnable {
 					sendResponse(correlationID, reply2q, responsesThatMeetCriteria.toString());
 				}
 			}else{
-				logger.error("response from getResponse is does not match rule, and expiry = 0, unable to respond with valid response for correlationID " + correlationID);
+				logger.error("response from getResponse does not match rule, and expiry = 0, unable to respond with valid response for correlationID " + correlationID);
 				throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " cannot be found matching rule : " + rule);
 			}
 			
@@ -355,7 +355,7 @@ public class DataRequestHandler implements Runnable {
 						Thread.sleep(timestampMillis + expiry - System.currentTimeMillis()); 
 					}
 				} catch (InterruptedException e) {
-					logger.error("pooling sleep interrupted", e);
+					logger.error("polling sleep interrupted", e);
 				}
 			}while(true);
 			
@@ -599,7 +599,7 @@ public class DataRequestHandler implements Runnable {
 		}
 
 		if (!schema.has("properties")) {
-			logger.warn("no properites to add, returing result");
+			logger.warn("no properites to add, returning result");
 			return result;
 		} else if (!schema.get("properties").isJsonObject()) {
 			logger.warn("invalid schema properites is not of type object, returning null.");
