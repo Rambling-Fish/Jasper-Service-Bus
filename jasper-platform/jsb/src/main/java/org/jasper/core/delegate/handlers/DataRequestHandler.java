@@ -21,8 +21,8 @@ import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.exceptions.JasperRequestException;
 import org.jasper.core.notification.triggers.Trigger;
 import org.jasper.core.notification.triggers.TriggerFactory;
-import org.jasper.core.persistence.PersistedDataReqeust;
-import org.jasper.core.persistence.PersistedSubscriptionReqeust;
+import org.jasper.core.persistence.PersistedDataRequest;
+import org.jasper.core.persistence.PersistedSubscriptionRequest;
 import org.jasper.core.util.JsonLDTransformer;
 
 import com.google.gson.JsonArray;
@@ -38,13 +38,13 @@ public class DataRequestHandler implements Runnable {
 	private Delegate				delegate;
 	private Map<String, Object>		locks;
 	private Map<String, Message>	responses;
-	private PersistedDataReqeust	persistedRequest;
+	private PersistedDataRequest	persistedRequest;
 	private JsonLDTransformer       jsonLDTransformer;
 	private String                  response_type;
 
 	private static Logger			logger	= Logger.getLogger(DataRequestHandler.class.getName());
 
-	public DataRequestHandler(Delegate delegate, PersistedDataReqeust persistedRequest) {
+	public DataRequestHandler(Delegate delegate, PersistedDataRequest persistedRequest) {
 		jsonParser = new JsonParser();
 		this.jOntology = delegate.getJOntology();
 		this.delegate = delegate;
@@ -58,7 +58,7 @@ public class DataRequestHandler implements Runnable {
 	public void run() {
 		try {
 			processRequest(persistedRequest.getCorrelationID(), persistedRequest.getReply2Q(), persistedRequest.getRequest(),persistedRequest.getTimestampMillis());
-			delegate.removePersistedReqeust(persistedRequest);
+			delegate.removePersistedRequest(persistedRequest);
 		} catch (JMSException e) {
 			logger.error("error in processRequest", e);
 		} catch (JasperRequestException e) {
@@ -196,7 +196,7 @@ public class DataRequestHandler implements Runnable {
 	}
 
 	private void sendPublishToSubscribers(String ruri, JsonElement data) throws JMSException {
-		for(PersistedSubscriptionReqeust sub:delegate.getDataSubscriptions(ruri)){
+		for(PersistedSubscriptionRequest sub:delegate.getDataSubscriptions(ruri)){
 			
 			JsonElement responsesThatMeetCriteria = extractResponsesThatMeetCriteria(data, sub.getTriggerList());
 			if(responsesThatMeetCriteria != null){
