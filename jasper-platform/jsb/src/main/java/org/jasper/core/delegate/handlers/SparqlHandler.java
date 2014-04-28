@@ -105,7 +105,7 @@ public class SparqlHandler implements Runnable {
 			}
 			
 		} catch (JSONException e) {
-			logger.error("Exception caught while creating JSONObject " + e);
+			logger.error("Exception caught while creating JsonObject " + e);
 			return null;
 		}
 		

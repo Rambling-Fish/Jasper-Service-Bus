@@ -197,12 +197,17 @@ public class DataRequestHandler implements Runnable {
 	}
 
 	private void sendPublishToSubscribers(String ruri, JsonElement data) throws JMSException {
-		for(PersistedSubscriptionRequest sub:delegate.getDataSubscriptions(ruri)){
+<<<<<<< HEAD
+		for(PersistedSubscriptionReqeust sub:delegate.getDataSubscriptions(ruri)){
 			if(sub.getExpiry() > 0 && System.currentTimeMillis() > (sub.getTimestampMillis() + sub.getExpiry()) ){
 				delegate.removePersistedSubscriptionRequest(ruri, sub.getSubscriptionId());
 				continue;
 			}
 				
+=======
+		for(PersistedSubscriptionRequest sub:delegate.getDataSubscriptions(ruri)){
+			
+>>>>>>> dd8c56b720d64a35981fc6aefcd07bb02027fd53
 			JsonElement responsesThatMeetCriteria = extractResponsesThatMeetCriteria(data, sub.getTriggerList());
 			if(responsesThatMeetCriteria != null){
 				if(response_type.equalsIgnoreCase("application/ld+json")){

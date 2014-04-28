@@ -57,7 +57,7 @@ public class UDE {
 		try {
 			localUdelicense = licenseKeySys.loadKeys();
 		} catch (IOException e) {
-			logger.error("unalble to load license key",e);
+			logger.error("Unable to load license key",e);
 		}
 		
 		//initializing and starting caching layer

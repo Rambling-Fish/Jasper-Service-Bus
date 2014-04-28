@@ -38,8 +38,8 @@ import org.jasper.core.delegate.handlers.AdminHandler;
 import org.jasper.core.delegate.handlers.DataRequestHandler;
 import org.jasper.core.delegate.handlers.SparqlHandler;
 import org.jasper.core.notification.triggers.Trigger;
-import org.jasper.core.persistence.PersistedDataReqeust;
-import org.jasper.core.persistence.PersistedSubscriptionReqeust;
+import org.jasper.core.persistence.PersistedDataRequest;
+import org.jasper.core.persistence.PersistedSubscriptionRequest;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage;
 import org.jasper.jLib.jCommons.admin.JasperAdminMessage.Type;
 
@@ -69,8 +69,8 @@ public class Delegate {
 	
 	
 	public String defaultOutput;
-	private MultiMap<String,PersistedDataReqeust> distributedDataStore;
-	private MultiMap<String, PersistedSubscriptionReqeust>	persistedSubscriptions;
+	private MultiMap<String,PersistedDataRequest> distributedDataStore;
+	private MultiMap<String, PersistedSubscriptionRequest>	persistedSubscriptions;
 
 	public int maxExpiry;
 	public int maxPollingInterval;
@@ -162,7 +162,7 @@ public class Delegate {
 		try {
 			delegateRequestThreadPool.awaitTermination(5, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			logger.error("delegateReqeustThreadPool interrupted",e);
+			logger.error("delegateRequestThreadPool interrupted",e);
 		}
 		
 		producer.close();
@@ -193,12 +193,12 @@ public class Delegate {
 	protected void processGlobalQMsg(Message jmsRequest) {
 		try{		
 			if(jmsRequest instanceof ObjectMessage && ((ObjectMessage)jmsRequest).getObject() instanceof JasperAdminMessage && ((JasperAdminMessage)((ObjectMessage)jmsRequest).getObject()).getType() == Type.ontologyManagement){
-				if(logger.isInfoEnabled()) logger.info("recieved Admin request : " + ((JasperAdminMessage)((ObjectMessage)jmsRequest).getObject()).toString());
+				if(logger.isInfoEnabled()) logger.info("received Admin request : " + ((JasperAdminMessage)((ObjectMessage)jmsRequest).getObject()).toString());
 				delegateRequestThreadPool.submit(new AdminHandler(this, jmsRequest));
 			}else if (jmsRequest instanceof TextMessage && ((TextMessage) jmsRequest).getText().contains("query") ){
 				delegateRequestThreadPool.submit(new SparqlHandler(this, jmsRequest));
 			}else if (jmsRequest instanceof TextMessage	&& ((TextMessage) jmsRequest).getText() !=null){
-				PersistedDataReqeust pData = null;
+				PersistedDataRequest pData = null;
 				try {
 					pData  = persistDataRequest((TextMessage)jmsRequest);
 				} catch (Exception e) {
@@ -213,39 +213,39 @@ public class Delegate {
 		}	
 	}
 
-	public void removePersistedReqeust(PersistedDataReqeust request){
+	public void removePersistedRequest(PersistedDataRequest request){
 		distributedDataStore.remove(ude.getUdeInstance(), request);
 	}
 
-	public PersistedDataReqeust persistDataRequest(TextMessage jmsRequest) throws JMSException {
-		PersistedDataReqeust persistedDataReqeust = new PersistedDataReqeust(jmsRequest.getJMSCorrelationID(), jmsRequest.getJMSReplyTo(), jmsRequest.getText(), System.currentTimeMillis());
-		distributedDataStore.put(ude.getUdeInstance(), persistedDataReqeust);
-		return persistedDataReqeust;
+	public PersistedDataRequest persistDataRequest(TextMessage jmsRequest) throws JMSException {
+		PersistedDataRequest persistedDataRequest = new PersistedDataRequest(jmsRequest.getJMSCorrelationID(), jmsRequest.getJMSReplyTo(), jmsRequest.getText(), System.currentTimeMillis());
+		distributedDataStore.put(ude.getUdeInstance(), persistedDataRequest);
+		return persistedDataRequest;
 		
 	}
 	
 	public void persistSubscriptionRequest(String ruri, String subscriptionId, String correlationID, Destination reply2q, List<Trigger> triggerList, int expiry) {
-		for(PersistedSubscriptionReqeust entry:persistedSubscriptions.get(ruri)){
+		for(PersistedSubscriptionRequest entry:persistedSubscriptions.get(ruri)){
 			if(entry.getSubscriptionId().equals(subscriptionId)){
 				persistedSubscriptions.remove(ruri, entry);
 				if(logger.isInfoEnabled()) logger.info("updating subscription, removing old and will add new for ruri : " + ruri + " and subscriptionId : " + subscriptionId);
 			}
 		}
-		PersistedSubscriptionReqeust persistedSubscriptionReqeust = new PersistedSubscriptionReqeust(ruri,subscriptionId,correlationID,reply2q,triggerList,expiry, System.currentTimeMillis());
-		persistedSubscriptions.put(ruri, persistedSubscriptionReqeust);
+		PersistedSubscriptionRequest persistedSubscriptionRequest = new PersistedSubscriptionRequest(ruri,subscriptionId,correlationID,reply2q,triggerList,expiry, System.currentTimeMillis());
+		persistedSubscriptions.put(ruri, persistedSubscriptionRequest);
 	}
 	
 	public void removePersistedSubscriptionRequest(String ruri, String subscriptionId) {
-		for(PersistedSubscriptionReqeust entry:persistedSubscriptions.get(ruri)){
+		for(PersistedSubscriptionRequest entry:persistedSubscriptions.get(ruri)){
 			if(entry.getSubscriptionId().equals(subscriptionId)){
 				persistedSubscriptions.remove(ruri, entry);
 				return;
 			}
 		}
-		logger.warn("subscription : " + subscriptionId + " for ruri " + ruri + " not found in persistedSubscriptions map, ignoring reqeust");
+		logger.warn("subscription : " + subscriptionId + " for ruri " + ruri + " not found in persistedSubscriptions map, ignoring request");
 	}
 	
-	public Collection<PersistedSubscriptionReqeust> getDataSubscriptions(String ruri){
+	public Collection<PersistedSubscriptionRequest> getDataSubscriptions(String ruri){
 		return persistedSubscriptions.get(ruri);
 	}
 
@@ -334,10 +334,10 @@ public class Delegate {
 	}
 
 	public void connectionToRemoteUdeLost(String udeInstance) {
-		Collection<PersistedDataReqeust> failoverRequests = distributedDataStore.remove(udeInstance);
-		logger.error("recieved connection to remote ude lost for " + udeInstance + " getting failoverReqeusts : " + failoverRequests);
+		Collection<PersistedDataRequest> failoverRequests = distributedDataStore.remove(udeInstance);
+		logger.error("Connection to remote ude lost for " + udeInstance + " getting failoverRequests : " + failoverRequests);
 		if(failoverRequests==null)return;
-		for(PersistedDataReqeust entry:failoverRequests){
+		for(PersistedDataRequest entry:failoverRequests){
 			distributedDataStore.put(ude.getUdeInstance(), entry);
 			delegateRequestThreadPool.submit(new DataRequestHandler(this,entry));
 			if(logger.isInfoEnabled()) logger.info("submitted failed over request : " + entry);

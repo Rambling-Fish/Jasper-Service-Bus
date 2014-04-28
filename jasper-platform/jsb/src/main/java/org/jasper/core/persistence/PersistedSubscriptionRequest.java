@@ -7,7 +7,7 @@ import javax.jms.Destination;
 
 import org.jasper.core.notification.triggers.Trigger;
 
-public class PersistedSubscriptionReqeust implements Serializable {
+public class PersistedSubscriptionRequest implements Serializable {
 
 	/**
 	 * 
@@ -21,7 +21,7 @@ public class PersistedSubscriptionReqeust implements Serializable {
 	private int	expiry;
 	private long	timestampMillis;
 
-	public PersistedSubscriptionReqeust(String ruri, String subscriptionId, String correlationID, Destination reply2q, List<Trigger> triggerList, int expiry, long timestampMillis) {
+	public PersistedSubscriptionRequest(String ruri, String subscriptionId, String correlationID, Destination reply2q, List<Trigger> triggerList, int expiry, long timestampMillis) {
 		this.ruri = ruri;
 		this.subscriptionId = subscriptionId;
 		this.correlationID = correlationID;

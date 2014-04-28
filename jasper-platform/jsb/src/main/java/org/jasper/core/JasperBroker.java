@@ -256,7 +256,7 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
            }
        }else{
            ConnectionInfo oldJSBInfo = jsbConnectionInfoMap.get(info.getPassword());
-           logger.error("Peer UDE not registred in system, UDE instance id must be unique and another peer UDE has registered using same instance id, peer UDE with the following info already registered \n" +
+           logger.error("Peer UDE not registered in system, UDE instance id must be unique and another peer UDE has registered using same instance id, peer UDE with the following info already registered \n" +
                    "deploymentId:instanceId = " + licenseKeySys.getUdeDeploymentAndInstance(info.getPassword()) + "\n" +
                    "clientId:clientIp = " + oldJSBInfo.getClientId() + ":" + oldJSBInfo.getClientIp());
             
@@ -487,7 +487,7 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
     	try {
 			producer.send(adminTopic, session.createTextMessage(msg));
 		} catch (JMSException e) {
-			logger.error("exception caught when trying to broadcast admin event");
+			logger.error("Exception caught when trying to broadcast admin event");
 		}
 	}
 

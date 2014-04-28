@@ -819,7 +819,7 @@ public class DelegateOntology implements EntryListener<String, String>{
     }
 
     public void entryUpdated(EntryEvent<String, String> event) {
-        if(logger.isInfoEnabled())logger.info("entry uptdated - event = " + event);
+        if(logger.isInfoEnabled())logger.info("entry updated - event = " + event);
     }
     
 

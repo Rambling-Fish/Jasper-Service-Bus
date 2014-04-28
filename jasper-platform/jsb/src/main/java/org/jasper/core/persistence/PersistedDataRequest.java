@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import javax.jms.Destination;
 
-public class PersistedDataReqeust implements Serializable{
+public class PersistedDataRequest implements Serializable{
 
 	private static final long serialVersionUID = 2863184111497082255L;
 	
@@ -13,7 +13,7 @@ public class PersistedDataReqeust implements Serializable{
 	private String request;
 	private long timestampMillis;
 	
-	public PersistedDataReqeust(String correlationID, Destination reply2Q, String request, long timestampMillis) {
+	public PersistedDataRequest(String correlationID, Destination reply2Q, String request, long timestampMillis) {
 		super();
 		this.correlationID = correlationID;
 		this.reply2Q = reply2Q;
