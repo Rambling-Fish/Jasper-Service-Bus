@@ -129,6 +129,7 @@ public class DataRequestHandler implements Runnable {
 	private void processSubscribeRequest(JsonElement jsonRequest, String ruri, String correlationID, Destination reply2q) throws JasperRequestException {
 
 		if (!jOntology.isRuriKnownForInputPublish(ruri)){
+			delegate.removePersistedRequest(persistedRequest);
 			logger.error("ruri " + ruri + " is not PUBLISHED by any DTA, cannot SUBSCRIBE to unpublished data, sending back error response for correlationID " + correlationID);
 			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, "ruri " + ruri + " is not PUBLISHED by any DTA, cannot SUBSCRIBE to unpublished data");
 		}
@@ -218,6 +219,7 @@ public class DataRequestHandler implements Runnable {
 	
 	private void processPostRequest(JsonElement jsonRequest, String ruri, String correlationID, Destination reply2q, long timestampMillis) throws JasperRequestException, JMSException {
 		if (!jOntology.isRuriKnownForInputPost(ruri)){
+			delegate.removePersistedRequest(persistedRequest);
 			logger.error("ruri " + ruri + " is not known for POST sending back error response for correlationID " + correlationID);
 			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is not known for POST");
 		}
@@ -272,6 +274,7 @@ public class DataRequestHandler implements Runnable {
 	private void processGetRequest(JsonElement jsonRequest, String ruri, String correlationID, Destination reply2q, long timestampMillis) throws JMSException, JasperRequestException {
 		
 		if (!jOntology.isRuriKnownForOutputGet(ruri)){
+			delegate.removePersistedRequest(persistedRequest);
 			logger.error("ruri " + ruri + " is not known sending back error response for correlationID " + correlationID);
 			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is not known");
 		}
