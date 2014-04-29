@@ -332,6 +332,7 @@ public class DataRequestHandler implements Runnable {
 			response = getResponse(ruri, parameters, processing_scheme);
 			
 			if (response == null) {
+				delegate.removePersistedRequest(persistedRequest);
 				logger.error("response from getResponse is null, sending back error response for correlationID " + correlationID);
 				throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is known, but we could not get a valid response, check parameters");
 			}
@@ -346,6 +347,7 @@ public class DataRequestHandler implements Runnable {
 					sendResponse(correlationID, reply2q, responsesThatMeetCriteria.toString());
 				}
 			}else{
+				delegate.removePersistedRequest(persistedRequest);
 				logger.error("response from getResponse does not match rule, and expiry = 0, unable to respond with valid response for correlationID " + correlationID);
 				throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " cannot be found matching rule : " + rule);
 			}
@@ -368,6 +370,7 @@ public class DataRequestHandler implements Runnable {
 			}while(true);
 			
 			if (response == null) {
+				delegate.removePersistedRequest(persistedRequest);
 				logger.error("responses from polling getResponse is null, sending back error response for correlationID " + correlationID);
 				throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is known, but we could not get a valid response before request expired");
 			}else if(response_type.equalsIgnoreCase("application/ld+json")){
