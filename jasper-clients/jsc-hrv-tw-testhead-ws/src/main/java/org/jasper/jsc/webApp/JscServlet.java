@@ -63,6 +63,14 @@ public class JscServlet extends HttpServlet {
 	
 	String dtaServerIp = null;
 	
+	public static final String LONG_LOCATION  = "http://coralcea.ca/jasper/NurseCall/location";
+	public static final String LONG_ROOM_ID   = "http://coralcea.ca/jasper/BuildingMgmt/roomID";
+	public static final String LONG_DOOR_ID   = "http://coralcea.ca/jasper/BuildingMgmt/doorID";
+
+	public static final String SHORT_LOCATION = "location";
+	public static final String SHORT_ROOM_ID  = "roomID";
+	public static final String SHORT_DOOR_ID  = "doorID";
+
 	private class LocalStatistics{
 		private boolean isConnected;
 		private AtomicInteger numberOfRequests;
@@ -161,6 +169,11 @@ public class JscServlet extends HttpServlet {
 			    	String logId = getLogId(decoded);
 			    	if(log.isDebugEnabled())log.debug("logId string " + logId);
 
+			    	if (logId == null)
+			    	{
+			    		log.error("logId not found in " + decoded);
+			    		return;
+			    	}
 
 			    	// send 
 			    	JsonObject headers = new JsonObject();
@@ -202,15 +215,31 @@ public class JscServlet extends HttpServlet {
     	JsonParser parser = new JsonParser();
     	JsonObject jObj = (JsonObject)parser.parse(decoded);
 
-    	if(jObj.has("http://coralcea.ca/jasper/NurseCall/location")){
-    		return jObj.get("http://coralcea.ca/jasper/NurseCall/location").getAsString();
-    	}else if(jObj.has("http://coralcea.ca/jasper/BuildingMgmt/roomID")){
-    		return jObj.get("http://coralcea.ca/jasper/BuildingMgmt/roomID").getAsString();
-    	}else if(jObj.has("http://coralcea.ca/jasper/BuildingMgmt/doorID")){
-    		return jObj.get("http://coralcea.ca/jasper/BuildingMgmt/doorID").getAsString();
-    	}else{
-    		return null;
+    	if (jObj.has("@context"))
+    	{
+    		if (log.isDebugEnabled()) log.debug("decoded has @context.  Using short form.");
+    		
+    		if(jObj.has(SHORT_LOCATION)){
+    			return jObj.get(SHORT_LOCATION).getAsString();
+    		}else if(jObj.has(SHORT_ROOM_ID)){
+    			return jObj.get(SHORT_ROOM_ID).getAsString();
+    		}else if(jObj.has(SHORT_DOOR_ID)){
+    			return jObj.get(SHORT_DOOR_ID).getAsString();
+    		}
     	}
+    	else
+    	{
+    		if (log.isDebugEnabled()) log.debug("decoded has no @context.  Using long form.");
+    		
+    		if(jObj.has(LONG_LOCATION)){
+    			return jObj.get(LONG_LOCATION).getAsString();
+    		}else if(jObj.has(LONG_ROOM_ID)){
+    			return jObj.get(LONG_ROOM_ID).getAsString();
+    		}else if(jObj.has(LONG_DOOR_ID)){
+    			return jObj.get(LONG_DOOR_ID).getAsString();
+    		}
+    	}
+		return null;
     }
 
 	public void destroy() {

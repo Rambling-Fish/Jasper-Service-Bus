@@ -428,7 +428,11 @@ public class Jsc {
 	
 	public void onMessageForAsyncResponse(Message msg) {
 		try{
-			if(log.isDebugEnabled())log.debug("received async response for " + msg.getJMSCorrelationID() + " "+ msg);
+			if(log.isDebugEnabled()) {
+				log.debug("received async response for " + msg.getJMSCorrelationID() + " "+ msg);
+				log.debug("async response text= " + msg.getJMSCorrelationID() + " "+ toJsonFromResponse(toResponsefromJson(((TextMessage)msg).getText())));
+			}
+			
 			if(msg.getJMSCorrelationID() == null){
 				log.warn("jms response message received with null JMSCorrelationID, ignoring message.");
 				return;
