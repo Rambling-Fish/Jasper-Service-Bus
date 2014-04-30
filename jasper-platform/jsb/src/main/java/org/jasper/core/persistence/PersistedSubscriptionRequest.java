@@ -16,15 +16,17 @@ public class PersistedSubscriptionRequest implements Serializable {
 	private String	ruri;
 	private String	subscriptionId;
 	private String	correlationID;
+	private String	responseType;
 	private Destination	reply2q;
 	private List<Trigger>	triggerList;
 	private int	expiry;
 	private long	timestampMillis;
 
-	public PersistedSubscriptionRequest(String ruri, String subscriptionId, String correlationID, Destination reply2q, List<Trigger> triggerList, int expiry, long timestampMillis) {
+	public PersistedSubscriptionRequest(String ruri, String subscriptionId, String correlationID, String responseType, Destination reply2q, List<Trigger> triggerList, int expiry, long timestampMillis) {
 		this.ruri = ruri;
 		this.subscriptionId = subscriptionId;
 		this.correlationID = correlationID;
+		this.responseType = responseType;
 		this.reply2q = reply2q;
 		this.triggerList = triggerList;
 		this.expiry = expiry;
@@ -53,6 +55,14 @@ public class PersistedSubscriptionRequest implements Serializable {
 
 	public void setCorrelationID(String correlationID) {
 		this.correlationID = correlationID;
+	}
+	
+	public String getResponseType() {
+		return responseType;
+	}
+
+	public void setResponseType(String responseType) {
+		this.responseType = responseType;
 	}
 
 	public Destination getReply2q() {

@@ -165,12 +165,22 @@ public class DataRequestHandler implements Runnable {
 			rule = null;
 		}
 		
+		String responseType;
+		if (jsonRequest.isJsonObject() && jsonRequest.getAsJsonObject().has(JasperConstants.HEADERS_LABEL) && jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).isJsonObject()
+				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().has(JasperConstants.RESPONSE_TYPE_LABEL)
+				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.RESPONSE_TYPE_LABEL).isJsonPrimitive()
+				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.RESPONSE_TYPE_LABEL).getAsJsonPrimitive().isString()) {
+			responseType = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.RESPONSE_TYPE_LABEL).getAsJsonPrimitive().getAsString();
+		} else {
+			responseType = JasperConstants.DEFAULT_RESPONSE_TYPE;
+		}
+		
 		List<Trigger> triggerList = parseTriggers(rule);
 		
 		if(expiry == 0){
 			delegate.removePersistedSubscriptionRequest(ruri,subscriptionId);
 		}else{
-			delegate.persistSubscriptionRequest(ruri,subscriptionId,correlationID,reply2q,triggerList,expiry);
+			delegate.persistSubscriptionRequest(ruri,subscriptionId,correlationID,responseType,reply2q,triggerList,expiry);
 		}
 		
 	}
@@ -206,7 +216,7 @@ public class DataRequestHandler implements Runnable {
 				
 			JsonElement responsesThatMeetCriteria = extractResponsesThatMeetCriteria(data, sub.getTriggerList());
 			if(responsesThatMeetCriteria != null){
-				if(response_type.equalsIgnoreCase("application/ld+json")){
+				if(sub.getResponseType().equalsIgnoreCase("application/ld+json")){
 					JsonElement jsonLDResponse = jsonLDTransformer.parseResponse(responsesThatMeetCriteria);
 					sendResponse(sub.getCorrelationID(), sub.getReply2q(), jsonLDResponse.toString());
 				}
