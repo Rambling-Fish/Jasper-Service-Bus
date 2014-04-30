@@ -285,7 +285,7 @@ public class Jsc {
 		asyncResponses.remove(subscriptionID);
 		if(request != null){
 			JsonObject headers = request.getHeaders();
-			headers.addProperty(RequestHeaders.EXPIRES, "0");
+			headers.addProperty(RequestHeaders.EXPIRES, 0);
 			request.setMethod(Method.SUBSCRIBE);
 			try{	
 				TextMessage message = session.createTextMessage(toJsonFromRequest(request));
