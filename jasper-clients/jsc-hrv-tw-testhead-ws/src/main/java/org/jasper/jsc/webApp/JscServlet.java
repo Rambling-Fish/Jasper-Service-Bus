@@ -140,7 +140,7 @@ public class JscServlet extends HttpServlet {
 	 private Listener setupSubscription(String ruri) {
 		 	    	
 		 JsonObject headers = new JsonObject();
-		 headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/json"));
+		 headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/ld+json"));
 		 
 		 Request request = new Request(Method.SUBSCRIBE, ruri, headers);
 		 Listener listener = new Listener() {
@@ -165,7 +165,7 @@ public class JscServlet extends HttpServlet {
 			    	// send 
 			    	JsonObject headers = new JsonObject();
 			    	JsonObject parameters = new JsonObject();
-			    	headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/json"));
+			    	headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/ld+json"));
 			    	parameters.add("http://coralcea.ca/jasper/Sms/toSms", new JsonPrimitive("to"));
 			    	parameters.add("http://coralcea.ca/jasper/Sms/fromSms", new JsonPrimitive("from"));
 			    	parameters.add("http://coralcea.ca/jasper/Sms/bodySms", new JsonPrimitive("smsBodyText"));
