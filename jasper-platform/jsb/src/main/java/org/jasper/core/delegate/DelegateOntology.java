@@ -797,6 +797,9 @@ public class DelegateOntology implements EntryListener<String, String>{
         Model subModel = ModelFactory.createDefaultModel();
         InputStream in = new ByteArrayInputStream(triples.getBytes());
         subModel.read(in,"","TURTLE");
+        if(logger.isInfoEnabled()){
+        	logger.info("Adding subModel for dta : " + dtaName);
+        }
         model.addSubModel(subModel);
         dtaSubModels.put(dtaName, subModel);
         clearCaches();
