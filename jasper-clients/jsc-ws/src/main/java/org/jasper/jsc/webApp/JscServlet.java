@@ -151,6 +151,7 @@ public class JscServlet extends HttpServlet {
 		}
 		response.setContentType(contentType );
         response.setCharacterEncoding("UTF-8");
+        response.setStatus(jscResponse.getCode());
 		
         if(jscResponse.getCode() >= 200 && jscResponse.getCode() <= 299){
         	String jscJsonResponseString = new String(jscResponse.getPayload());
@@ -307,6 +308,9 @@ public class JscServlet extends HttpServlet {
 	    				parameters.put("parmsArray", parmsArray.toString());
 	    			}
 	    		}
+	    		else {
+	    			log.error("missing PARAMETERS_LABEL");
+	    		}
 	        }
 	        reader.close();
 	    } catch(IOException e) {
@@ -318,6 +322,7 @@ public class JscServlet extends HttpServlet {
 		contentType = (jscResponse.getHeaders().containsKey(ResponseHeaders.CONTENT_TYPE))?jscResponse.getHeaders().get(ResponseHeaders.CONTENT_TYPE):"application/json";
 		response.setContentType(contentType );
         response.setCharacterEncoding("UTF-8");
+		response.setStatus(jscResponse.getCode());
 		
         if(jscResponse.getCode() >= 200 && jscResponse.getCode() <= 299){
         	String jscJsonResponseString = new String(jscResponse.getPayload());
