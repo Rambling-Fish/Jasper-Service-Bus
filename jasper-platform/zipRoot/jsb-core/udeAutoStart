@@ -4,7 +4,7 @@ USER="jasper"
 
 case "$1" in
     start)
-      cd /opt/jasper/jasper-2.1/jsb-core/bin
+      cd /opt/jasper/jasper-2.1.0/jsb-core/bin
       su "$USER" -c "./ude start"
       cd ..
       ;;

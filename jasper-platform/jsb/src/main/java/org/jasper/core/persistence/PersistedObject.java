@@ -24,10 +24,13 @@ public class PersistedObject implements Serializable{
 	private String output;
 	private String version;
 	private String contentType;
+	private String method;
+	private int expires;
+	private String subscriptionId;
 	
 	public PersistedObject(String key, String correlationID, String request, String ruri, String dtaParms,
 			Destination replyTo, boolean isNotificationRequest, String UDEInstance, String output,
-			String version, String contentType) {
+			String version, String contentType, String method, int expires) {
 		this.key = key;
 		this.correlationID = correlationID;
 		this.request = request;
@@ -39,6 +42,8 @@ public class PersistedObject implements Serializable{
 		this.output = output;
 		this.version = version;
 		this.contentType = contentType;
+		this.method = method;
+		this.expires = expires;
 	}
 	
 	public PersistedObject() {
@@ -147,5 +152,29 @@ public class PersistedObject implements Serializable{
 	
 	public void setContentType(String contentType){
 		this.contentType = contentType;
+	}
+	
+	public String getMethod(){
+		return method;
+	}
+	
+	public void setMethod(String method){
+		this.method = method;
+	}
+	
+	public int getExpires(){
+		return expires;
+	}
+	
+	public void setExpires(int expires){
+		this.expires = expires;
+	}
+	
+	public String getSubscriptionId(){
+		return subscriptionId;
+	}
+	
+	public void setSubscriptionId(String subscriptionId){
+		this.subscriptionId = subscriptionId;
 	}
 }

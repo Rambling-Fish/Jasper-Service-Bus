@@ -28,36 +28,30 @@ public class TestUDE extends TestCase {
 		System.out.println("=================");
 		classUnderTest = new UDE(props);
 		classUnderTest.start();
-	}
-	
-	/*
-	 * This test creates a new UDE class via constructor then 
-	 * starts and stops it but sets clusterEnabled to true
-	 */
-	@Test
-	public void testClusterEnabled() throws Exception {
-	    props.setProperty("jsbClusterEnabled", "true");
-		classUnderTest = new UDE(props);
-		classUnderTest.start();
-	}
-	
-	/*
-	 * Miscelleneous tests on UDE class
-	 */
-	@Test
-	public void testMisc() throws Exception{
-		testClusterEnabled();
 		String deployId = classUnderTest.getDeploymentID();
 		String deployAndInst = classUnderTest.getUdeDeploymentAndInstance();
 		TestCase.assertEquals(deployId, "junitTest");	
 		TestCase.assertEquals(deployAndInst, "junitTest:0");
 	}
 	
+//	/*
+//	 * This test creates a new UDE class via constructor then 
+//	 * starts and stops it but sets clusterEnabled to true
+//	 */
+//	@Test
+//	public void testClusterEnabled() throws Exception {
+//	    props.setProperty("jsbClusterEnabled", "false");
+//		classUnderTest = new UDE(props);
+//		classUnderTest.start();
+//	}
+	
+	
 	@Before
 	public void setUp() throws Exception {
 		MockitoAnnotations.initMocks(this);
 		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
 		props.put("jsb-keystore", keystore);
+	    props.setProperty("jsbClusterEnabled", "false");
 	}
 	
 	@After

@@ -4,11 +4,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.jena.atlas.json.JsonArray;
 import org.apache.log4j.Logger;
 import org.jasper.core.notification.util.JsonResponseParser;
 
-public class CompareInt extends Trigger implements Serializable{
+import com.google.gson.JsonElement;
+
+public class CompareInt implements Trigger, Serializable{
+
 	private static final long serialVersionUID = -4016629738650948052L;
 	private String left;
 	private String right;
@@ -17,8 +19,7 @@ public class CompareInt extends Trigger implements Serializable{
 	private float y;
 	static Logger logger = Logger.getLogger(CompareInt.class.getName());
 	
-	public CompareInt(int expiry, int polling, String left, String operand, String right) {
-		super(expiry, polling);
+	public CompareInt(String left, String operand, String right) {
 		this.left    = left;
 		this.right   = right;
 		this.operand = operand;
@@ -36,22 +37,21 @@ public class CompareInt extends Trigger implements Serializable{
 		
 	}
 	
-	@Override
-	public boolean evaluate(JsonArray ruriArray){
+	public boolean evaluate(JsonElement response){
 		JsonResponseParser respParser = new JsonResponseParser();
 		
-		if(ruriArray.isEmpty()) return false;
-		List<Integer> list = new ArrayList<Integer>();
+		if(response.isJsonNull()) return false;
+		List<Float> list = new ArrayList<Float>();
 		 
-		list = respParser.parse(ruriArray, left);
+		list = respParser.parse(response, left);
 		 
-		if(list.isEmpty()) return false;
+		if(list == null || list.isEmpty()) return false;
 		
 		return compare(list);
 		
 	}
 	
-	private boolean compare(List<Integer> list){
+	private boolean compare(List<Float> list){
 		boolean result = false;
 		for(int i=0;i<list.size();i++){
 			this.x = list.get(i);

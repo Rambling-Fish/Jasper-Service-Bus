@@ -1,8 +1,7 @@
 #!/bin/bash
 
 M_PID=""
-url_prefix="failover://(tcp://"
-url_suffix=")"
+url_prefix="tcp://"
 comma=","
 tcp="tcp://"
 str1=""
@@ -181,7 +180,7 @@ configure_DTA()
             break
             ;;
         *)
-            if [ `echo $parm | grep -c "jasperEngineURL" ` -gt 0 ]; then
+            if [ `echo $parm | grep -c "jasperUrl" ` -gt 0 ]; then
                echo "Enter new value - format: host1:port1  [host2:port2] ..."
                echo "Host:port pairs must be separated by at least one space and port value must be > 0 and < 65535:"
             else
@@ -194,13 +193,13 @@ configure_DTA()
                 configure_DTA
                 break
             fi
-            if [ `echo $parm | grep -c  "jasperEngineURL" ` -gt 0 ]; then
+            if [ `echo $parm | grep -c  "jasperUrl" ` -gt 0 ]; then
                replacement=$newValue
                var=$replacement
                formatURIs
             fi
             pattern=$parm
-            if [ `echo $parm | grep -c  "jasperEngineURL" ` -gt 0 ]; then
+            if [ `echo $parm | grep -c  "jasperUrl" ` -gt 0 ]; then
                : # nothing to do as it should be set
             else
                replacement=$newValue
@@ -217,9 +216,9 @@ configure_DTA()
     done    
 }
 
-configure_global_JasperEngineURL() {
+configure_global_JasperUrl() {
    clear
-   echo "Configure jasperEngineURL in all DTAs"
+   echo "Configure jasperUrl in all DTAs"
    echo "-------------------------------------"
    echo
    DTAList=`ls DTAs`
@@ -234,23 +233,23 @@ configure_global_JasperEngineURL() {
             esac
          done  
    else
-   pattern="jasperEngineURL"
+   pattern="jasperUrl"
    echo "Enter new value - format: host1:port1  [host2:port2] ..."
    echo "Host:port pairs must be separated by at least one space and port value must be > 0 and < 65535:"
    read replacement
    if echo $replacement | grep ["="] > /dev/null
    then
        read -p "Sorry '=' is not allowed"
-       configure_global_JasperEngineURL 
+       configure_global_JasperUrl 
        break
    fi
 
    formatURIs
 
-   echo "Set jasperEngineURL as $replacement in all DTAs? (y/n/q)"
+   echo "Set jasperUrl as $replacement in all DTAs? (y/n/q)"
    read choice
    if [ "$choice" == "n" ];then
-      configure_global_JasperEngineURL
+      configure_global_JasperUrl
    else
       if [ "$choice" == "y" ]; then
          for f in $DTAList
@@ -309,7 +308,7 @@ formatURIs()
       fi
       fi
    done
-   replacement=$replacement$url_suffix
+   replacement=$replacement
 }
 
 
@@ -320,7 +319,7 @@ menuScreen()
     echo "DTA Management"
     echo "---------------"
     echo
-    options=("Deploy DTA" "Undeploy DTA" "Configure DTA" "Configure Jasper Engine URL for all DTAs" "Quit")
+    options=("Deploy DTA" "Undeploy DTA" "Configure DTA" "Configure Jasper URL for all DTAs" "Quit")
     select opt in "${options[@]}"
     do
         case $opt in
@@ -336,8 +335,8 @@ menuScreen()
                 configure
                 break
                 ;;
-            "Configure Jasper Engine URL for all DTAs")
-                configure_global_JasperEngineURL
+            "Configure Jasper URL for all DTAs")
+                configure_global_JasperUrl
                 break
                 ;;
             "Quit")

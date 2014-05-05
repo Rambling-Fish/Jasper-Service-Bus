@@ -17,6 +17,11 @@ public class JasperOntologyConstants {
         aMap.put("param"     , "http://coralcea.ca/jasper/vocabulary/param");
         aMap.put("requires"  , "http://coralcea.ca/jasper/vocabulary/requires");
         aMap.put("provides"  , "http://coralcea.ca/jasper/vocabulary/provides");
+        aMap.put("rdfs"      , "http://www.w3.org/2000/01/rdf-schema#");        // Vocab 2
+        aMap.put("owl"       , "http://www.w3.org/2002/07/owl#");               // Vocab 2
+        aMap.put("xsd"       , "http://www.w3.org/2001/XMLSchema#");            // Vocab 2
+        aMap.put("rdf"       , "http://www.w3.org/1999/02/22-rdf-syntax-ns#");  // Vocab 2
+        aMap.put("dta"       , "http://coralcea.ca/2014/01/dta#");              // Vocab 2
         PREFIX_MAP = Collections.unmodifiableMap(aMap);
     }
     

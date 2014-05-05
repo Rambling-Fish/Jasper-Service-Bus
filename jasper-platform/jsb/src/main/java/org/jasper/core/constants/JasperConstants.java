@@ -30,8 +30,19 @@ public class JasperConstants {
 	public static final String ENCODING_LABEL = "UTF-8";
 	public static final String POLL_PERIOD_LABEL = "poll-period";
 	public static final String EXPIRES_LABEL = "expires";
+	public static final String DEFAULT_PROCESSING_SCHEME = "aggregate";
+	public static final String AGGREGATE_SCHEME = "aggregate";
+	public static final String COALESCE_SCHEME = "coalesce";
+	public static final String RESPONSE_TYPE_LABEL = "response-type";
+	public static final String SUBSCRIPTION_ID_LABEL = "subscription-id";
+	public static final String DEFAULT_RESPONSE_TYPE = "application/json";
 	
-	public enum responseCodes{
+	public static final String GET = "get";
+	public static final String POST = "post";
+	public static final String PUBLISH = "publish";
+	public static final String SUBSCRIBE = "subscribe";
+	
+	public enum ResponseCodes{
 		OK(200, "OK"),
 		ACCEPTED(202, "Accepted"),
 		BADREQUEST(400, "Bad Request"),
@@ -42,7 +53,7 @@ public class JasperConstants {
 		private int code;
 		private String description;
 		
-		private responseCodes(int code, String description){
+		private ResponseCodes(int code, String description){
 			this.code = code;
 			this.description = description;
 		}

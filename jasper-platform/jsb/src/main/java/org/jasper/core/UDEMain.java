@@ -18,7 +18,7 @@ public class UDEMain {
     	try {
          	prop.load(new FileInputStream(System.getProperty("jsb-property-file")));
     	} catch (IOException ex) {
-    		logger.error("unable to load properites",ex);
+    		logger.error("unable to load properties",ex);
     	}
     	
         DOMConfigurator.configure(System.getProperty("jsb-log4j-xml"));
@@ -30,7 +30,7 @@ public class UDEMain {
 	}
 	
 	public static void main(String[] args) throws Exception {
-
+		
 		ude = new UDE(getPropeties());
 		ude.start();
     	

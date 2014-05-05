@@ -37,46 +37,42 @@ public class TestPersistence extends TestCase {
 		System.out.println("RUNNING PERSISTENCE TESTS");
 		System.out.println("=========================");
 
-		cachingSys = PersistenceFacadeFactory.getFacade(ipAddr, hazelcastGroup, password);
-		cachingSys.shutdown();
-		cachingSys = PersistenceFacadeFactory.getFacade(props);
+		cachingSys = PersistenceFacadeFactory.getNonClusteredFacade();
 		cachingSys.shutdown();
 	}
 	
 	/*
-	 * This tests the PersistenceFacade class
+	 * This tests the PersistenceFacadeImpl class
 	 */
 	@Test
 	public void testPersistenceFacade() throws Exception {
 		MultiMap<String,String> multiMap;
 		Map<String,String> myMap;
-		cachingSys = new PersistenceFacade(props);
-		multiMap = (MultiMap<String, String>) cachingSys.getMultiMap("testMap");
-		myMap = (Map<String, String>) cachingSys.getMap("aMap");
-		Object myObj = cachingSys.getSharedMemoryInstance();
+		cachingSys = PersistenceFacadeFactory.getNonClusteredFacade();
+		multiMap = cachingSys.getMultiMap("testMap");
+		myMap = cachingSys.getMap("aMap");
 		BlockingQueue myQ = cachingSys.getQueue("myQ");
 		
 		TestCase.assertNotNull(multiMap);
 		TestCase.assertNotNull(myMap);
-		TestCase.assertNotNull(myObj);
 		TestCase.assertNotNull(myQ);
 		
 		cachingSys.shutdown();
 	}
 	
-	/*
-	 * This tests the MemoryCache class
-	 */
-	@Test
-	public void testMemoryCache() throws Exception {
-		HazelcastInstance inst;
-		MemoryCache cache = new MemoryCache(ipAddr, "group", "password");
-		cachingSys = new PersistenceFacade(props);
-		inst = (HazelcastInstance) cachingSys.getSharedMemoryInstance();
-		cache.setHazelcastInstance(inst);
-		cache.shutdown();
-		cachingSys.shutdown();
-	}
+//	/*
+//	 * This tests the MemoryCache class
+//	 */
+//	@Test
+//	public void testMemoryCache() throws Exception {
+//		HazelcastInstance inst;
+//		MemoryCache cache = new MemoryCache(ipAddr, "group", "password");
+//		cachingSys = PersistenceFacadeFactory.getNonClusteredFacade();
+//		inst = (HazelcastInstance) cachingSys.getSharedMemoryInstance();
+//		cache.setHazelcastInstance(inst);
+//		cache.shutdown();
+//		cachingSys.shutdown();
+//	}
 	
 	/*
 	 * This tests the PersistedObject class
@@ -86,7 +82,7 @@ public class TestPersistence extends TestCase {
 		Destination replyTo = null;
 		List<Trigger> triggerList;
 		PersistedObject obj = new PersistedObject("key", "correlationId", "request", "ruri", "dtaParms",
-				replyTo, false, "UDEInstance", "output", "version", "contentType");
+				replyTo, false, "UDEInstance", "output", "version", "contentType", "GET", 10);
 		
 		// test all getters
 		String contentType = obj.getContentType();

@@ -7,8 +7,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.jms.JMSException;
@@ -26,12 +30,20 @@ import org.jasper.jsc.Response;
 import org.jasper.jsc.constants.RequestHeaders;
 import org.jasper.jsc.constants.ResponseHeaders;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+
 @WebServlet("/")
 public class JscServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
 	static Logger log = Logger.getLogger(JscServlet.class.getName());
 	private Map<String, String> uriMapper = new HashMap<String, String>();
+	private String rule;
+	private static int MILLISECONDS = 1000;
 	
 	private Jsc jsc;
 
@@ -45,8 +57,7 @@ public class JscServlet extends HttpServlet {
 		try {
 			jsc.init();
 		} catch (JMSException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Exception occurred during initialization " + e);
 		}
     }
 	
@@ -113,20 +124,34 @@ public class JscServlet extends HttpServlet {
 	}
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
-    	
     	String ruri = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):null;
+    	ruri = URLDecoder.decode(ruri, "UTF-8");
     	if(uriMapper.containsKey(ruri)) ruri = uriMapper.get(ruri); // check if short form is being used and switch to long form URI
-		Map<String, String> headers = getHeaders(request);
-		Map<String, String> parameters = getParameters(request);
-		String rule = getRule(request);
+		JsonObject headers = getHeaders(request);
+		Map<String, String> parameters;
+		if(ruri.equalsIgnoreCase("sparql")){
+			parameters = getSparqlParameters(request);
+		}
+		else{
+			parameters = getParameters(request);
+		}
+		
 		byte[] payload = getPayload(request);
+		
 		Request jReq = new Request(Method.GET, ruri, headers, parameters, rule, payload);
     	
 		Response jscResponse = jsc.get(jReq);
        
-		String contentType = (jscResponse.getHeaders().containsKey(ResponseHeaders.CONTENT_TYPE))?jscResponse.getHeaders().get(ResponseHeaders.CONTENT_TYPE):"application/json";
+		String contentType;
+		if(jscResponse.getHeaders() != null){
+			contentType = (jscResponse.getHeaders().containsKey(ResponseHeaders.CONTENT_TYPE))?jscResponse.getHeaders().get(ResponseHeaders.CONTENT_TYPE):"application/json";
+		}
+		else{
+			contentType = "application/json";
+		}
 		response.setContentType(contentType );
         response.setCharacterEncoding("UTF-8");
+        response.setStatus(jscResponse.getCode());
 		
         if(jscResponse.getCode() >= 200 && jscResponse.getCode() <= 299){
         	String jscJsonResponseString = new String(jscResponse.getPayload());
@@ -140,62 +165,96 @@ public class JscServlet extends HttpServlet {
         }
     }
 
-    private Map<String, String> getHeaders(HttpServletRequest request) {
-    	Map<String, String> map = new HashMap<String, String>();
+    private JsonObject getHeaders(HttpServletRequest request) {
+
+    	JsonObject headers = new JsonObject();
     	
     	String contentType = (request.getContentType() != null)?request.getContentType():"application/json";
-		map.put(RequestHeaders.CONTENT_TYPE, contentType );
+    	headers.add(RequestHeaders.CONTENT_TYPE, new JsonPrimitive(contentType) );
  
 		if(request.getQueryString() !=null){
 			String[] result = request.getQueryString().split("\\?");
     	
 			for(String str:result){
-				if(str.startsWith("output=")){
-					map.put(RequestHeaders.RESPONSE_TYPE, str.replaceFirst("output=", ""));
-				}else if(str.startsWith(RequestHeaders.RESPONSE_TYPE)){
-					map.put(RequestHeaders.RESPONSE_TYPE, str.replaceFirst(RequestHeaders.RESPONSE_TYPE, ""));
-				}else if(str.startsWith("expiry=")){
-					map.put(RequestHeaders.EXPIRES, str.replaceFirst("expiry=", ""));
+				if(str.startsWith(RequestHeaders.RESPONSE_TYPE)){
+					headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive(str.replaceFirst(RequestHeaders.RESPONSE_TYPE+"=", "")));
 				}else if(str.startsWith(RequestHeaders.EXPIRES)){
-					map.put(RequestHeaders.EXPIRES, str.replaceFirst(RequestHeaders.EXPIRES, ""));
-				}else if(str.startsWith("polling=")){
-					map.put(RequestHeaders.POOL_PERIOD, str.replaceFirst("polling=", ""));
-				}else if(str.startsWith(RequestHeaders.POOL_PERIOD)){
-					map.put(RequestHeaders.POOL_PERIOD, str.replaceFirst(RequestHeaders.POOL_PERIOD, ""));
+					try{
+						int expires = (Integer.parseInt(str.replaceFirst(RequestHeaders.EXPIRES+"=", "")) * MILLISECONDS);
+						headers.add(RequestHeaders.EXPIRES, new JsonPrimitive(expires));
+					}catch (NumberFormatException e){
+						log.error("unanable to parse expires, expires set to : " + (str.replaceFirst(RequestHeaders.EXPIRES+"=", "")),e);
+					}
+				}else if(str.startsWith(RequestHeaders.POLL_PERIOD)){
+					try{
+						int pollPeriod = (Integer.parseInt(str.replaceFirst(RequestHeaders.POLL_PERIOD+"=", "")) * MILLISECONDS);
+						headers.add(RequestHeaders.POLL_PERIOD, new JsonPrimitive(pollPeriod));
+					}catch (NumberFormatException e){
+						log.error("unanable to parse poll period, expires set to : " + (str.replaceFirst(RequestHeaders.POLL_PERIOD+"=", "")),e);
+					}
+				}else if(str.startsWith(RequestHeaders.PROCESSING_SCHEME)){
+					headers.add(RequestHeaders.PROCESSING_SCHEME, new JsonPrimitive(str.replaceFirst(RequestHeaders.PROCESSING_SCHEME+"=", "")));
 				}
 			}
     	}
+   
+    	return headers;
+	}
+    
+    private Map<String, String> getSparqlParameters(HttpServletRequest request) {
+    	String params = null;
+		StringBuilder sb = new StringBuilder();
+		String[] result = request.getQueryString().split("&");
+		
+    	if(result.length == 1){
+    		result[1] = "json";
+    	}
+    	sb.append(result[0]);
+    	sb.append(result[1]);
+    	params = sb.toString();
+    	
+    	if(params == null) return null;
+    	
+    	Map<String, String> map = new HashMap<String, String>();
+    	map.put("parameters", result[0]);
+    	map.put("output", result[1]);
     	
     	return map;
-	}
+    }
 
-	private Map<String, String> getParameters(HttpServletRequest request) {
+	private Map<String, String> getParameters(HttpServletRequest request) throws UnsupportedEncodingException {
     	
 		String params = null;
+		rule          = null;
 		StringBuilder sb = new StringBuilder();
     	if(request.getQueryString() !=null){
-    		String[] result = request.getQueryString().split("\\?");
-    		String[] results = result[0].split("&");
+    		String reqeustString = URLDecoder.decode(request.getQueryString(), "UTF-8");
+    		String[] result = reqeustString.split("\\?");
     		
-    		for(String str:results){
-    			if(str.startsWith("output=")       || str.startsWith(RequestHeaders.RESPONSE_TYPE) ||
-    			    str.startsWith("expiry=")  || str.startsWith(RequestHeaders.EXPIRES)       ||
-    			    str.startsWith("polling=") || str.startsWith(RequestHeaders.POOL_PERIOD)   ||
-    			    str.startsWith("trigger=") || str.startsWith("rule=") )
+    		for(String str:result){
+    			if(str.startsWith(RequestHeaders.RESPONSE_TYPE)  ||
+    			    str.startsWith(RequestHeaders.EXPIRES)       ||
+    			    str.startsWith(RequestHeaders.POLL_PERIOD))   
     			{
-    			continue;
-    			}else{
-    				String[] arr = str.split("=");
-    				// Convert to long form URI if short form was passed in
-    				if(uriMapper.containsKey(arr[0])){
-    					sb.append(uriMapper.get(arr[0]));
+    				continue;
+    			}else if(str.startsWith(RequestHeaders.RULE)){
+    				rule = str.replaceFirst(RequestHeaders.RULE+"=", "");
+    			}
+    			else{
+    				String[] results = str.split("&");
+    				for(int i=0; i<results.length; i++){
+    					String[] arr = results[i].split("=");
+    					// Convert to long form URI if short form was passed in
+    					if(uriMapper.containsKey(arr[0])){
+    						sb.append(uriMapper.get(arr[0]));
+    					}
+    					else{
+    						sb.append(arr[0]);
+    					}
+    						sb.append("=");
+    						sb.append(arr[1]);
+    						sb.append("&");
     				}
-    				else{
-    					sb.append(arr[0]);
-    				}
-    					sb.append("=");
-    					sb.append(arr[1]);
-    					sb.append("&");
     			}
     		}
 
@@ -217,24 +276,8 @@ public class JscServlet extends HttpServlet {
 			keyValue = s.split("=");
 			if(keyValue.length == 2 ) map.put(keyValue[0], keyValue[1]);
 		}
-    	
-    	return map;
-	}
 
-	private String getRule(HttpServletRequest request) {
-		String rule = null;
-		if(request.getQueryString() != null){
-			String[] result = request.getQueryString().split("\\?");
-    		for(String str:result){
-    			if(str.startsWith("trigger=")){
-    				rule = str.replaceFirst("trigger=", "");
-    			}else if (str.startsWith("rule=") )    		{
-    				rule = str.replaceFirst("rule=", "");
-    			}
-    		}
-		}
-    	
-    	return rule;
+    	return map;
 	}
 
 	//TODO UPDATE PAYLOAD
@@ -242,8 +285,55 @@ public class JscServlet extends HttpServlet {
 		return null;
 	}
 	
-	protected void doPost(HttpServletRequest httpservletrequest, HttpServletResponse httpservletresponse) throws ServletException, IOException{
-    	httpservletresponse.getWriter().write("POST NOT SUPPORTED");
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+		Map<String,String> parameters = new HashMap<String, String>();
+		JsonObject headers = this.getHeaders(request);
+		String contentType = request.getHeader(RequestHeaders.CONTENT_TYPE);
+		String ruri = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):null;
+	
+	    try {
+	        BufferedReader reader = request.getReader();
+	        String line = reader.readLine();
+	        //TODO what do we do if content-type not application/json?
+	        if(line != null && contentType.equalsIgnoreCase("application/json")){
+	        	JsonElement jelement = new JsonParser().parse(line);
+	    		JsonObject jsonObj = jelement.getAsJsonObject();
+	    		if(jsonObj.has(RequestHeaders.PARAMETERS_LABEL)){
+	    			JsonElement elem = jsonObj.get(RequestHeaders.PARAMETERS_LABEL);
+	    			if(elem.isJsonObject()){
+	    				JsonObject parms = jsonObj.getAsJsonObject(RequestHeaders.PARAMETERS_LABEL);
+	    				for (Entry<String, JsonElement> key_val: parms.entrySet()) {
+	    					parameters.put(key_val.getKey(), key_val.getValue().getAsString());
+	    				}
+	    			}
+	    			else if(elem.isJsonArray()){
+	    				JsonArray parmsArray = jsonObj.getAsJsonArray(RequestHeaders.PARAMETERS_LABEL);
+	    				parameters.put("parmsArray", parmsArray.toString());
+	    			}
+	    		}
+	    		else {
+	    			log.error("missing PARAMETERS_LABEL");
+	    		}
+	        }
+	        reader.close();
+	    } catch(IOException e) {
+	        log.error("doPost() couldn't get the post data body ", e); 
+	    }
+		
+		Request jReq = new Request(Method.POST, ruri, headers, parameters);
+		Response jscResponse = jsc.post(jReq);
+		contentType = (jscResponse.getHeaders().containsKey(ResponseHeaders.CONTENT_TYPE))?jscResponse.getHeaders().get(ResponseHeaders.CONTENT_TYPE):"application/json";
+		response.setContentType(contentType );
+        response.setCharacterEncoding("UTF-8");
+		response.setStatus(jscResponse.getCode());
+		
+        if(jscResponse.getCode() >= 200 && jscResponse.getCode() <= 299){
+        	String jscJsonResponseString = new String(jscResponse.getPayload());
+			response.getWriter().write(jscJsonResponseString);
+        }else{
+			response.getWriter().write("{\"error\":\"" + jscResponse.getCode() + " " + jscResponse.getReason()  + " -  " + jscResponse.getDescription() + "\"}");
+			log.warn("non 2xx response received : " + jscResponse.getCode() + " " + jscResponse.getReason()  + " -  " + jscResponse.getDescription());			
+        }
     }
 
 

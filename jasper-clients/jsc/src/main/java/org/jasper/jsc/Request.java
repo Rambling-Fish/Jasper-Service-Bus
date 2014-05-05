@@ -1,8 +1,14 @@
 package org.jasper.jsc;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jasper.jsc.constants.RequestConstants;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class Request {
 		
@@ -10,25 +16,66 @@ public class Request {
 	
 	private Method method;
 	private String ruri;
-	private Map<String,String> headers;
-	private Map<String,String> parameters;
+	private JsonObject headers;
+	private JsonObject parameters;
 	private String rule;
 	private byte[] payload;
 	
 	public Request(Method method, String ruri, Map<String, String> headers) {
-		this(method, ruri, headers, null, null, null);
+		this(method,ruri,convertMapToJsonObject(headers));
+	}
+	
+	public Request(Method method, String ruri, JsonObject headers) {
+		super();
+		this.method = method;
+		this.ruri = ruri;
+		this.headers = headers;
+		this.parameters = null;
+		this.rule = null;
+		this.payload = null;
+	}
+	
+	public Request(Method method, String ruri,JsonObject headers, Map<String, String> parameters) {
+		this(method, ruri, headers, convertMapToJsonObject(parameters), null, null);
 	}
 	
 	public Request(Method method, String ruri, Map<String, String> headers, Map<String, String> parameters) {
-		this(method, ruri, headers, parameters, null, null);
+		this(method, ruri, headers, convertMapToJsonObject(parameters), null, null);
 	}
 	
 	public Request(Method method, String ruri, Map<String, String> headers, Map<String, String> parameters, String rule) {
+		this(method, ruri, headers, convertMapToJsonObject(parameters), rule, null);
+	}
+	
+	public Request(Method method, String ruri, Map<String, String> headers,	Map<String, String> parameters, String rule, byte[] payload) {
+		this(method, ruri, headers, convertMapToJsonObject(parameters), rule, payload);
+	}
+	
+	public Request(Method method, String ruri, JsonObject headers,	Map<String, String> parameters, String rule, byte[] payload) {
+		this(method, ruri, headers, convertMapToJsonObject(parameters), rule, payload);
+	}
+	
+	public Request(Method method, String ruri, Map<String, String> headers, JsonObject parameters) {
+		this(method, ruri, headers, parameters, null, null);
+	}
+	
+	public Request(Method method, String ruri, JsonObject headers, JsonObject parameters) {
+		this(method, ruri, headers, parameters, null, null);
+	}
+	
+	public Request(Method method, String ruri, Map<String, String> headers, JsonObject parameters, String rule) {
 		this(method, ruri, headers, parameters, rule, null);
 	}
 	
-	public Request(Method method, String ruri, Map<String, String> headers,
-			Map<String, String> parameters, String rule, byte[] payload) {
+	public Request(Method method, String ruri, JsonObject headers, JsonObject parameters, String rule) {
+		this(method, ruri, headers, parameters, rule, null);
+	}
+	
+	public Request(Method method, String ruri, Map<String, String> headers,	JsonObject parameters, String rule, byte[] payload) {
+		this(method, ruri, convertMapToJsonObject(headers), parameters, rule, null);
+	}
+	
+	public Request(Method method, String ruri, JsonObject headers,	JsonObject parameters, String rule, byte[] payload) {
 		super();
 		this.method = method;
 		this.ruri = ruri;
@@ -38,6 +85,19 @@ public class Request {
 		this.payload = payload;
 	}
 	
+	private static JsonObject convertMapToJsonObject(Map<String, String> params) {
+		JsonObject result = new JsonObject();
+		JsonParser jParser = new JsonParser();
+		
+		if(params == null) return result;
+		
+		for(Entry<String, String> entry:params.entrySet()){
+			result.add(entry.getKey(), jParser.parse(entry.getValue()));
+		}
+		
+		return result;
+	}
+
 	public String getVersion() {
 		return version;
 	}
@@ -53,17 +113,41 @@ public class Request {
 	public void setRuri(String ruri) {
 		this.ruri = ruri;
 	}
-	public Map<String, String> getHeaders() {
+	public JsonObject getHeaders() {
 		return headers;
 	}
-	public void setHeaders(Map<String, String> headers) {
+	public void setHeaders(JsonObject headers) {
 		this.headers = headers;
 	}
-	public Map<String, String> getParameters() {
+	public JsonObject getParameters() {
 		return parameters;
 	}
-	public void setParameters(Map<String, String> parameters) {
+	public void setParameters(JsonObject parameters) {
 		this.parameters = parameters;
+	}
+	public Map<String, String> getParametersAsMap() {
+		 Map<String, String> result = new HashMap<String, String>();
+		
+		 for(Entry<String, JsonElement> entry:parameters.entrySet()){
+			 result.put(entry.getKey(), entry.getValue().toString());
+		 }
+		 
+		return result;
+	}
+	public void parseAndSetParameters(Map<String, String> parameters) {
+		this.parameters = convertMapToJsonObject(parameters);
+	}
+	public Map<String, String> getHeadersAsMap() {
+		 Map<String, String> result = new HashMap<String, String>();
+		
+		 for(Entry<String, JsonElement> entry:headers.entrySet()){
+			 result.put(entry.getKey(), entry.getValue().toString());
+		 }
+		 
+		return result;
+	}
+	public void parseAndSetHeaders(Map<String, String> headers) {
+		this.headers = convertMapToJsonObject(headers);
 	}
 	public String getRule() {
 		return rule;

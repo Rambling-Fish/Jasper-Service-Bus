@@ -7,6 +7,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.ObjectMessage;
 
+import org.apache.activemq.command.ActiveMQTextMessage;
 import org.apache.log4j.Logger;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
@@ -25,12 +26,12 @@ public class AdminHandler implements Runnable {
 	
 	private static Logger logger = Logger.getLogger(AdminHandler.class.getName());
 
-	public AdminHandler(Delegate delegate, DelegateOntology jOntology, Message jmsRequest, Map<String,Object> locks, Map<String,Message> responses) {
+	public AdminHandler(Delegate delegate, Message jmsRequest) {
 		this.delegate   = delegate;
-		this.jOntology  = jOntology;
+		this.jOntology  = delegate.getJOntology();
 		this.jmsRequest = jmsRequest;
-		this.locks      = locks;
-		this.responses  = responses;	
+		this.locks      = delegate.getLocksMap();
+		this.responses  = delegate.getResponsesMap();	
 	}
 
 	public void run() {
@@ -49,6 +50,9 @@ public class AdminHandler implements Runnable {
 				case jta_connect:
 					handleConnect();
 					break;
+				case get_ontology:
+					handleGetOntology();
+					break;
 				default:
 					logger.error("Invalid Jasper Admin Message received - ignoring " + jam.getCommand());
 					break;
@@ -58,27 +62,45 @@ public class AdminHandler implements Runnable {
 		}
 	}
 	
+	private void handleGetOntology() throws JMSException {
+		String[] serilaizedModels = jOntology.getSerializedModels();
+		Message msg = delegate.createObjectMessage(serilaizedModels);
+        msg.setJMSCorrelationID(jmsRequest.getJMSCorrelationID());
+	    delegate.sendMessage(jmsRequest.getJMSReplyTo(), msg);		
+	}
+
 	private void handleDisconnect(){
 		if(jam.getDetails()[0] !=null && jam.getDetails()[0] instanceof String && ((String) jam.getDetails()[0]).length() > 0){
 			jOntology.remove((String)jam.getDetails()[0]);
-			if(logger.isDebugEnabled()) logger.debug("received disconnect for jta : " + (String)jam.getDetails()[0]);
+			if(logger.isDebugEnabled()) logger.debug("received disconnect for dta : " + (String)jam.getDetails()[0]);
 		}else{
 			logger.warn("received invalid disconnect command, details[0] != string, unknown disconnection request");
 		}
 	}
 	
 	private void handleConnect() throws JMSException {
-		String jtaId = null;
+		String dtaName = null;
 		
 		if(jam.getDetails()[0] !=null && jam.getDetails()[0] instanceof String && ((String) jam.getDetails()[0]).length() > 0){
-			jtaId = (String)jam.getDetails()[0];
-			if(logger.isDebugEnabled()) logger.debug("received connect for jta : " + (String)jam.getDetails()[0]);
+			dtaName = (String)jam.getDetails()[0];
+			if(logger.isDebugEnabled()) logger.debug("received connect for dta : " + (String)jam.getDetails()[0]);
 		}else{
 			logger.warn("received invalid connect command, details[0] != string, unknown connection request, ignoring");
 			return;
 		}
 		
-		String jtaAdminQueue = "jms." + jtaId.replace(":", ".") + ".admin.queue";
+		String dtaAdminQueue = null;
+		
+		if(jam.getDetails()[1] !=null && jam.getDetails()[1] instanceof String && ((String) jam.getDetails()[1]).length() > 0){
+			dtaAdminQueue = (String)jam.getDetails()[1];
+		}else{
+			logger.warn("received invalid connect command, details[1] != string, unknown connection request, ignoring");
+			return;
+		}
+		
+		if(logger.isDebugEnabled()) logger.debug("received connect for dta : " + dtaName + " on adminQ : " + dtaAdminQueue);
+
+		
 		
 		Message msg = delegate.createObjectMessage(new JasperAdminMessage(Type.ontologyManagement,Command.get_ontology));
         String correlationID = UUID.randomUUID().toString();
@@ -88,8 +110,8 @@ public class AdminHandler implements Runnable {
         Object lock = new Object();
 		synchronized (lock) {
 			locks.put(correlationID, lock);
-		    delegate.sendMessage(jtaAdminQueue, msg);
-			if(logger.isDebugEnabled()) logger.debug("sent get_ontology command to : " + jtaAdminQueue);
+		    delegate.sendMessage(dtaAdminQueue, msg);
+			if(logger.isDebugEnabled()) logger.debug("sent get_ontology command to : " + dtaAdminQueue);
 
 		    int count = 0;
 		    while(!responses.containsKey(correlationID)){
@@ -105,22 +127,18 @@ public class AdminHandler implements Runnable {
 			if(logger.isDebugEnabled()) logger.debug("received response : " + response);
 		}
 
-		String[][] triples = null;
-		if(response instanceof ObjectMessage && ((ObjectMessage)response).getObject() instanceof String[][]){
-			triples = (String[][]) ((ObjectMessage)response).getObject();
-		}else{
-			logger.warn("Ignoring invalid response, expected ObjectMessage carrying String[][] but instead received " + response);
-			return;
-		}
-		
-		for(String[] triple:triples){
-			if(triple.length != 3){
-				logger.error("String[] received that is not a triple, ignoring");
-				continue;
-			}
-			jOntology.add(jtaId, triple);
-			if(logger.isDebugEnabled()) logger.debug("jta : " + jtaId + " - adding triple : " + triple[0] + " " + triple[1] + " " + triple[2]);
-		}
-		
+        String triples = null;
+        if(response instanceof ActiveMQTextMessage && ((ActiveMQTextMessage)response).getText() instanceof String){
+                triples = (String) ((ActiveMQTextMessage)response).getText();
+        }else{
+                logger.warn("Ignoring invalid response, expected ObjectMessage carrying String but instead received " + response);
+                return;
+        }
+
+        if(triples != null){
+                jOntology.add(dtaName, triples);
+        }else{
+                logger.warn("triples null, ignoring add request for dta : " + dtaName);
+        }
 	}
 }
