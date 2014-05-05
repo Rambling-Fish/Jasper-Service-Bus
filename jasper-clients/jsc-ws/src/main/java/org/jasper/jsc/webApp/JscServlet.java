@@ -142,6 +142,13 @@ public class JscServlet extends HttpServlet {
     	
 		Response jscResponse = jsc.get(jReq);
        
+		if(jscResponse == null){
+	        response.setStatus(408);
+			response.getWriter().write("{\"error\":\"408 Request Timeout\"}");
+			log.warn("null response from jsc.get(request) assuming timeout");
+			return;
+		}
+		
 		String contentType;
 		if(jscResponse.getHeaders() != null){
 			contentType = (jscResponse.getHeaders().containsKey(ResponseHeaders.CONTENT_TYPE))?jscResponse.getHeaders().get(ResponseHeaders.CONTENT_TYPE):"application/json";
