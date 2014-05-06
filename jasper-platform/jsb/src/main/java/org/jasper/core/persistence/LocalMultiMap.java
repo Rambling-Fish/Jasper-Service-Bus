@@ -15,13 +15,13 @@ import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.MultiMap;
 import com.hazelcast.monitor.LocalMultiMapStats;
 
-public class LocalMuliMap<K, V> implements MultiMap {
+public class LocalMultiMap<K, V> implements MultiMap {
 	
 	private Map<K,Collection<V>> localmap;
 	private Map<String, EntryListener> listeners;
 	private Map<String, Boolean> listenersIncludeValue;
 
-	public LocalMuliMap(){
+	public LocalMultiMap(){
 		localmap = new ConcurrentHashMap<K, Collection<V>>();
 		listeners = new ConcurrentHashMap<String, EntryListener>();
 		listenersIncludeValue = new ConcurrentHashMap<String, Boolean>();
