@@ -16,7 +16,7 @@ public class PersistenceFacadeNonClusteredImpl implements PersistenceFacade {
 	@Override
 	public <K, V> MultiMap<K, V> getMultiMap(String name) {
 		if(!multiMap.containsKey(name)){
-			multiMap.put(name, new LocalMuliMap<K,V>());
+			multiMap.put(name, new LocalMultiMap<K,V>());
 		}
 		return multiMap.get(name);
 	}
