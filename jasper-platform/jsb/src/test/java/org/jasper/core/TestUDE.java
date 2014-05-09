@@ -1,6 +1,7 @@
 package org.jasper.core;
 
 import java.util.Properties;
+import java.util.UUID;
 
 import junit.framework.TestCase;
 
@@ -34,16 +35,24 @@ public class TestUDE extends TestCase {
 		TestCase.assertEquals(deployAndInst, "junitTest:0");
 	}
 	
-//	/*
-//	 * This test creates a new UDE class via constructor then 
-//	 * starts and stops it but sets clusterEnabled to true
-//	 */
-//	@Test
-//	public void testClusterEnabled() throws Exception {
-//	    props.setProperty("jsbClusterEnabled", "false");
-//		classUnderTest = new UDE(props);
-//		classUnderTest.start();
-//	}
+	/*
+	 * This test creates a new UDE class via constructor then 
+	 * starts and stops it but sets clusterEnabled to true
+	 */
+	@Test
+	public void testClusterEnabled() throws Exception {
+	    props.setProperty("jsbClusterEnabled", "true");
+	    props.setProperty("persisitence.groupName", UUID.randomUUID().toString());
+		classUnderTest = new UDE(props);
+		classUnderTest.start();
+	}
+	
+	@Test
+	public void testRemoteUDEConnectionDropped(){
+		classUnderTest = new UDE(props);
+		classUnderTest.start();
+		classUnderTest.remoteUdeConnectionDropped("client", "0.0.0.0", "username", "password");
+	}
 	
 	
 	@Before

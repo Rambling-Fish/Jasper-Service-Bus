@@ -36,7 +36,7 @@ public class Range implements Trigger, Serializable{
 	public boolean evaluate(JsonElement response){
 		JsonResponseParser respParser = new JsonResponseParser();
 		
-		if(response.isJsonNull()) return false;
+		if(response == null || response.isJsonNull()) return false;
 		List<Float> list = new ArrayList<Float>();
 		 
 		list = respParser.parse(response, left);
