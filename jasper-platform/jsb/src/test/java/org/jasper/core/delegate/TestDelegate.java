@@ -93,7 +93,6 @@ public class TestDelegate{// extends TestCase {
 	@Test
 	public void testDelegateSendMessage() throws Exception {
 		Destination globalQueue;
-//        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         globalQueue = session.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
 
 		Message msg = classUnderTest.createObjectMessage(new JasperAdminMessage(Type.ontologyManagement,Command.get_ontology));
@@ -214,7 +213,5 @@ public class TestDelegate{// extends TestCase {
 		cachingSys.shutdown();
 		classUnderTest.shutdown();
 		classUnderTest = null;
-		session.close();
-		connection.close();
 	}
 }
