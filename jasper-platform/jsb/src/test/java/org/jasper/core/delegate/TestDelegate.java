@@ -4,6 +4,7 @@ import static org.mockito.Mockito.when;
 
 import java.net.InetAddress;
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.jms.Connection;
@@ -54,6 +55,7 @@ public class TestDelegate{// extends TestCase {
 	private static Delegate classUnderTest;
 	private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
 	private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
+	private static Connection connection;
 	
 	/*
 	 * This test constructor of the Delegate class various get methods
@@ -63,19 +65,15 @@ public class TestDelegate{// extends TestCase {
 		System.out.println("======================");
 		System.out.println("RUNNING DELEGATE TESTS");
 		System.out.println("======================");
-		
-		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
-		Connection connection;
-
-        // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
-        connection = connectionFactory.createConnection();
         
 		Session sess = classUnderTest.getGlobalSession();
-		classUnderTest.getLocksMap();
-		classUnderTest.getJOntology();
-		classUnderTest.getResponsesMap();
+		Map<String, Object> locksMap = classUnderTest.getLocksMap();
+		DelegateOntology ont = classUnderTest.getJOntology();
+		Map<String, Message> respMap = classUnderTest.getResponsesMap();
+		TestCase.assertNotNull(sess);
+		TestCase.assertNotNull(locksMap);
+		TestCase.assertNotNull(respMap);
+		TestCase.assertNotNull(ont);
 	}
 	
 	/*
@@ -83,14 +81,6 @@ public class TestDelegate{// extends TestCase {
 	 */
 	@Test
 	public void testDelegateOnMessage() throws Exception {
-		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
-		Connection connection;
-
-        // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
-        connection = connectionFactory.createConnection();
-
 		Message msg = classUnderTest.createObjectMessage(new JasperAdminMessage(Type.ontologyManagement,Command.get_ontology));
 		msg.setJMSCorrelationID("123");
 		classUnderTest.processDelegateQMsg(msg);
@@ -101,22 +91,15 @@ public class TestDelegate{// extends TestCase {
 	 */
 	@Test
 	public void testDelegateSendMessage() throws Exception {
-		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
 		Destination globalQueue;
 		Session session;
-		Connection connection;
-
-        // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
-        connection = connectionFactory.createConnection();
         session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         globalQueue = session.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
 
 		Message msg = classUnderTest.createObjectMessage(new JasperAdminMessage(Type.ontologyManagement,Command.get_ontology));
 		msg.setJMSCorrelationID("123");
-//		classUnderTest.sendMessage(globalQueue, msg);
-//		classUnderTest.sendMessage("testQ", msg);
+		classUnderTest.sendMessage(globalQueue, msg);
+		classUnderTest.sendMessage("testQ", msg);
 	}	
 	
 	/*
@@ -125,14 +108,6 @@ public class TestDelegate{// extends TestCase {
 	 */
 	@Test
 	public void testDelegateCreateMessages() throws Exception {
-		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
-		Connection connection;
-
-        // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
-        connection = connectionFactory.createConnection();
-
 		ObjectMessage objMsg = classUnderTest.createObjectMessage(JASPER_ADMIN_PASSWORD);
 		TestCase.assertNotNull(objMsg);
 		
@@ -146,14 +121,6 @@ public class TestDelegate{// extends TestCase {
 	@Test
 	public void testDelegateCreateJasperResponse() throws Exception {
 		JasperConstants.ResponseCodes code = JasperConstants.ResponseCodes.OK;
-		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
-		Connection connection;
-
-        // Create a Connection
-        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
-        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
-        connection = connectionFactory.createConnection();
-
 		String result = classUnderTest.createJasperResponse(code, "respMsg", "response", "application/json", "1.0");
 		String result2 = classUnderTest.createJasperResponse(code, "respMsg", "response", null, null);
 		TestCase.assertNotNull(result);
@@ -213,10 +180,16 @@ public class TestDelegate{// extends TestCase {
 	
 	@BeforeClass
 	public static void setUpClass() throws Exception {
-		model          = ModelFactory.createDefaultModel();
-		ipAddr         = InetAddress.getLocalHost().getHostAddress();
+		model = ModelFactory.createDefaultModel();
+		ipAddr = InetAddress.getLocalHost().getHostAddress();
 		cachingSys = PersistenceFacadeFactory.getFacade(ipAddr, UUID.randomUUID().toString(), "testPasswd");
 		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
+		ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://localhost");
+
+        // Create a Connection
+        connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
+        connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
+        connection = connectionFactory.createConnection();
 	}
 	
 	@Before
@@ -240,5 +213,6 @@ public class TestDelegate{// extends TestCase {
 		cachingSys.shutdown();
 		classUnderTest.shutdown();
 		classUnderTest = null;
+		connection.close();
 	}
 }
