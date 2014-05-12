@@ -56,6 +56,7 @@ public class TestDelegate{// extends TestCase {
 	private static final String JASPER_ADMIN_USERNAME = "jasperAdminUsername";
 	private static final String JASPER_ADMIN_PASSWORD = "jasperAdminPassword";
 	private static Connection connection;
+	private static Session session;
 	
 	/*
 	 * This test constructor of the Delegate class various get methods
@@ -92,8 +93,7 @@ public class TestDelegate{// extends TestCase {
 	@Test
 	public void testDelegateSendMessage() throws Exception {
 		Destination globalQueue;
-		Session session;
-        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+//        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         globalQueue = session.createQueue(JasperConstants.DELEGATE_GLOBAL_QUEUE);
 
 		Message msg = classUnderTest.createObjectMessage(new JasperAdminMessage(Type.ontologyManagement,Command.get_ontology));
@@ -190,6 +190,7 @@ public class TestDelegate{// extends TestCase {
         connectionFactory.setUserName(JASPER_ADMIN_USERNAME);
         connectionFactory.setPassword(JASPER_ADMIN_PASSWORD);
         connection = connectionFactory.createConnection();
+        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
 	
 	@Before
@@ -213,6 +214,7 @@ public class TestDelegate{// extends TestCase {
 		cachingSys.shutdown();
 		classUnderTest.shutdown();
 		classUnderTest = null;
+		session.close();
 		connection.close();
 	}
 }
