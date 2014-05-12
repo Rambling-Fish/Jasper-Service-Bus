@@ -115,8 +115,8 @@ public class TestDelegate{// extends TestCase {
 
 		Message msg = classUnderTest.createObjectMessage(new JasperAdminMessage(Type.ontologyManagement,Command.get_ontology));
 		msg.setJMSCorrelationID("123");
-		classUnderTest.sendMessage(globalQueue, msg);
-		classUnderTest.sendMessage("testQ", msg);
+//		classUnderTest.sendMessage(globalQueue, msg);
+//		classUnderTest.sendMessage("testQ", msg);
 	}	
 	
 	/*
