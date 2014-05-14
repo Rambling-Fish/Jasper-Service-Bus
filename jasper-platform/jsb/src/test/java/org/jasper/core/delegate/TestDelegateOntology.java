@@ -127,7 +127,7 @@ public class TestDelegateOntology {
 			superRuri = it.next();
 		}
 		resultSet.clear();
-		resultSet = classUnderTest.getSubProperties(superRuri);
+		resultSet = classUnderTest.getEquivalentProperties(superRuri);
 		//TODO fix this when Maged/Abe fix code. This should not be null
 		TestCase.assertNull(resultSet);
 		

@@ -185,25 +185,44 @@ public class DataRequestHandler implements Runnable {
 		
 	}
 
-	private void processPublishRequest(JsonElement jsonRequest, String ruri) throws JMSException {
+	private void processPublishRequest(JsonElement jsonRequest, String typeUri) throws JMSException {
+		JsonElement payload = jsonRequest.getAsJsonObject().get(JasperConstants.PARAMETERS_LABEL);
+		processPublishPayload(null, payload);
+	}
 
-		JsonElement data = jsonRequest.getAsJsonObject().get(JasperConstants.PARAMETERS_LABEL);
-		
-		//send to ruri
-		sendPublishToSubscribers(ruri,data);
-		
-		//send to subcribers of superproperty
-		Set<String> superRuris = jOntology.getSuperProperties(ruri);
-		for(String superRuri:superRuris){
-			sendPublishToSubscribers(superRuri, data);
+	private void processPublishPayload(String uri, JsonElement data) throws JMSException {
+
+		if(data.isJsonPrimitive() || data.isJsonArray()){
+			sendPublishToSubscribers(uri, data);
+			return;
 		}
 		
-		//extra data and send to subscribers of subproperties
-		Set<String> subProperties = jOntology.getSubProperties(ruri);
-		for(String subPropertyUri:subProperties){
-			JsonElement subProperty = extractRuriData(subPropertyUri, data);
-			sendPublishToSubscribers(subPropertyUri,subProperty);
+		if(!data.isJsonObject()){
+			logger.warn("Invalid publish payload, not json object, primitive no array, ignoring");
+			return;
 		}
+		
+		for(Entry<String, JsonElement> entry:data.getAsJsonObject().entrySet()){
+			sendPublishToSubscribers(entry.getKey(),entry.getValue());
+
+			//send to subcribers of superproperty
+			Set<String> superPropertyUris = jOntology.getSuperProperties(entry.getKey());
+			for(String superRuri:superPropertyUris){
+				sendPublishToSubscribers(superRuri, entry.getValue());
+			}
+			
+			//send to subcribers of equivalent property
+			Set<String> equivalentPropertiesUris = jOntology.getEquivalentProperties(entry.getKey());
+			for(String equivalentUri:equivalentPropertiesUris){
+				sendPublishToSubscribers(equivalentUri, entry.getValue());
+			}
+			
+		}
+		
+		for(Entry<String, JsonElement> entry:data.getAsJsonObject().entrySet()){
+			processPublishPayload(entry.getKey(), entry.getValue());
+		}
+		
 		
 	}
 
