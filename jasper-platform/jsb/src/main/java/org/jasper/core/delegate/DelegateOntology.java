@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -22,10 +21,7 @@ import com.google.gson.JsonPrimitive;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.IMap;
-import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.ontology.OntProperty;
-import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -35,10 +31,7 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.sparql.resultset.JSONOutput;
-import com.hp.hpl.jena.vocabulary.RDF;
-import com.hp.hpl.jena.vocabulary.RDFS;
 
 public class DelegateOntology implements EntryListener<String, String>{
 	
@@ -52,7 +45,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 	private Map<String, String>	provideOperationInputObjectCache;
 	private Map<String, String>	provideDestinationQueueCache;
 	private Map<String, Set<String>> superPropertyList;
-	private Map<String, Set<String>> subPropertyList;
+	private Map<String, Set<String>> equivalentPropertyList;
 	private Map<String, Boolean>	knownRuriForInputPublishCache;
 	
 	static Logger logger = Logger.getLogger(DelegateOntology.class.getName());
@@ -80,7 +73,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 		provideOperationInputObjectCache = new ConcurrentHashMap<String,String>();
 		provideDestinationQueueCache = new ConcurrentHashMap<String,String>();
 		superPropertyList = new ConcurrentHashMap<String,Set<String>>();
-		subPropertyList = new ConcurrentHashMap<String,Set<String>>();
+		equivalentPropertyList = new ConcurrentHashMap<String,Set<String>>();
 		knownRuriForInputPublishCache = new ConcurrentHashMap<String,Boolean>();
 		
 		for(String dtaName:dtaTriples.keySet()){
@@ -101,7 +94,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 		provideOperationInputObjectCache.clear();
 		provideDestinationQueueCache.clear();
 		superPropertyList.clear();
-		subPropertyList.clear();
+		equivalentPropertyList.clear();
 		knownRuriForInputPublishCache.clear();
 	}
 
@@ -231,29 +224,36 @@ public class DelegateOntology implements EntryListener<String, String>{
 		return superPropertyList.get(ruri);
 	}
 	
-	public Set<String> getSubProperties(String ruri){
+	public Set<String> getEquivalentProperties(String ruri) {
 		if (ruri == null) return null;
 		
-		if(!subPropertyList.containsKey(ruri)){
-			Set<String> fullList = new HashSet<String>();
+		if(!equivalentPropertyList.containsKey(ruri)){
+			String queryString = 
+					JasperOntologyConstants.PREFIXES +
+		             "SELECT ?equivalentProperty  WHERE " +
+	             "   {" +
+	             "         <" + ruri + ">   (rdfs:equivalentProperty|^rdfs:equivalentProperty)+ ?equivalentProperty \n" +
+	             "   }" ;
 			
-			OntClass ontClass = model.getOntClass(ruri);
-			if(ontClass == null){
-				//TODO add null set to map to cache
-				return null;
+			Query query = QueryFactory.create(queryString) ;
+			QueryExecution qexec = QueryExecutionFactory.create(query, model);
+			Set<String> array = new HashSet<String>();
+			try {
+				ResultSet results = qexec.execSelect() ;
+				for ( ; results.hasNext() ; )
+				{
+					QuerySolution soln = results.nextSolution();
+					array.add(soln.get("equivalentProperty").toString());
+					
+				}
+			}finally{
+				qexec.close();
 			}
-			Set<Resource> list = model.listSubjectsWithProperty(RDFS.domain, ontClass).toSet();
-			for(Resource r:list){
-				fullList.add(r.getURI());
-				Set<String> subprops = getSubProperties(r.getURI());
-				if (subprops != null)
-					fullList.addAll(subprops);
-			}
-			
-			subPropertyList.put(ruri, fullList);
+			equivalentPropertyList.put(ruri, array);
 		}
-		return subPropertyList.get(ruri);
+		return equivalentPropertyList.get(ruri);
 	}
+	
 	
 
 	//========================================================================================== 
