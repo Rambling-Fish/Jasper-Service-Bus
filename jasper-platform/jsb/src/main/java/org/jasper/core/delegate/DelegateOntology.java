@@ -319,14 +319,14 @@ public class DelegateOntology implements EntryListener<String, String>{
 		             "ASK  WHERE " +
 		             "   {{" +
 		             "         ?dta    a                               dta:DTA       .\n" +
-		             "         ?dta   dta:request                     ?req         .\n" +
+		             "         ?dta   dta:operation                    ?req         .\n" +
 		             "         ?req   dta:kind                        dta:Publish       .\n" +
 		             "         ?req   dta:parameter/rdfs:subPropertyOf*   <" + ruri + "> .\n" +
 		             "   }" + 
 		             "       UNION" +
 		             "   {" +
 		             "      ?dta              a                dta:DTA        .\n" +
-		             "      ?dta        dta:request    ?req     .\n" +
+		             "      ?dta        dta:operation          ?req     .\n" +
 		             "      ?req        dta:kind         dta:Publish        .\n" +
 		             "      ?req        dta:parameter/rdfs:subPropertyOf*       ?superRuri     .\n" +
 		             "      ?superRuri        rdfs:range       ?superType     .\n" +
