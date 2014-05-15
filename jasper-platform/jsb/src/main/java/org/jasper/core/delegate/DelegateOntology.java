@@ -87,6 +87,14 @@ public class DelegateOntology implements EntryListener<String, String>{
 		
 	}
 	
+	//TODO
+	private void initializeCaches(){
+		initializeProvideOperationsCache();
+		initializeProvideOperationInputObjectCacheAndSchemaCache();
+		initializeProvideDestinationQueueCache();
+		
+	}
+	
 	private void clearCaches(){
 		schemaCache.clear();
 		knownRuriForOutputGetCache.clear();
@@ -335,7 +343,47 @@ public class DelegateOntology implements EntryListener<String, String>{
 			}
 		}
 		return knownRuriForInputPublishCache.get(ruri);
-	}	
+	}
+	
+	private void initializeProvideOperationsCache(){
+		String queryString = 
+				JasperOntologyConstants.PREFIXES +
+	             "SELECT ?ruri  WHERE \n" +
+	             "   {{\n" +
+	             "      ?dta              a                dta:DTA        .\n" +
+	             "      ?dta              dta:operation    ?operation     .\n" +
+	             "      ?operation        dta:kind         dta:Get        .\n" +
+	             "      ?operation        dta:data/rdfs:subPropertyOf*   ?ruri .\n" +
+	             "       }" +
+	             "       UNION" +
+	             "       {" +
+	             "      ?dta           a                dta:DTA        .\n" +
+	             "      ?dta           dta:operation    ?operation     .\n" +
+	             "      ?operation     dta:kind         dta:Get        .\n" +
+	             "      ?operation     dta:data/rdfs:subPropertyOf*       ?superRuri     .\n" +
+	             "      ?superRuri     rdfs:range       ?superType     .\n" +
+	             "      ?ruri rdfs:domain      ?superType     .\n" +
+	             "   }}" ;
+		
+		Query query = QueryFactory.create(queryString) ;
+		QueryExecution qexec = QueryExecutionFactory.create(query, model);
+		ArrayList<String> array = new ArrayList<String>();
+		try {
+			ResultSet results = qexec.execSelect() ;
+			for ( ; results.hasNext() ; )
+			{
+				QuerySolution soln = results.nextSolution();
+				array.add(soln.get("ruri").toString());
+				
+			}
+		}finally{
+			qexec.close();
+		}
+		
+		for(String ruri:array){
+			getProvideOperations(ruri);
+		}
+	}
 	
 	//========================================================================================== 
 	// METHOD:  getProvideOperations
@@ -388,6 +436,39 @@ public class DelegateOntology implements EntryListener<String, String>{
 		return provideOperationsCache.get(ruri);
 	}	
 
+	private void initializeProvideOperationInputObjectCacheAndSchemaCache(){
+		String queryString = 
+				JasperOntologyConstants.PREFIXES +
+	             "SELECT ?operation  WHERE \n" +
+	             "   {\n" +
+	             "      ?dta            a              dta:DTA        .\n" +
+	             "      ?dta            dta:operation  ?operation .\n" +
+	             "      ?operation  dta:kind       dta:Get        .\n" +
+	             "      ?operation  dta:parameter  ?input          \n" +
+	             "   }" ;
+
+		Query query = QueryFactory.create(queryString) ;
+		QueryExecution qexec = QueryExecutionFactory.create(query, model);
+		ArrayList<String> array = new ArrayList<String>();
+		try {
+			ResultSet results = qexec.execSelect() ;
+			for ( ; results.hasNext() ; )
+			{
+				QuerySolution soln = results.nextSolution();
+				array.add(soln.get("operation").toString());
+				
+			}
+		}finally{
+			qexec.close();
+		}
+		
+		for(String ruri:array){
+			getProvideOperationInputObject(ruri);
+			createJsonSchema(ruri);
+		}
+		
+	}
+	
 	//========================================================================================== 
 	// METHOD:  getProvideOperationInputObject
 	//
@@ -429,6 +510,43 @@ public class DelegateOntology implements EntryListener<String, String>{
 		}
 		return provideOperationInputObjectCache.get(oper);
 	}		
+	
+	
+	private void initializeProvideDestinationQueueCache(){
+		String queryString = 
+				JasperOntologyConstants.PREFIXES +
+	             "SELECT ?operation  WHERE \n" +
+	             "   {\n" +
+	             "      ?dta            a                dta:DTA        .\n" +
+	             "      ?dta            dta:operation    ?operation .\n" +
+	             "      ?operation  dta:kind         dta:Get        .\n" +
+	             "      ?operation  dta:destination  ?dest           \n" +
+	             "   }" ;
+		
+		Query query = QueryFactory.create(queryString) ;
+		QueryExecution qexec = QueryExecutionFactory.create(query, model);
+		ArrayList<String> array = new ArrayList<String>();
+		
+		try 
+		{
+			ResultSet results = qexec.execSelect() ;
+			for ( ; results.hasNext() ; )
+			{
+				QuerySolution soln = results.nextSolution();
+				array.add(soln.get("operation").asLiteral().getString());
+				
+			}
+		}
+		finally
+		{
+			qexec.close();
+		}
+		
+		for(String ruri:array){
+			getProvideDestinationQueue(ruri);
+		}
+		
+	}
 	
 	//========================================================================================== 
 	// METHOD:  getProvideDestinationQueue
@@ -803,6 +921,7 @@ public class DelegateOntology implements EntryListener<String, String>{
         model.addSubModel(subModel);
         dtaSubModels.put(dtaName, subModel);
         clearCaches();
+        initializeCaches();
     }
     
     public void entryEvicted(EntryEvent<String, String> event) {
@@ -821,6 +940,7 @@ public class DelegateOntology implements EntryListener<String, String>{
                 logger.warn("trying to remove dtaName that does not exist in map : " + dtaName);
         }
         clearCaches();
+        initializeCaches();
     }
 
     public void entryUpdated(EntryEvent<String, String> event) {
