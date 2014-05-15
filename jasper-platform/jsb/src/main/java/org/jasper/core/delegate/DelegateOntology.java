@@ -87,7 +87,6 @@ public class DelegateOntology implements EntryListener<String, String>{
 		
 	}
 	
-	//TODO
 	private void initializeCaches(){
 		initializeProvideOperationsCache();
 		initializeProvideOperationInputObjectCacheAndSchemaCache();
