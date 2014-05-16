@@ -89,65 +89,65 @@ public class TestDelegateOntology {
 		TestCase.assertEquals(false, result);
 	}
 	
-	/**
-	 * This method tests all the public GET methods of the DelegateOntology class
-	 * Decided to test all methods in a single test case to save time having to
-	 * start/stop hazelcast between each test.
-	 * 
-	 * @throws Exception
-	 */
-	@Test
-	public void testAllGetOperations() throws Exception {
-		ArrayList<String> results = classUnderTest.getProvideOperations(null);
-		TestCase.assertEquals(null, results);
-		
-		loadModel();
-		Thread.sleep(50);
-		results = classUnderTest.getProvideOperations(ruri);
-		TestCase.assertEquals(1, results.size());
-		
-		String result = classUnderTest.getProvideDestinationQueue(null);
-		TestCase.assertEquals(null, result);
-		result = classUnderTest.getProvideDestinationQueue(operation);
-		TestCase.assertEquals(dest, result);
-		
-		result = classUnderTest.getProvideOperationInputObject(null);
-		TestCase.assertEquals(null, result);
-		result = classUnderTest.getProvideOperationInputObject(operation);
-		TestCase.assertEquals(inputObject, result);
-		
-		String[] strArr = classUnderTest.getSerializedModels();
-		TestCase.assertNotNull(strArr);
-		
-		Set<String>resultSet = classUnderTest.getSuperProperties(ruri);
-		TestCase.assertEquals(1, resultSet.size());
-		Iterator<String> it = resultSet.iterator();
-		String superRuri = null;
-		while(it.hasNext()){
-			superRuri = it.next();
-		}
-		resultSet.clear();
-		resultSet = classUnderTest.getEquivalentProperties(superRuri);
-		//TODO fix this when Maged/Abe fix code. This should not be null
-		TestCase.assertNull(resultSet);
-		
-		ArrayList<String> arrList = classUnderTest.fetchPostOperations(publishUri);
-		TestCase.assertNotNull(arrList);
-		arrList = classUnderTest.fetchPostOperations(null);
-		TestCase.assertNull(arrList);
-		
-		String oper = "http://coralcea.ca/jasper/Sms/sendSms";
-		String inputObj = classUnderTest.fetchPostOperationInputObject(oper);
-		TestCase.assertEquals("http://coralcea.ca/jasper/Sms/SmsPostReq", inputObj);
-		inputObj = classUnderTest.fetchPostOperationInputObject(null);
-		TestCase.assertNull(inputObj);
-		
-		String destQ = classUnderTest.fetchPostDestinationQueue(oper);
-		TestCase.assertEquals("dta-sms-terminator-sendsms", destQ);
-		destQ = classUnderTest.fetchPostDestinationQueue(null);
-		TestCase.assertNull(destQ);
-			
-	}
+//	/**
+//	 * This method tests all the public GET methods of the DelegateOntology class
+//	 * Decided to test all methods in a single test case to save time having to
+//	 * start/stop hazelcast between each test.
+//	 * 
+//	 * @throws Exception
+//	 */
+//	@Test
+//	public void testAllGetOperations() throws Exception {
+//		ArrayList<String> results = classUnderTest.getProvideOperations(null);
+//		TestCase.assertEquals(null, results);
+//		
+//		loadModel();
+//		Thread.sleep(50);
+//		results = classUnderTest.getProvideOperations(ruri);
+//		TestCase.assertEquals(1, results.size());
+//		
+//		String result = classUnderTest.getProvideDestinationQueue(null);
+//		TestCase.assertEquals(null, result);
+//		result = classUnderTest.getProvideDestinationQueue(operation);
+//		TestCase.assertEquals(dest, result);
+//		
+//		result = classUnderTest.getProvideOperationInputObject(null);
+//		TestCase.assertEquals(null, result);
+//		result = classUnderTest.getProvideOperationInputObject(operation);
+//		TestCase.assertEquals(inputObject, result);
+//		
+//		String[] strArr = classUnderTest.getSerializedModels();
+//		TestCase.assertNotNull(strArr);
+//		
+//		Set<String>resultSet = classUnderTest.getSuperProperties(ruri);
+//		TestCase.assertEquals(1, resultSet.size());
+//		Iterator<String> it = resultSet.iterator();
+//		String superRuri = null;
+//		while(it.hasNext()){
+//			superRuri = it.next();
+//		}
+//		resultSet.clear();
+//		resultSet = classUnderTest.getEquivalentProperties(superRuri);
+//		//TODO fix this when Maged/Abe fix code. This should not be null
+//		TestCase.assertNull(resultSet);
+//		
+//		ArrayList<String> arrList = classUnderTest.fetchPostOperations(publishUri);
+//		TestCase.assertNotNull(arrList);
+//		arrList = classUnderTest.fetchPostOperations(null);
+//		TestCase.assertNull(arrList);
+//		
+//		String oper = "http://coralcea.ca/jasper/Sms/sendSms";
+//		String inputObj = classUnderTest.fetchPostOperationInputObject(oper);
+//		TestCase.assertEquals("http://coralcea.ca/jasper/Sms/SmsPostReq", inputObj);
+//		inputObj = classUnderTest.fetchPostOperationInputObject(null);
+//		TestCase.assertNull(inputObj);
+//		
+//		String destQ = classUnderTest.fetchPostDestinationQueue(oper);
+//		TestCase.assertEquals("dta-sms-terminator-sendsms", destQ);
+//		destQ = classUnderTest.fetchPostDestinationQueue(null);
+//		TestCase.assertNull(destQ);
+//			
+//	}
 	
 	@Test
 	public void testCreateJsonSchema() throws Exception {

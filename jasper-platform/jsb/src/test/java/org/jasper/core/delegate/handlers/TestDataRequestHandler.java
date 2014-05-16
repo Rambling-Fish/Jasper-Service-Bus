@@ -168,7 +168,6 @@ public class TestDataRequestHandler{
 		when(mockDelegate.getDataSubscriptions(ruri)).thenReturn(subs);
 		when(mockOntology.isRuriKnownForInputPublish(publishRuri)).thenReturn(true);
 		when(mockOntology.getSuperProperties(ruri)).thenReturn(URIs);
-		when(mockOntology.getSubProperties(ruri)).thenReturn(URIs);
 		when(mockSubscriptionReq.getExpiry()).thenReturn(1);
 		when(mockSubscriptionReq.getTimestampMillis()).thenReturn(System.currentTimeMillis() + time);
 		when(mockSubscriptionReq.getTriggerList()).thenReturn(null);
