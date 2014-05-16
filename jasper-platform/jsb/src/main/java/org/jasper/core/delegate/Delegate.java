@@ -195,7 +195,7 @@ public class Delegate {
 			if(jmsRequest instanceof ObjectMessage && ((ObjectMessage)jmsRequest).getObject() instanceof JasperAdminMessage && ((JasperAdminMessage)((ObjectMessage)jmsRequest).getObject()).getType() == Type.ontologyManagement){
 				if(logger.isInfoEnabled()) logger.info("received Admin request : " + ((JasperAdminMessage)((ObjectMessage)jmsRequest).getObject()).toString());
 				delegateRequestThreadPool.submit(new AdminHandler(this, jmsRequest));
-			}else if (jmsRequest instanceof TextMessage && ((TextMessage) jmsRequest).getText().contains("query") ){
+			}else if (jmsRequest instanceof TextMessage && ((TextMessage) jmsRequest).getText().contains("sparql") ){
 				delegateRequestThreadPool.submit(new SparqlHandler(this, jmsRequest));
 			}else if (jmsRequest instanceof TextMessage	&& ((TextMessage) jmsRequest).getText() !=null){
 				PersistedDataRequest pData = null;

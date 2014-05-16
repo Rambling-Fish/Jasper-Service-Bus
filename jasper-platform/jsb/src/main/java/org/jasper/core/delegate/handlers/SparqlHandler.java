@@ -48,7 +48,9 @@ public class SparqlHandler implements Runnable {
         		String queryString = parsedSparqlRequest[0];
 				String output;
 				output = (parsedSparqlRequest.length > 1) ? parsedSparqlRequest[1]:"json";
-			
+				if(output.isEmpty()){
+					output = "json";
+				}
 				// We only support json or xml as output formats
 				if(!output.equalsIgnoreCase("json") && (!output.equalsIgnoreCase("xml"))){
 					errorMsg="Output must be set to json or xml";

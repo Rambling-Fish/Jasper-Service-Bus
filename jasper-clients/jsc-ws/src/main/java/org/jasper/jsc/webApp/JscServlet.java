@@ -43,6 +43,7 @@ public class JscServlet extends HttpServlet {
 	static Logger log = Logger.getLogger(JscServlet.class.getName());
 	private Map<String, String> uriMapper = new HashMap<String, String>();
 	private String rule;
+	private String ruri;
 	private static int MILLISECONDS = 1000;
 	
 	private Jsc jsc;
@@ -124,13 +125,13 @@ public class JscServlet extends HttpServlet {
 	}
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
-    	String ruri = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):null;
+    	ruri = (request.getRequestURI().length()>request.getContextPath().length())?request.getRequestURI().substring(request.getContextPath().length()+1):null;
     	ruri = URLDecoder.decode(ruri, "UTF-8");
     	if(uriMapper.containsKey(ruri)) ruri = uriMapper.get(ruri); // check if short form is being used and switch to long form URI
 		JsonObject headers = getHeaders(request);
 		Map<String, String> parameters;
 		if(ruri.equalsIgnoreCase("sparql")){
-			parameters = getSparqlParameters(request);
+			parameters = null;
 		}
 		else{
 			parameters = getParameters(request);
@@ -207,27 +208,6 @@ public class JscServlet extends HttpServlet {
    
     	return headers;
 	}
-    
-    private Map<String, String> getSparqlParameters(HttpServletRequest request) {
-    	String params = null;
-		StringBuilder sb = new StringBuilder();
-		String[] result = request.getQueryString().split("&");
-		
-    	if(result.length == 1){
-    		result[1] = "json";
-    	}
-    	sb.append(result[0]);
-    	sb.append(result[1]);
-    	params = sb.toString();
-    	
-    	if(params == null) return null;
-    	
-    	Map<String, String> map = new HashMap<String, String>();
-    	map.put("parameters", result[0]);
-    	map.put("output", result[1]);
-    	
-    	return map;
-    }
 
 	private Map<String, String> getParameters(HttpServletRequest request) throws UnsupportedEncodingException {
     	
@@ -289,6 +269,18 @@ public class JscServlet extends HttpServlet {
 
 	//TODO UPDATE PAYLOAD
 	private byte[] getPayload(HttpServletRequest request) {
+		if(ruri.equalsIgnoreCase("sparql")){
+			String[] result = request.getQueryString().split("&");
+			StringBuilder sb = new StringBuilder();
+			sb.append(result[0]);
+			if(result.length == 2){
+				sb.append(result[1]);
+			}
+			else{
+				sb.append("output=json");
+			}
+			return sb.toString().getBytes();
+		}
 		return null;
 	}
 	
