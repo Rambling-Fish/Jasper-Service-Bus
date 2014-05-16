@@ -318,18 +318,19 @@ public class DelegateOntology implements EntryListener<String, String>{
 		             "ASK  WHERE " +
 		             "   {{" +
 		             "         ?dta    a                               dta:DTA       .\n" +
-		             "         ?dta   dta:operation                    ?req         .\n" +
-		             "         ?req   dta:kind                        dta:Publish       .\n" +
-		             "         ?req   dta:parameter/rdfs:subPropertyOf*   <" + ruri + "> .\n" +
+		             "         ?dta   dta:operation                    ?operation         .\n" +
+		             "         ?operation   dta:kind                        dta:Publish       .\n" +
+		             "         ?operation   dta:parameter/rdfs:subClassOf*   ?type .\n" +
+		             "         <" + ruri + ">  rdfs:domain   ?type .\n" +
 		             "   }" + 
 		             "       UNION" +
 		             "   {" +
-		             "      ?dta              a                dta:DTA        .\n" +
-		             "      ?dta        dta:operation          ?req     .\n" +
-		             "      ?req        dta:kind         dta:Publish        .\n" +
-		             "      ?req        dta:parameter/rdfs:subPropertyOf*       ?superRuri     .\n" +
-		             "      ?superRuri        rdfs:range       ?superType     .\n" +
-		             "      <" + ruri + ">    rdfs:domain      ?superType     .\n" +
+		             "         ?dta    a                               dta:DTA       .\n" +
+		             "         ?dta   dta:operation                    ?operation         .\n" +
+		             "         ?operation   dta:kind                        dta:Publish       .\n" +
+		             "         ?operation   dta:parameter/rdfs:subClassOf*   ?type .\n" +
+		             "         ?superProp   rdfs:subPropertyOf*   <" + ruri + "> .\n" +
+		             "         ?superProp   rdfs:domain   ?type .\n" +
 		             "   }}" ;
 		             ;
 			try{
@@ -532,7 +533,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 			for ( ; results.hasNext() ; )
 			{
 				QuerySolution soln = results.nextSolution();
-				array.add(soln.get("operation").asLiteral().getString());
+				array.add(soln.get("operation").toString());
 				
 			}
 		}
@@ -598,7 +599,9 @@ public class DelegateOntology implements EntryListener<String, String>{
 		if(inputObject == null) return null;
 		
 		if(!schemaCache.containsKey(inputObject)){
-			schemaCache.put(inputObject, createJsonSchema(inputObject,true));
+			
+			JsonObject inObjSchema = createJsonSchema(inputObject,true);
+			if(inObjSchema != null)schemaCache.put(inputObject, inObjSchema);
 		}
 		return schemaCache.get(inputObject);
 	}
