@@ -8,14 +8,12 @@ import javax.jms.JMSException;
 import junit.framework.TestCase;
 
 import org.jasper.jsc.constants.RequestConstants;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class TestJSCMessages {
+public class TestJSCMessages extends TestCase{
 
 	private String ruri = "http://coralcea.ca/jasper/msData";
 	private Map<String,String> paramsMap = new HashMap<String,String>();
@@ -24,17 +22,6 @@ public class TestJSCMessages {
 	private JsonObject paramsObj;
 	private JsonParser parser = new JsonParser();
 	private byte[] payload = new byte[1];
-	
-	
-	@Before
-	public void setUp() throws Exception {	
-		
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		
-	}
 	
 
 	@Test
