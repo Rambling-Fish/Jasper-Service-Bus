@@ -58,6 +58,7 @@ public class TestJSC {
 	
 	@Test
 	public void testListeners() throws JMSException {
+		jsonObj = new JsonObject();
 		class TestListener implements Listener{
 
 			public void processMessage(Response response) {
