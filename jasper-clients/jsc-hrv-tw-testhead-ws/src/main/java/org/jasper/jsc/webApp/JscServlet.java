@@ -158,6 +158,7 @@ public class JscServlet extends HttpServlet {
 					recordT2();
 
 					String decoded = null;
+					String bodyText = "default";
 					
 					try {
 						decoded = new String(response.getPayload(), "UTF-8");
@@ -174,6 +175,13 @@ public class JscServlet extends HttpServlet {
 			    		log.error("logId not found in " + decoded);
 			    		return;
 			    	}
+			    	
+			    	if(logId.startsWith("cn-")) bodyText = ("Call Nurse Event - " + logId);
+			    	else if(logId.startsWith("ccn-")) bodyText = ("Cancel Call Nurse Event - " + logId);
+			    	else if(logId.startsWith("e-")) bodyText = ("URGENT Emergency Event!! - " + logId);
+			    	else if(logId.startsWith("ce-")) bodyText = ("Cancel Emergency Event - " + logId);
+			    	else if(logId.startsWith("rtu-")) bodyText = ("Room Temp Update Event - " + logId);
+			    	else if(logId.startsWith("dsc-")) bodyText = ("Door State Change Event - " + logId);
 
 			    	// send 
 			    	JsonObject headers = new JsonObject();
@@ -181,7 +189,7 @@ public class JscServlet extends HttpServlet {
 			    	headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/ld+json"));
 			    	parameters.add("http://coralcea.ca/jasper/Sms/toSms", new JsonPrimitive("to"));
 			    	parameters.add("http://coralcea.ca/jasper/Sms/fromSms", new JsonPrimitive("from"));
-			    	parameters.add("http://coralcea.ca/jasper/Sms/bodySms", new JsonPrimitive("smsBodyText"));
+			    	parameters.add("http://coralcea.ca/jasper/Sms/bodySms", new JsonPrimitive(bodyText));
 			    	parameters.add("http://coralcea.ca/jasper/Sms/logId", new JsonPrimitive(logId));
 
 			    	if(log.isDebugEnabled())log.debug("building Post Request for " + logId);
