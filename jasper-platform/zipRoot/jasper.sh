@@ -77,6 +77,7 @@ function force_stop_j {
       if [ "$OS" == 'Linux' ]; then
          rm /opt/jasper/jasper-2.1.0/udeAutoStart
       fi
+      rm $UDE_PID_FILE $UDEWrapper_PID_FILE
       echo ".. Done."
    fi
 }
