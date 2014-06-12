@@ -331,7 +331,8 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
             
             String adminQ = licenseKeySys.getClientAdminQueue(info.getPassword());
             if(adminQ != null){
-            	notifyDelegate(Command.jta_connect, info.getUserName(),adminQ);
+            	String instanceId = licenseKeySys.getClientInstanceId(key).toString();
+            	notifyDelegate(Command.jta_connect, info.getUserName().concat(":").concat(instanceId),adminQ);
             }
             
         }else{
@@ -465,7 +466,8 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
 
             String adminQ = licenseKeySys.getClientAdminQueue(info.getPassword());
             if(adminQ != null){
-            	notifyDelegate(Command.jta_disconnect, info.getUserName(),adminQ); 
+            	String instanceId = licenseKeySys.getClientInstanceId(key).toString();
+            	notifyDelegate(Command.jta_disconnect, info.getUserName().concat(":").concat(instanceId),adminQ); 
         	}
     		    		
     		if(logger.isInfoEnabled()) logger.info("connection for " + info.getUserName() + " removed, updated local and remote maps");
@@ -526,6 +528,7 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
 	    			sb.append(": " + jtaLic.getAppName());
 	    			sb.append(": " + jtaLic.getVersion());
 	    			sb.append(": " + jtaLic.getDeploymentId());
+	    			sb.append(": " + jtaLic.getinstanceId());
 	    		}
 	    		sb.append("\n\t} total system keys = " + registeredLicenseKeys.get(jsb).size());
 	    		count += registeredLicenseKeys.get(jsb).size();
