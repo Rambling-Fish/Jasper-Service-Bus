@@ -833,8 +833,9 @@ public class DelegateOntology implements EntryListener<String, String>{
 			for ( ; results.hasNext() ; )
 			{
 				QuerySolution soln = results.nextSolution();
-				if (soln != null) 
+				if (soln != null && !array.contains(soln.get("card").toString())){
 					array.add(soln.get("card").toString());
+				}
 				
 			}
 		}finally{
@@ -852,7 +853,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 		}
 		else
 		{
-			logger.error("invalid parameter restriction.  size=" + array.size() + " " + parm);
+			logger.error("invalid parameter restriction.  different restrictions for same parm with same class. class : " + ruri + " parm: " + parm);
 			return null;		
 		}
 	}			
