@@ -526,9 +526,9 @@ public class JasperBroker extends BrokerFilter implements EntryListener, javax.j
 	    			ClientLicense jtaLic = licenseKeySys.getClientLicense(JAuthHelper.hexToBytes(jtaKey));
 	    			sb.append("\n\t\t" + jtaLic.getVendor());
 	    			sb.append(": " + jtaLic.getAppName());
+	    			sb.append(": " + jtaLic.getinstanceId());
 	    			sb.append(": " + jtaLic.getVersion());
 	    			sb.append(": " + jtaLic.getDeploymentId());
-	    			sb.append(": " + jtaLic.getinstanceId());
 	    		}
 	    		sb.append("\n\t} total system keys = " + registeredLicenseKeys.get(jsb).size());
 	    		count += registeredLicenseKeys.get(jsb).size();
