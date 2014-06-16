@@ -339,7 +339,7 @@ public class DataRequestHandler implements Runnable {
 			polling_period = (rule!=null)?delegate.maxPollingInterval:0;
 		}
 		polling_period = (polling_period > delegate.maxPollingInterval)?delegate.maxPollingInterval:polling_period;
-		polling_period = (polling_period < delegate.minPollingInterval && polling_period > 0)?delegate.minPollingInterval:polling_period;
+		polling_period = (polling_period < delegate.minPollingInterval)?delegate.minPollingInterval:polling_period;
 				
 		int expiry;
 		if (jsonRequest.isJsonObject() && jsonRequest.getAsJsonObject().has(JasperConstants.HEADERS_LABEL) && jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).isJsonObject()
