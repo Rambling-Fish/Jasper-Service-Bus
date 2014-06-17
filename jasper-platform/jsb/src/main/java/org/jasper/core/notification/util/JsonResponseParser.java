@@ -44,7 +44,17 @@ public class JsonResponseParser{
 			}
 		}
 		else if(response.isJsonPrimitive()){
-			//TODO how to handle this case?
+			if(response.getAsJsonPrimitive().isString()){
+				try{
+					list.add(Float.parseFloat(response.getAsString()));
+				}catch(NumberFormatException ex){
+					//Do nothing as we do not add invalid data
+				}
+			}
+			else if(response.getAsJsonPrimitive().isNumber()){
+				list.add(response.getAsFloat());
+			}
+
 		}
 			
 		return list;
