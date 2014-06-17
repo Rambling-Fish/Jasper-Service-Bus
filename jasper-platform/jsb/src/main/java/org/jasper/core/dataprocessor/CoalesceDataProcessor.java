@@ -1,6 +1,8 @@
 package org.jasper.core.dataprocessor;
 
 import org.apache.log4j.Logger;
+import org.jasper.core.constants.JasperConstants;
+import org.jasper.core.exceptions.JasperRequestException;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -26,15 +28,15 @@ public class CoalesceDataProcessor implements DataProcessor{
     	}
 	}
     
-    public JsonElement process(){
-    	return coalesceOutput();
+    public JsonElement process() throws JasperRequestException{
+		return coalesceOutput();
     }
     
-    private JsonElement coalesceOutput(){ 	
+    private JsonElement coalesceOutput() throws JasperRequestException{ 	
     	if(isAllSame()){
     		return cache.get(0); 
     	}
-    	return null;
+		throw new JasperRequestException(JasperConstants.ResponseCodes.BADREQUEST, "Response data is not identical for coalesce processing scheme");
     }
     
     private boolean isAllSame(){

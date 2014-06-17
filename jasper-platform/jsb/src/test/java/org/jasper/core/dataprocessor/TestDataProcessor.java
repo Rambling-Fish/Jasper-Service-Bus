@@ -3,6 +3,7 @@ package org.jasper.core.dataprocessor;
 import junit.framework.TestCase;
 
 import org.jasper.core.constants.JasperConstants;
+import org.jasper.core.exceptions.JasperRequestException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,7 +72,7 @@ public class TestDataProcessor extends TestCase {
 	 * This tests the a successful return of aggregated data
 	 */
 	@Test
-	public void testAggregateResponseSuccess() throws Exception{ 
+	public void testAggregateResponseSuccess() throws Exception, JasperRequestException{ 
 		DataProcessor dp = DataProcessorFactory.createDataProcessor(JasperConstants.AGGREGATE_SCHEME);
 		dp.add(validInput);
 		dp.add(validInput);
@@ -87,7 +88,7 @@ public class TestDataProcessor extends TestCase {
 	 * This tests the a successful return of coalesced data 
 	 */
 	@Test
-	public void testCoalesceResponseSuccess() throws Exception{ 
+	public void testCoalesceResponseSuccess() throws Exception, JasperRequestException{ 
 		DataProcessor dp = DataProcessorFactory.createDataProcessor(JasperConstants.COALESCE_SCHEME);
 		dp.add(validInput);
 		dp.add(validInput);
@@ -128,7 +129,7 @@ public class TestDataProcessor extends TestCase {
 	 * This tests the COALESCE response where not all items match 
 	 */
 	@Test
-	public void testCoalesceResponseNotMatch() throws Exception{ 
+	public void testCoalesceResponseNotMatch() throws Exception, JasperRequestException{ 
 		DataProcessor dp = DataProcessorFactory.createDataProcessor(JasperConstants.COALESCE_SCHEME);
 		try{
 			dp.add(validInput);
@@ -137,8 +138,8 @@ public class TestDataProcessor extends TestCase {
 			dp.add(tmp);
 			JsonElement response = dp.process();
 			TestCase.assertEquals(null, response);
-		}catch (Exception ex){
-			TestCase.fail("Exception caught in testCoalesceResponseNotMatch() " + ex);
+		}catch (JasperRequestException ex){
+			TestCase.assertNotNull(ex);
 		}
 	}
 	
@@ -147,7 +148,7 @@ public class TestDataProcessor extends TestCase {
 	 * to aggregate processor 
 	 */
 	@Test
-	public void testInvalidScheme() throws Exception{ 
+	public void testInvalidScheme() throws Exception, JasperRequestException{ 
 		DataProcessor dp = DataProcessorFactory.createDataProcessor("Unknown");
 		dp.add(validInput);
 		dp.add(validInput);

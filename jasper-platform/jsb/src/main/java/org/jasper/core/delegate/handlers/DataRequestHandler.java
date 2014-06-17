@@ -483,7 +483,7 @@ public class DataRequestHandler implements Runnable {
 		return triggerList;
 	}
 
-	private JsonElement getResponse(String ruri, JsonObject parameters, String processing_scheme) throws JMSException {
+	private JsonElement getResponse(String ruri, JsonObject parameters, String processing_scheme) throws JMSException, JasperRequestException {
 		if (!jOntology.isRuriKnownForOutputGet(ruri)) return null;
 
 		DataProcessor dataProcessor = DataProcessorFactory.createDataProcessor(processing_scheme);
@@ -609,7 +609,7 @@ public class DataRequestHandler implements Runnable {
 		delegate.sendMessage(dstQ, message);
 	}
 
-	private JsonObject getInputObject(String ruri, JsonObject parameters) throws JMSException {
+	private JsonObject getInputObject(String ruri, JsonObject parameters) throws JMSException, JasperRequestException {
 
 		JsonObject schema = jOntology.createJsonSchema(ruri);
 
