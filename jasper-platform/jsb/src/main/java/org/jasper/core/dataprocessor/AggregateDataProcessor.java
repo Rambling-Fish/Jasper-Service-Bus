@@ -15,6 +15,10 @@ public class AggregateDataProcessor implements DataProcessor {
 	}
 
     public void add(JsonElement jsonElement){
+    	if (jsonElement == null) {
+            return;
+        }
+
     	if(logger.isInfoEnabled()){
     		logger.info("adding element : " + jsonElement);
     	}

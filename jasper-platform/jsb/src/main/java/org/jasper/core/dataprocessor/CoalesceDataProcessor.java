@@ -17,6 +17,10 @@ public class CoalesceDataProcessor implements DataProcessor{
 	}
 
     public void add(JsonElement jsonElement){
+    	if (jsonElement == null) {
+            return;
+        }
+
     	if(logger.isInfoEnabled()){
     		logger.info("adding element : " + jsonElement);
     	}
@@ -40,6 +44,9 @@ public class CoalesceDataProcessor implements DataProcessor{
     }
     
     private boolean isAllSame(){
+        if (cache.size() == 0)
+            return false;
+
 		JsonElement first = cache.get(0);
     	for(int i = 1; i < cache.size(); i++){
     		JsonElement second = cache.get(i);
