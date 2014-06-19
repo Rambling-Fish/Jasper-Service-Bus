@@ -37,6 +37,8 @@ public class CoalesceDataProcessor implements DataProcessor{
     }
     
     private JsonElement coalesceOutput() throws JasperRequestException{ 	
+    	if (cache.size() == 0)
+    		return null;
     	if(isAllSame()){
     		return cache.get(0); 
     	}
