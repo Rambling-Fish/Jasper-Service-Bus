@@ -45,12 +45,7 @@ public class JscServlet extends HttpServlet {
 
 	private LocalStatistics stats;
 	
-	Listener callNurseListener = null;
-	Listener cancelCallNurseListener = null;
-	Listener emergencyListener = null;
-	Listener cancelEmergencyListener = null;
-	Listener tempUpdateListener = null;
-	Listener doorUpdateListener = null;
+	Listener[] subscriptionListener = new Listener[6];
 
 	private Map<String,Object> locks;
 	private Map<String, Response> responses;
@@ -61,8 +56,12 @@ public class JscServlet extends HttpServlet {
 	long ts4recvPostResponsefromUde = 0;
 	long tsTotal = 0;
 	
-	String dtaServerIp = null;
-	
+	private String  dtaServerIp = null;
+	private boolean pubResponseTypeLd = false;
+	private boolean smsResponseTypeLd = false;
+	private boolean testheadFullFlow = true;
+	private String[] subscriptionUri = new String[6];
+
 	public static final String LONG_LOCATION  = "http://coralcea.ca/jasper/NurseCall/location";
 	public static final String LONG_ROOM_ID   = "http://coralcea.ca/jasper/BuildingMgmt/roomID";
 	public static final String LONG_DOOR_ID   = "http://coralcea.ca/jasper/BuildingMgmt/doorID";
@@ -71,6 +70,14 @@ public class JscServlet extends HttpServlet {
 	public static final String SHORT_ROOM_ID  = "roomID";
 	public static final String SHORT_DOOR_ID  = "doorID";
 
+	public static final String CN_SUBSCRIPTION   = "http://coralcea.ca/jasper/NurseCall/callNurse";
+	public static final String CCN_SUBSCRIPTION  = "http://coralcea.ca/jasper/NurseCall/cancelCallNurse";
+	public static final String EM_SUBSCRIPTION   = "http://coralcea.ca/jasper/NurseCall/emergency";
+	public static final String CEM_SUBSCRIPTION  = "http://coralcea.ca/jasper/NurseCall/cancelEmergency";
+	public static final String RTU_SUBSCRIPTION  = "http://coralcea.ca/jasper/BuildingMgmt/roomTempUpdate";
+	public static final String DSC_SUBSCRIPTION  = "http://coralcea.ca/jasper/BuildingMgmt/doorStateChange";
+	
+	
 	private class LocalStatistics{
 		private boolean isConnected;
 		private AtomicInteger numberOfRequests;
@@ -129,15 +136,48 @@ public class JscServlet extends HttpServlet {
 			// 2. Local DTA Server (in this scenario the entry can be omitted.  It will default to 0.0.0.0)
 			// dta.serverip=0.0.0.0
 			
-			dtaServerIp = getProperties().getProperty("dta.serverip","0.0.0.0");
+			// Populate the configurable parameters found in the jsc-hrv-tw-testhead.properties.
+			// Defaults are shown below.
+			//
+			//  	dta.serverip=0.0.0.0
+			//  	testhead.pub-response-type.ld=true
+			//		testhead.sms-response-type.ld=true
+			//		testhead.full-flow=true
+			//		testhead.subscription1.uri=http://coralcea.ca/jasper/NurseCall/callNurse
+			//		testhead.subscription2.uri=http://coralcea.ca/jasper/NurseCall/cancelCallNurse
+			//		testhead.subscription3.uri=http://coralcea.ca/jasper/NurseCall/emergency
+			//		testhead.subscription4.uri=http://coralcea.ca/jasper/NurseCall/cancelEmergency
+			//		testhead.subscription5.uri=http://coralcea.ca/jasper/BuildingMgmt/roomTempUpdate
+			//		testhead.subscription6.uri=http://coralcea.ca/jasper/BuildingMgmt/doorStateChange
+			
+			dtaServerIp       = getProperties().getProperty("dta.serverip","0.0.0.0");
 
-			callNurseListener        = setupSubscription("http://coralcea.ca/jasper/NurseCall/callNurse");
-			cancelCallNurseListener  = setupSubscription("http://coralcea.ca/jasper/NurseCall/cancelCallNurse");
-			emergencyListener        = setupSubscription("http://coralcea.ca/jasper/NurseCall/emergency");
-			cancelEmergencyListener  = setupSubscription("http://coralcea.ca/jasper/NurseCall/cancelEmergency");
-			tempUpdateListener       = setupSubscription("http://coralcea.ca/jasper/BuildingMgmt/roomTempUpdate");
-			doorUpdateListener       = setupSubscription("http://coralcea.ca/jasper/BuildingMgmt/doorStateChange");
+			pubResponseTypeLd = getProperties().getProperty("testhead.pub-response-type.ld", "true").equalsIgnoreCase("true");
+			smsResponseTypeLd = getProperties().getProperty("testhead.sms-response-type.ld", "true").equalsIgnoreCase("true");
+			testheadFullFlow  = getProperties().getProperty("testhead.full-flow", "true").equalsIgnoreCase("true");
 
+			subscriptionUri[0] = getProperties().getProperty("testhead.subscription1.uri",CN_SUBSCRIPTION);
+			subscriptionUri[1] = getProperties().getProperty("testhead.subscription2.uri",CCN_SUBSCRIPTION);
+			subscriptionUri[2] = getProperties().getProperty("testhead.subscription3.uri",EM_SUBSCRIPTION);
+			subscriptionUri[3] = getProperties().getProperty("testhead.subscription4.uri",CEM_SUBSCRIPTION);
+			subscriptionUri[4] = getProperties().getProperty("testhead.subscription5.uri",RTU_SUBSCRIPTION);
+			subscriptionUri[5] = getProperties().getProperty("testhead.subscription6.uri",DSC_SUBSCRIPTION);
+			
+			if(log.isInfoEnabled()) 
+			{
+				log.info("CONFIG: dtaServerIp       = " + dtaServerIp);
+				log.info("CONFIG: pubResponseTypeLd = " + pubResponseTypeLd);
+				log.info("CONFIG: smsResponseTypeLd = " + smsResponseTypeLd);
+				log.info("CONFIG: testheadFullFlow  = " + testheadFullFlow);
+				for (int i=0; i<subscriptionUri.length; i++)
+					log.info("CONFIG: subscriptionUri[" + (i+1) + "] = " + subscriptionUri[i]);
+			}
+
+			for (int i=0; i<subscriptionListener.length; i++)
+			{
+				if(log.isInfoEnabled()) log.info("setup subscription for ruri #" + (i+1) + " = " + subscriptionUri[i]);
+				subscriptionListener[i] = setupSubscription(subscriptionUri[i]);
+			}
 		} 
 		catch (JMSException e) {
 			log.error("Exception occurred during initialization " + e);
@@ -147,9 +187,18 @@ public class JscServlet extends HttpServlet {
 	
 	 private Listener setupSubscription(String ruri) {
 		 	    	
-		 JsonObject headers = new JsonObject();
-		 headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/ld+json"));
+		 if (!ruri.startsWith("http://"))
+		 {
+			 if(log.isInfoEnabled()) log.info("setup subscription ABORTED for ruri = " + ruri);
+			 return null;
+		 }
 		 
+		 JsonObject headers = new JsonObject();
+		 if (pubResponseTypeLd)
+			 headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/ld+json"));
+		 else
+			 headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/json"));
+			 
 		 Request request = new Request(Method.SUBSCRIBE, ruri, headers);
 		 Listener listener = new Listener() {
 				
@@ -158,6 +207,7 @@ public class JscServlet extends HttpServlet {
 					recordT2();
 
 					String decoded = null;
+					Response sms_response = null;
 					
 					try {
 						decoded = new String(response.getPayload(), "UTF-8");
@@ -175,10 +225,17 @@ public class JscServlet extends HttpServlet {
 			    		return;
 			    	}
 
+			    	if(log.isDebugEnabled()) log.debug("3) [idString= " + logId + "] received async processMessage (publish)");
 			    	// send 
 			    	JsonObject headers = new JsonObject();
 			    	JsonObject parameters = new JsonObject();
 			    	headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/ld+json"));
+
+					if (smsResponseTypeLd)
+						headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/ld+json"));
+					else
+						headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive("application/json"));
+			    				    	
 			    	parameters.add("http://coralcea.ca/jasper/Sms/toSms", new JsonPrimitive("to"));
 			    	parameters.add("http://coralcea.ca/jasper/Sms/fromSms", new JsonPrimitive("from"));
 			    	parameters.add("http://coralcea.ca/jasper/Sms/bodySms", new JsonPrimitive("smsBodyText"));
@@ -187,14 +244,21 @@ public class JscServlet extends HttpServlet {
 			    	if(log.isDebugEnabled())log.debug("building Post Request for " + logId);
 			    	Request request = new Request(Method.POST, "http://coralcea.ca/jasper/Sms/SmsPostReq", headers, parameters);
 			    	if(log.isDebugEnabled())log.debug("Post Request built " + request);
-			    	
-			    	recordT3();
-			    	if(log.isDebugEnabled())log.debug("about to send post request " + request);
-			    	Response sms_response = jsc.post(request);
-			    	recordT4();
+
+			    	if (testheadFullFlow)
+			    	{
+			    		recordT3();
+			    		if(log.isDebugEnabled()) log.debug("4) [idString= " + logId + "] sending SMS POST request : ruri= " + request.getRuri());
+			    		sms_response = jsc.post(request);
+			    		if(log.isDebugEnabled()) log.debug("5) [idString= " + logId + "] received SMS POST response : code= " + sms_response.getCode());
+			    		recordT4();
+			    	}
 			    	
 					if (locks.containsKey(logId)) {
-						responses.put(logId, sms_response);
+						if (testheadFullFlow)
+							responses.put(logId, sms_response);
+						else
+							responses.put(logId, response);
 						Object lock = locks.remove(logId);
 						synchronized (lock) {
 							lock.notifyAll();
@@ -244,31 +308,33 @@ public class JscServlet extends HttpServlet {
 
 	public void destroy() {
 		if(log.isInfoEnabled()) log.info("jsc-hrv-tw-testhead destroy");
-		
-    	jsc.deregisterListener(callNurseListener);
-    	jsc.deregisterListener(cancelCallNurseListener);
-    	jsc.deregisterListener(emergencyListener);
-    	jsc.deregisterListener(cancelEmergencyListener);
-    	jsc.deregisterListener(tempUpdateListener);
-    	jsc.deregisterListener(doorUpdateListener);
 
-    	jsc.destroy();
+		for (int i=0; i<subscriptionListener.length; i++)
+		{
+			if (subscriptionListener[i] != null) 
+    		{
+    			if(log.isInfoEnabled()) log.info("cancel subscription for ruri #" + (i+1) + " = " + subscriptionUri[i]);
+    			jsc.deregisterListener(subscriptionListener[i]);
+    		}
+		}
+
+		jsc.destroy();
 
     	stats.setConnected(false);
     }
     
 	private Properties getProperties() {
-		if(log.isInfoEnabled()) log.info("loading jsc-hrv-tw-testhead properties...");
+		//if(log.isInfoEnabled()) log.info("loading jsc-hrv-tw-testhead properties...");
     	Properties prop = new Properties();
 		try {
 			File file = new File(System.getProperty("catalina.base") + "/conf/jsc-hrv-tw-testhead.properties");
 			if(file.exists()){
 				FileInputStream fileInputStream = new FileInputStream(file);
-				if(log.isInfoEnabled()) log.info("loading properties file from catalina.base/conf");
+				//if(log.isInfoEnabled()) log.info("loading properties file from catalina.base/conf");
 				prop.load(fileInputStream);
 			}else{
 				InputStream input = getServletContext().getResourceAsStream("/WEB-INF/conf/jsc-hrv-tw-testhead.properties");
-				if(log.isInfoEnabled()) log.info("loading properties file from WEB-INF/conf");
+				//if(log.isInfoEnabled()) log.info("loading properties file from WEB-INF/conf");
 				prop.load(input);
 			}
 			
@@ -312,15 +378,24 @@ public class JscServlet extends HttpServlet {
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
 
-    	Response sms_response = null;
+    	Response doget_response = null;
 
 		// send HTTP rest call to NurseCall/BuildingManagement DTA
 		String urlString= null;
-		int requestNum = stats.getNumberOfRequestsAndIncrement();
 		String idString = null;
 		
 		String requestPath = request.getPathInfo();
+
+		if (requestPath.equalsIgnoreCase("/stats"))
+		{	
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(gson.toJson(stats));
+			return;
+		}
 		
+		int requestNum = stats.getNumberOfRequestsAndIncrement();
+
 		if (requestPath.equalsIgnoreCase("/callNurse"))
 		{
 			idString = new String("cn-" + requestNum);
@@ -351,18 +426,14 @@ public class JscServlet extends HttpServlet {
 			idString = new String("dsc-" + requestNum);
 			urlString = new String("http://" + dtaServerIp + ":8083/rbm/doorStateChange?http://coralcea.ca/jasper/BuildingMgmt/doorID=" + idString + "&http://coralcea.ca/jasper/BuildingMgmt/doorState=open");
 		}
-		else if (requestPath.equalsIgnoreCase("/stats"))
-		{	
-			response.setContentType("application/json");
-			response.setCharacterEncoding("UTF-8");
-			response.getWriter().write(gson.toJson(stats));
-			return;
-		}
-		
+
+		if(log.isDebugEnabled()) log.debug("1) [idString= " + idString + "] doGet for request = " + requestPath);
+
 		if (urlString == null)
 		{
-			log.error("invalid http path");
+			log.error("1a) invalid http path");
 			response.setStatus(400);
+			response.getWriter().write("invalid http path");
 			return;
 		}
 		if(log.isInfoEnabled())log.info("urlString= " + urlString);
@@ -371,9 +442,10 @@ public class JscServlet extends HttpServlet {
 		try {
 			url = new URL(urlString);
 		} catch (MalformedURLException e1) {
-			log.error("MalformedURLException on new url");
+			log.error("1b) [idString= " + idString + "]  MalformedURLException on new url");
 			e1.printStackTrace();
 			response.setStatus(400);
+			response.getWriter().write("MalformedURLException on new url");
 			return;
 		}
 
@@ -381,18 +453,20 @@ public class JscServlet extends HttpServlet {
 		try {
 			conn = (HttpURLConnection)url.openConnection();
 		} catch (IOException e1) {
-			log.error("IOException on url.openConnection()");
+			log.error("1c) [idString= " + idString + "]  IOException on url.openConnection()");
 			e1.printStackTrace();
 			response.setStatus(500);
+			response.getWriter().write("IOException on url.openConnection()");
 			return;
 		}
 
 		try {
 			conn.setRequestMethod("GET");
 		} catch (ProtocolException e1) {
-			log.error("ProtocolException on conn.setRequestMethod");
+			log.error("1d) [idString= " + idString + "]  ProtocolException on conn.setRequestMethod");
 			e1.printStackTrace();
 			response.setStatus(500);
+			response.getWriter().write("ProtocolException on conn.setRequestMethod");
 			return;
 		}
 
@@ -406,9 +480,10 @@ public class JscServlet extends HttpServlet {
 		try {
 			conn.connect();
 		} catch (IOException e1) {
-			log.error("IOException on conn.connect.  Are the NC/BM DTAs deployed?");
+			log.error("1e) [idString= " + idString + "]  IOException on conn.connect.  Are the NC/BM DTAs deployed? or dta.serverip not provisioned?");
 			e1.printStackTrace();
 			response.setStatus(500);
+			response.getWriter().write("IOException on conn.connect.  Are the NC/BM DTAs deployed? or dta.serverip not provisioned?");
 			return;
 		}
 
@@ -416,15 +491,16 @@ public class JscServlet extends HttpServlet {
 			conn.getResponseCode();
 		} catch (IOException e1) {
 			e1.printStackTrace();
-			log.error("IOException on conn.getResponseCode");
+			log.error("1f) [idString= " + idString + "]  IOException on conn.getResponseCode");
 			response.setStatus(500);
+			response.getWriter().write("IOException on conn.getResponseCode");
 			return;
 		}
 
+		if(log.isDebugEnabled()) log.debug("2) [idString= " + idString + "] doGet send http request to DTA");
+		
 		// need to wait for sms post response before returning 200 OK to caller
 		// Lock and wait for post received flag to be set (or timeout and return 504 timeout to caller)
-		
-		//log.error("sent publish for ID = " + idString);
 		
 		Object lock = new Object();
 		synchronized (lock) {
@@ -441,34 +517,39 @@ public class JscServlet extends HttpServlet {
 		    }
 		}
 
-		sms_response = responses.remove(idString);
+		doget_response = responses.remove(idString);
 		
-		if (sms_response == null)
+		if (doget_response == null)
 		{
 			response.setStatus(504);
-			log.error("SMS Post response == null for " + idString);
+			log.error("6) [idString= " + idString + "] doGet timeout, sending http response 504");
 			response.setContentType("text/plain");
 			response.setCharacterEncoding("UTF-8");
-			response.getWriter().write("504 - SMS Post resposne was null");
+			response.getWriter().write("504 - doGet response was null / timeout");
 			if(log.isInfoEnabled()) log.info("JSC_HRV: TIMECHECK timed out waiting for SMS POST Response");
 		}
 		else
 		{
+			if(log.isDebugEnabled()) log.debug("6) [idString= " + idString + "] doGet, sending http response, responseCode= " + doget_response.getCode());
 			if(log.isInfoEnabled()) {
 				long tsPostResponse = System.currentTimeMillis();
-				log.info("JSC_HRV: TIMECHECK CODE=" + sms_response.getCode() + " .................... tE[" + tsPostResponse + "] " + (tsPostResponse - ts1sendRest2NcDta));
+				log.info("JSC_HRV: TIMECHECK CODE=" + doget_response.getCode() + " .................... tE[" + tsPostResponse + "] " + (tsPostResponse - ts1sendRest2NcDta));
 			}
 			
-			response.setStatus(sms_response.getCode());
+			response.setStatus(doget_response.getCode());
 			response.setContentType("text/plain");
 			response.setCharacterEncoding("UTF-8");
-			response.getWriter().write(sms_response.getCode() + " - sms response code");
+
+			if (doget_response.getPayload() != null)
+				response.getWriter().write(doget_response.getCode() + " - " + new String(doget_response.getPayload(), "UTF-8"));
+			else
+				response.getWriter().write(doget_response.getCode() + " - " + doget_response.getReason());
 			
-			if (sms_response.getCode() == 200) {
+			if (doget_response.getCode() == 200) {
 				stats.incrementNumResponses200ok();
 			}
 			else {
-				log.error("statusCode= " + sms_response.getCode() + " for " + idString);
+				log.error("statusCode= " + doget_response.getCode() + " for " + idString);
 			}
 		}
 			
