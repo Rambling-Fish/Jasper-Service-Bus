@@ -41,6 +41,7 @@ public class DataRequestHandler implements Runnable {
 	private PersistedDataRequest	persistedRequest;
 	private JsonLDTransformer       jsonLDTransformer;
 	private String                  response_type;
+	private StringBuilder           errorDescription;
 
 	private static Logger			logger	= Logger.getLogger(DataRequestHandler.class.getName());
 
@@ -52,6 +53,7 @@ public class DataRequestHandler implements Runnable {
 		this.responses = delegate.getResponsesMap();
 		this.persistedRequest = persistedRequest;
 		jsonLDTransformer = new JsonLDTransformer();
+		errorDescription = new StringBuilder();
 	}
 
 	@Override
@@ -363,7 +365,12 @@ public class DataRequestHandler implements Runnable {
 			if (response == null) {
 				delegate.removePersistedRequest(persistedRequest);
 				logger.error("response from getResponse is null, sending back error response for correlationID " + correlationID);
-				throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is known, but we could not get a valid response, check parameters");
+				if(errorDescription.length() > 0){
+					throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is known, however " + errorDescription.toString());
+				}
+				else{
+					throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is known, but we could not get a valid response, check parameters");
+				}
 			}
 			
 			JsonElement responsesThatMeetCriteria = extractResponsesThatMeetCriteria(response, triggerList);
@@ -658,7 +665,7 @@ public class DataRequestHandler implements Runnable {
 			JsonObject propertySchema = entry.getValue().getAsJsonObject();
 			JsonElement property = parameters.get(propertyName);
 
-			if (isValidJsonObject(propertySchema, property)) {
+			if (isValidJsonObject(propertySchema, property, propertyName)) {
 				result.add(propertyName, property);
 			} else {
 
@@ -720,7 +727,7 @@ public class DataRequestHandler implements Runnable {
 		return false;
 	}
 
-	private boolean isValidJsonObject(JsonObject propertySchema, JsonElement property) {
+	private boolean isValidJsonObject(JsonObject propertySchema, JsonElement property, String propertyName) {
 		if (!propertySchema.has("type")) {
 			logger.warn("invalid schema missing, type.");
 			return false;
@@ -749,7 +756,7 @@ public class DataRequestHandler implements Runnable {
 			for (Entry<String, JsonElement> entry : properties.entrySet()) {
 				String subPropertyName = entry.getKey();
 				JsonObject subPropertySchema = entry.getValue().getAsJsonObject();
-				if (!isValidJsonObject(subPropertySchema, property.getAsJsonObject().get(subPropertyName))) {
+				if (!isValidJsonObject(subPropertySchema, property.getAsJsonObject().get(subPropertyName), subPropertyName)) {
 					return false;
 				}
 			}
@@ -760,7 +767,13 @@ public class DataRequestHandler implements Runnable {
 		case "string":
 		case "String":
 		case "http://www.w3.org/2001/XMLSchema#string":
-			return (property.isJsonPrimitive() && property.getAsJsonPrimitive().isString());
+			if(property.isJsonPrimitive() && property.getAsJsonPrimitive().isString()){
+				return true;
+			}
+			else{
+				errorDescription.append("parameter " + propertyName + " is supposed to be of type String");
+				return false;
+			}
 		case "array":
 		case "Array":
 			// TODO add array validation
@@ -769,11 +782,23 @@ public class DataRequestHandler implements Runnable {
 		case "integer":
 		case "Integer":
 		case "http://www.w3.org/2001/XMLSchema#integer":
-			return (property.isJsonPrimitive() && property.getAsJsonPrimitive().isNumber());
+			if(property.isJsonPrimitive() && property.getAsJsonPrimitive().isNumber()){
+				return true;
+			}
+			else{
+				errorDescription.append("parameter " + propertyName + " is supposed to be of type integer");
+				return false;
+			}
 		case "boolean":
 		case "Boolean":
 		case "http://www.w3.org/2001/XMLSchema#boolean":
-			return (property.isJsonPrimitive() && property.getAsJsonPrimitive().isBoolean());
+			if(property.isJsonPrimitive() && property.getAsJsonPrimitive().isBoolean()){
+				return true;
+			}
+			else{
+				errorDescription.append("parameter " + propertyName + " is supposed to be of type boolean");
+				return false;
+			}
 		}
 
 		return true;
