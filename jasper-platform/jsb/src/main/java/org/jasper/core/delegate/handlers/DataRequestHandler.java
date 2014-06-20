@@ -391,7 +391,7 @@ public class DataRequestHandler implements Runnable {
 		}else{
 			do{
 				response = extractResponsesThatMeetCriteria(getResponse(ruri, parameters, processing_scheme),triggerList);
-				if(response != null || ( System.currentTimeMillis() > (timestampMillis+expiry) ) ){
+				if(response != null || ( System.currentTimeMillis() > (timestampMillis+expiry) ) || errorDescription.length() > 0){
 					break;
 				}
 				try {
@@ -408,7 +408,12 @@ public class DataRequestHandler implements Runnable {
 			if (response == null) {
 				delegate.removePersistedRequest(persistedRequest);
 				logger.error("responses from polling getResponse is null, sending back error response for correlationID " + correlationID);
-				throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is known, but we could not get a valid response before request expired");
+				if(errorDescription.length() > 0){
+					throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is known, however " + errorDescription.toString());
+				}
+				else{
+					throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " is known, but we could not get a valid response before request expired");
+				}
 			}else if(response_type.equalsIgnoreCase("application/ld+json")){
 				JsonElement jsonLDResponse = jsonLDTransformer.parseResponse(response);
 				sendResponse(correlationID, reply2q, jsonLDResponse.toString());
