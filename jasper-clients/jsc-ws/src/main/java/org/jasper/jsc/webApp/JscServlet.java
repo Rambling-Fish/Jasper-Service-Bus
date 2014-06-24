@@ -184,6 +184,10 @@ public class JscServlet extends HttpServlet {
 			String[] result = request.getQueryString().split("\\?");
     	
 			for(String str:result){
+				if(str.contains("&")){
+					log.error("invalid value received - ignoring '" + str + "' Parameters must begin with '?'");
+					continue;
+				}
 				if(str.startsWith(RequestHeaders.RESPONSE_TYPE)){
 					headers.add(RequestHeaders.RESPONSE_TYPE, new JsonPrimitive(str.replaceFirst(RequestHeaders.RESPONSE_TYPE+"=", "")));
 				}else if(str.startsWith(RequestHeaders.EXPIRES)){
@@ -191,7 +195,7 @@ public class JscServlet extends HttpServlet {
 						int expires = (Integer.parseInt(str.replaceFirst(RequestHeaders.EXPIRES+"=", "")) * MILLISECONDS);
 						headers.add(RequestHeaders.EXPIRES, new JsonPrimitive(expires));
 					}catch (NumberFormatException e){
-						log.error("unanable to parse expires, expires set to : " + (str.replaceFirst(RequestHeaders.EXPIRES+"=", "")),e);
+						log.error("unable to parse expires, expires set to : " + (str.replaceFirst(RequestHeaders.EXPIRES+"=", "")),e);
 					}
 				}else if(str.startsWith(RequestHeaders.POLL_PERIOD)){
 					try{
