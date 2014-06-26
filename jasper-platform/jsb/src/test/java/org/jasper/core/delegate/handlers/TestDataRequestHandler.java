@@ -143,7 +143,7 @@ public class TestDataRequestHandler{
 		when(mockOntology.fetchPostOperations(ruri)).thenReturn(ops);
 		when(mockOntology.fetchPostOperationInputObject(operation)).thenReturn(ruri);
 		when(mockOntology.createJsonSchema(ruri)).thenReturn(jsonObj);
-		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.NOTFOUND, "http://coralcea.ca/jasper/RoomTempUpdateReq POST did not return 200 OK from DTAs, request failed", null, "application/json", JasperConstants.VERSION_1_0)).thenReturn("error");
+		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.NOTFOUND, "http://coralcea.ca/jasper/RoomTempUpdateReq POST response is null, request failed", null, "application/json", JasperConstants.VERSION_1_0)).thenReturn("error");
 		
 		classUnderTest = new DataRequestHandler(mockDelegate, mockPersistReq);
 		classUnderTest.run();
