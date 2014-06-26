@@ -279,12 +279,13 @@ public class DataRequestHandler implements Runnable {
 				continue;
 			}
 			JsonElement response = sendAndWaitforResponse(jOntology.fetchPostDestinationQueue(operation),inputObject.toString());
-			if (response != null) {
-				dataProcessor.add(response);
-			}else{
+			if (response == null) {
 				//TODO determine if we need return NULL response back to client?
-				logger.error("POST response returned NULL");
+				
+				// Status code should be 200.  Note that if status code was not 200, sendAndWaitforResponse would have thrown a jasperException.
+				response = jsonParser.parse("{\"http://coralcea.ca/jasper/responseCode\" : 200,\"http://coralcea.ca/jasper/responseReason\" : \"OK\"}");
 			}
+			dataProcessor.add(response);
 		}
 		
 		JsonElement postResponse = dataProcessor.process();	
@@ -298,7 +299,7 @@ public class DataRequestHandler implements Runnable {
 				sendResponse(correlationID, reply2q, postResponse.toString());
 			}
 		}else{
-			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " POST did not return 200 OK from DTAs, request failed");
+			throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, ruri + " POST response is null, request failed");
 		}
 	}
 
@@ -517,6 +518,9 @@ public class DataRequestHandler implements Runnable {
 
 	private JsonElement extractRuriData(String ruri, JsonElement response) {
 
+		if (response == null)
+			return null;
+		
 		if (response.isJsonPrimitive()) {
 			// if primitive assume it is the data we want.
 			return response;
@@ -559,7 +563,7 @@ public class DataRequestHandler implements Runnable {
 		return null;
 	}
 
-	private JsonElement sendAndWaitforResponse(String provideDestinationQueue, String msgText) throws JMSException {	
+	private JsonElement sendAndWaitforResponse(String provideDestinationQueue, String msgText) throws JMSException, JasperRequestException {	
 		Message msg = delegate.createTextMessage(msgText);
 
 		String correlationID = UUID.randomUUID().toString();
@@ -585,16 +589,20 @@ public class DataRequestHandler implements Runnable {
 		}
 
 		String responseString = null;
-		if (response != null && response.getJMSCorrelationID().equals(correlationID) && response instanceof TextMessage && response.getIntProperty("code") == 200) {
+		if (response != null && response.getJMSCorrelationID().equals(correlationID) && response instanceof TextMessage) {
 			responseString = ((TextMessage) response).getText();
-			if(responseString == null) responseString = "{\"http://coralcea.ca/jasper/responseCode\" : 200,\"http://coralcea.ca/jasper/responseReason\" : \"OK\"}";
+			if ((response.getIntProperty("code") != 200) && (responseString == null))
+			{
+				throw new JasperRequestException(JasperConstants.ResponseCodes.NOTFOUND, "null response, response code = " + response.getIntProperty("code"));
+			}
 		}
 		
 		//TODO added creation of error repsonses based on response code and possible timeout
 		
 		JsonElement responseObject = null;
 		try {
-			responseObject = jsonParser.parse(responseString);
+			if (responseString != null) 
+				responseObject = jsonParser.parse(responseString);
 		} catch (JsonSyntaxException e) {
 			logger.error("response from DTA is not a valid JsonReponse, response string = " + responseString);
 		}
