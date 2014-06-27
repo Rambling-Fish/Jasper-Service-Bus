@@ -47,7 +47,7 @@ public class TestDataRequestHandler{
 	private String publishRuri = "http://coralcea.ca/jasper/NurseCall/callNurse";
 
 	private String getRequest = "{\"version\":\"1.0\",\"method\":\"GET\",\"ruri\":\"http://coralcea.ca/jasper/hrData\",\"headers\":{\"content-type\":\"application/json\",\"response-type\":\"application/ld+json\","
-			+"\"processing-scheme\":\"aggregate\",\"poll-period\":1,\"expires\":6},\"parameters\":{\"http://coralcea.ca/jasper/hrSID\":\"01\"},"
+			+"\"processing-scheme\":\"aggregate\",\"poll-period\":1000,\"expires\":6000},\"parameters\":{\"http://coralcea.ca/jasper/hrSID\":\"01\"},"
 			+ "\"rule\":\"compareint(http://coralcea.ca/jasper/hrSensor/bpm,gt,90)\"}";
 	private String getRequestDefaults = "{\"version\":\"1.0\",\"method\":\"GET\",\"ruri\":\"http://coralcea.ca/jasper/hrData\",\"headers\":{\"content-type\":\"application/json\"}"
 			+",\"parameters\":{\"http://coralcea.ca/jasper/hrSID\":\"01\"}}";
@@ -72,9 +72,9 @@ public class TestDataRequestHandler{
 		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.NOTFOUND, "http://coralcea.ca/jasper/hrData is known, but we could not get a valid response before request expired",
 				null, "application/json", JasperConstants.VERSION_1_0)).thenReturn("error");
 		when(mockDelegate.createTextMessage("error")).thenReturn(mockTxtMsg);
-		mockDelegate.maxExpiry = 5;
-		mockDelegate.maxPollingInterval = 5;
-		mockDelegate.minPollingInterval = 2;
+		mockDelegate.maxExpiry = 3000;
+		mockDelegate.maxPollingInterval = 2000;
+		mockDelegate.minPollingInterval = 2000;
 		
 		classUnderTest = new DataRequestHandler(mockDelegate, mockPersistReq);
 		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.NOTFOUND, "http://coralcea.ca/jasper/hrData is known, but we could not get a valid response, check parameters",
