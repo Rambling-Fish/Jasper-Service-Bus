@@ -480,7 +480,7 @@ public class JscServlet extends HttpServlet {
 		try {
 			conn.connect();
 		} catch (IOException e1) {
-			log.error("1e) [idString= " + idString + "]  IOException on conn.connect.  Are the NC/BM DTAs deployed? or dta.serverip not provisioned?");
+			log.error("1e) [idString= " + idString + "]  IOException on conn.connect.  Please check (1) that the NC/BM DTAs are deployed, and (2) that the dta.serverip is correctly provisioned in the jsc-hrv-tw-testhead.properties file.");
 			e1.printStackTrace();
 			response.setStatus(500);
 			response.getWriter().write("IOException on conn.connect.  Are the NC/BM DTAs deployed? or dta.serverip not provisioned?");
