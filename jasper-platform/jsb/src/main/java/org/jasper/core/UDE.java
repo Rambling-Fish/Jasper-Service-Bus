@@ -21,6 +21,7 @@ import org.apache.activemq.broker.BrokerRegistry;
 import org.apache.activemq.broker.JsbTransportConnector;
 import org.apache.activemq.network.NetworkConnector;
 import org.apache.log4j.Logger;
+import org.jasper.core.acl.pep.JasperPEP;
 import org.jasper.core.auth.AuthenticationFacade;
 import org.jasper.core.auth.JasperAuthenticationPlugin;
 import org.jasper.core.delegate.Delegate;
@@ -38,6 +39,7 @@ public class UDE {
 	private JasperBrokerService broker;
 	private AuthenticationFacade licenseKeySys;
 	private PersistenceFacade cachingSys;
+	private JasperPEP pep;
 	
 	private UDELicense localUdelicense;
 	
@@ -72,6 +74,11 @@ public class UDE {
 			this.cachingSys = PersistenceFacadeFactory.getFacade(localIP, groupName, groupPassword);	
 		}else{
 			this.cachingSys = PersistenceFacadeFactory.getNonClusteredFacade();
+		}
+		
+		// initialize instance of Policy Enforcement Point to handle XACML authorization requests to PDP
+		if(localUdelicense.isAclEnabled()){
+			this.pep = JasperPEP.getInstance();
 		}
 				
 		delegate = new Delegate(this);
@@ -172,6 +179,10 @@ public class UDE {
 	
 	public PersistenceFacade getCachingSys() {
 		return cachingSys;
+	}
+	
+	public JasperPEP getPep() {
+		return pep;
 	}
 
 	public String getDeploymentID() {

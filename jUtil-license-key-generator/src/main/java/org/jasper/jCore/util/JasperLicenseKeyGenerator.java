@@ -19,12 +19,15 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+
 import javax.crypto.Cipher;
+
 import org.jasper.jLib.jAuth.UDELicense;
 import org.jasper.jLib.jAuth.ClientLicense;
 import org.jasper.jLib.jAuth.util.JAuthHelper;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class JasperLicenseKeyGenerator {
 	
@@ -149,7 +152,7 @@ public class JasperLicenseKeyGenerator {
 		        	System.out.println("\"ntpHost\":\"<time.nrc.ca/optional>\", \"ntpPort\":\"<number(int)/optional>\" }");
 		        	input = in.readLine();
 			        if(input == null) break;
-			        Gson gson = new Gson();
+			        Gson gson = new GsonBuilder().setVersion(2.1).create();
 					ClientLicense lic = gson.fromJson(input, ClientLicense.class);
 					if(lic == null) break;
 					System.out.println("JSON :" + gson.toJson(lic));
@@ -188,12 +191,12 @@ public class JasperLicenseKeyGenerator {
 		        }else if (input.startsWith("ude")){
 		        	
 		        	System.out.println("{\"type\":\"ude(Str)\",\"version\":\"<ude version(Str)>\",\"deploymentId\":\"<deploymentName(Str)>\",\"instanceId\":<instance(int)>,\"numOfPublishers\":<number(int)>,\"numOfConsumers\":<number(int)>,");
-		        	System.out.println("\"expiry\":{\"year\":<number(int)>,\"month\":<number(int)>,\"dayOfMonth\":<number(int)>,\"hourOfDay\":<number(int)>,\"minute\":<number(int)>,\"second\":<number(int)>}, ");
+		        	System.out.println("\"aclEnabled\":{<boolean(true/false)>,\"expiry\":{\"year\":<number(int)>,\"month\":<number(int)>,\"dayOfMonth\":<number(int)>,\"hourOfDay\":<number(int)>,\"minute\":<number(int)>,\"second\":<number(int)>}, ");
 		        	System.out.println("\"ntpHost\" : \"<hostName/Optional>\", \"ntpPort\": <number(int)/Optional>}");
 		        	input = in.readLine();
 			        if(input == null) break;
 			        
-			        Gson gson = new Gson();
+			        Gson gson = new GsonBuilder().setVersion(2.1).create();
 					UDELicense lic = gson.fromJson(input, UDELicense.class);
 					if(lic == null) break;
 					System.out.println("JSON :" + gson.toJson(lic));
@@ -236,7 +239,7 @@ public class JasperLicenseKeyGenerator {
 		        	for(int count = 0;count < num;count++){
 		        		String username = "jasper:jtaDemo-sample-" + count + ":1.0:jasperLab";
 		        		String licString = "{\"type\": \"dta\", \"instance\": 0, \"vendor\": \"jasper\", \"appName\": \"dtaDemo-sample-"+ count + "\", \"version\": \"1.0\", \"numOfPublishers\": " + num + ", \"numOfConsumers\": 1, \"adminQueue\": \"jms.jasper.jtaDemo-sample-" + count +".1.0.jasperLab.admin.queue\", \"deploymentId\": \"jasperLab\"}";
-		        		Gson gson = new Gson();
+		        		Gson gson = new GsonBuilder().setVersion(2.1).create();
 						ClientLicense lic = gson.fromJson(licString, ClientLicense.class);
 		        		lic.setLicenseKey(rsaEncrypt(lic.toString().getBytes(), privateKey));
 						String password = JAuthHelper.bytesToHex(lic.getLicenseKey());

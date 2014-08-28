@@ -46,6 +46,7 @@ public class JasperConstants {
 		OK(200, "OK"),
 		ACCEPTED(202, "Accepted"),
 		BADREQUEST(400, "Bad Request"),
+		FORBIDDEN(403,"Forbidden"),
 		NOTFOUND(404, "Not Found"),
 		TIMEOUT(408, "Request timeout"),
 		SERVERERROR(500, "Server Internal Error");

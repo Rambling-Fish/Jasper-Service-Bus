@@ -14,8 +14,8 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
+import org.jasper.core.acl.pep.JasperPEP;
 import org.jasper.core.constants.JasperConstants;
-import org.jasper.core.constants.JasperConstants.ResponseCodes;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
 import org.jasper.core.persistence.PersistedDataRequest;
@@ -26,8 +26,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class TestDataRequestHandler{
@@ -42,6 +42,7 @@ public class TestDataRequestHandler{
 	@Mock private PersistedSubscriptionRequest mockSubscriptionReq;
 	@Mock private TextMessage mockTxtMsg;
 	@Mock private Destination mockDest;
+	@Mock private JasperPEP mockPEP;
 	private DataRequestHandler classUnderTest;
 	private String ruri = "http://coralcea.ca/jasper/hrData";
 	private String publishRuri = "http://coralcea.ca/jasper/NurseCall/callNurse";
@@ -69,6 +70,7 @@ public class TestDataRequestHandler{
 		when(mockPersistReq.getRequest()).thenReturn(getRequest);
 		when(mockDelegate.getJOntology()).thenReturn(mockOntology);
 		when(mockOntology.isRuriKnownForOutputGet(ruri)).thenReturn(true);
+		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/hrData", "GET")).thenReturn(true);
 		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.NOTFOUND, "http://coralcea.ca/jasper/hrData is known, but we could not get a valid response before request expired",
 				null, "application/json", JasperConstants.VERSION_1_0)).thenReturn("error");
 		when(mockDelegate.createTextMessage("error")).thenReturn(mockTxtMsg);
@@ -95,6 +97,7 @@ public class TestDataRequestHandler{
 		when(mockPersistReq.getRequest()).thenReturn(subscribeReq);
 		when(mockDelegate.getJOntology()).thenReturn(mockOntology);
 		when(mockOntology.isRuriKnownForInputPublish(publishRuri)).thenReturn(true);
+		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/NurseCall/callNurse", "SUBSCRIBE")).thenReturn(true);
 		
 		classUnderTest = new DataRequestHandler(mockDelegate, mockPersistReq);
 		classUnderTest.run();
@@ -116,6 +119,7 @@ public class TestDataRequestHandler{
 		
 		// invalid method
 		when(mockPersistReq.getRequest()).thenReturn(badMethodReq);
+		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/NurseCall/callNurse", "INVALID")).thenReturn(true);
 		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.BADREQUEST, "unsupported method type INVALID", null, "application/json", JasperConstants.VERSION_1_0)).thenReturn("error");
 		classUnderTest.run();
 		
@@ -144,6 +148,7 @@ public class TestDataRequestHandler{
 		when(mockOntology.fetchPostOperationInputObject(operation)).thenReturn(ruri);
 		when(mockOntology.createJsonSchema(ruri)).thenReturn(jsonObj);
 		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.NOTFOUND, "http://coralcea.ca/jasper/RoomTempUpdateReq POST did not return 200 OK from DTAs, request failed", null, "application/json", JasperConstants.VERSION_1_0)).thenReturn("error");
+		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/RoomTempUpdateReq", "POST")).thenReturn(true);
 		
 		classUnderTest = new DataRequestHandler(mockDelegate, mockPersistReq);
 		classUnderTest.run();
@@ -174,6 +179,7 @@ public class TestDataRequestHandler{
 		when(mockSubscriptionReq.getResponseType()).thenReturn("application/ld+json");
 		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.OK, "Success", ldResponse, "application/json", JasperConstants.VERSION_1_0)).thenReturn("success");
 		when(mockDelegate.createTextMessage("success")).thenReturn(mockTxtMsg);
+		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/NurseCall/callNurse", "PUBLISH")).thenReturn(true);
 		
 		classUnderTest = new DataRequestHandler(mockDelegate, mockPersistReq);
 		classUnderTest.run();
@@ -199,6 +205,8 @@ public class TestDataRequestHandler{
 		when(mockSession.createProducer(null)).thenReturn(mockProducer);
 		when(mockSession.createConsumer(mockQueue)).thenReturn(mockConsumer);
 		when(mockDelegate.createTextMessage("error")).thenReturn(mockTxtMsg);
+		when(mockDelegate.getPep()).thenReturn(mockPEP);
+		
 	}
 	
 	@After

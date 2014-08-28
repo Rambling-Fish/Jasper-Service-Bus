@@ -13,6 +13,7 @@ import javax.jms.Message;
 import javax.jms.TextMessage;
 
 import org.apache.log4j.Logger;
+import org.jasper.core.acl.pep.JasperPEP;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.dataprocessor.DataProcessor;
 import org.jasper.core.dataprocessor.DataProcessorFactory;
@@ -41,6 +42,7 @@ public class DataRequestHandler implements Runnable {
 	private PersistedDataRequest	persistedRequest;
 	private JsonLDTransformer       jsonLDTransformer;
 	private String                  response_type;
+	private String                  subject = "dta";
 
 	private static Logger			logger	= Logger.getLogger(DataRequestHandler.class.getName());
 
@@ -95,6 +97,14 @@ public class DataRequestHandler implements Runnable {
 		}else{
 			logger.error("ruri is null, sending back error response for reqeust for correlation ID " + correlationID);
 			throw new JasperRequestException(JasperConstants.ResponseCodes.BADREQUEST, ruri + " is null");
+		}
+		
+		// if access control lists are enabled then send an authorization request to PDP server via JasperPEP client
+		if (delegate.getPep() != null){
+			if(! delegate.getPep().authorizeRequest(subject, ruri, method)){
+				logger.error("Authorization service denied access to resource: " + ruri);
+				throw new JasperRequestException(JasperConstants.ResponseCodes.FORBIDDEN, "Access to resource " + ruri + " is denied");
+			}
 		}
 		
 		if (jsonRequest.isJsonObject() && jsonRequest.getAsJsonObject().has(JasperConstants.HEADERS_LABEL) && jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).isJsonObject()

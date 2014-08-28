@@ -1,0 +1,21 @@
+#!/bin/bash
+
+USER="jasper"
+
+case "$1" in
+    start)
+      cd /opt/jasper/wso2is-5.0.0/bin
+      su "$USER" -c "./wso2server.sh start"
+      cd ..
+      ;;
+   stop)
+      # No-op
+      ;;
+   restart|reload|force-reload)
+      # No-op
+      ;;
+   *)
+      # No-op
+      ;;
+esac
+exit 0

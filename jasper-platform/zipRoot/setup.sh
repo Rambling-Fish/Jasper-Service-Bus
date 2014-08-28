@@ -8,6 +8,7 @@ cd jsb-core
 chmod 755 bin/ude
 chmod 755 exec/wrapper*
 chmod 755 udeAutoStart
+chmod 755 pdpAutoStart
 chmod 600 config/jsb.jmxremote.password
 mv *.jar libs/
 mkdir activemq-data

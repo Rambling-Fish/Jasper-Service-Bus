@@ -59,6 +59,7 @@ public class TestUDE extends TestCase {
 	public void setUp() throws Exception {
 		MockitoAnnotations.initMocks(this);
 		System.setProperty("delegate-property-file", "../zipRoot/jsb-core/config/delegate.properties");
+		System.setProperty("pdp-property-file", "../zipRoot/jsb-core/config/pdp.properties");
 		props.put("jsb-keystore", keystore);
 	    props.setProperty("jsbClusterEnabled", "false");
 	}
