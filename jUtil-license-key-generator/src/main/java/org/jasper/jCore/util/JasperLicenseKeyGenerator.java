@@ -152,7 +152,7 @@ public class JasperLicenseKeyGenerator {
 		        	System.out.println("\"ntpHost\":\"<time.nrc.ca/optional>\", \"ntpPort\":\"<number(int)/optional>\" }");
 		        	input = in.readLine();
 			        if(input == null) break;
-			        Gson gson = new GsonBuilder().setVersion(2.1).create();
+			        Gson gson = new Gson();
 					ClientLicense lic = gson.fromJson(input, ClientLicense.class);
 					if(lic == null) break;
 					System.out.println("JSON :" + gson.toJson(lic));
@@ -196,7 +196,7 @@ public class JasperLicenseKeyGenerator {
 		        	input = in.readLine();
 			        if(input == null) break;
 			        
-			        Gson gson = new GsonBuilder().setVersion(2.1).create();
+			        Gson gson = new Gson();
 					UDELicense lic = gson.fromJson(input, UDELicense.class);
 					if(lic == null) break;
 					System.out.println("JSON :" + gson.toJson(lic));
@@ -239,7 +239,7 @@ public class JasperLicenseKeyGenerator {
 		        	for(int count = 0;count < num;count++){
 		        		String username = "jasper:jtaDemo-sample-" + count + ":1.0:jasperLab";
 		        		String licString = "{\"type\": \"dta\", \"instance\": 0, \"vendor\": \"jasper\", \"appName\": \"dtaDemo-sample-"+ count + "\", \"version\": \"1.0\", \"numOfPublishers\": " + num + ", \"numOfConsumers\": 1, \"adminQueue\": \"jms.jasper.jtaDemo-sample-" + count +".1.0.jasperLab.admin.queue\", \"deploymentId\": \"jasperLab\"}";
-		        		Gson gson = new GsonBuilder().setVersion(2.1).create();
+		        		Gson gson = new Gson();
 						ClientLicense lic = gson.fromJson(licString, ClientLicense.class);
 		        		lic.setLicenseKey(rsaEncrypt(lic.toString().getBytes(), privateKey));
 						String password = JAuthHelper.bytesToHex(lic.getLicenseKey());

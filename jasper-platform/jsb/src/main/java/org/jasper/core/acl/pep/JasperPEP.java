@@ -38,7 +38,6 @@ public class JasperPEP {
 	}
 
 	public void init() {
-
 		try {
 			props.load(new FileInputStream(System.getProperty("pdp-property-file")));
 		} catch (IOException ex) {
@@ -70,7 +69,7 @@ public class JasperPEP {
 			sender.init(configCtx, transportOut);
 			transportOut.setSender(sender);
 		} catch (AxisFault af) {
-			logger.error("Error creating PDP config context " + af);
+			logger.error("Error creating PDP configuration context " + af);
 		}
 
 	}
@@ -84,6 +83,9 @@ public class JasperPEP {
 	}
 
 	public boolean authorizeRequest(String subject, String resource, String action) {
+		if(! reuseSession) {
+			isAuthenticated = false;
+		}
 		try {
 			if(! isAuthenticated) {
 				authenticate();
@@ -92,17 +94,17 @@ public class JasperPEP {
 			if(isAuthenticated){
 				String decision = getDecision(subject, resource, action);
 				if(decision == null){
-					logger.error("XACML response is null - check that PDP server is running");
+					logger.error("XACML response is null - ensure that the PDP is running");
 					return false;
 				}
 				return (decision.contains("Permit") || decision.contains("NotApplicable"));
 			}
 			else{
-				logger.error("Could not authenticate on PDP server - all requests will be denied until issue is resolved");
+				logger.error("Could not authenticate user on PDP - all requests will be denied until issue is resolved");
 				return false;
 			}
 		} catch (Exception e) {
-			logger.error("Error logging into PDP server for authentication ", e);
+			logger.error("Error logging into PDP for authentication ", e);
 		}
 
 		return false;
@@ -114,11 +116,8 @@ public class JasperPEP {
 	 * service This must be done for each request
 	 * 
 	 * @return true/false
-	 * @throws Exception
-	 *             if any error
 	 */
 	private boolean authenticate() {
-
 		String serviceURL = null;
 		ServiceClient client = null;
 		Options option = null;
@@ -136,62 +135,33 @@ public class JasperPEP {
 			authCookie = (String) authAdminStub._getServiceClient().getServiceContext().getProperty(HTTPConstants.COOKIE_STRING);
 			option.setProperty(org.apache.axis2.transport.http.HTTPConstants.COOKIE_STRING, authCookie);
 		} catch(Exception e){
-			logger.error("Exception occured while logging into PDP server - ensure that PDP is running", e);
+			logger.error("Exception occured while logging into PDP - ensure that PDP is running", e);
 			return false;
 		}
 
 		return isAuthenticated;
 	}
-
-	private String getDecision(String subject, String resource, String action) throws Exception {
-
+	
+	private String getDecision(String subject, String resource, String action) throws Exception{
 		String decision;
-		if (reuseSession) {
-			String serviceURL = pdpServiceURL + JasperPEPConstants.ENTITLEMENT_SERVICE;
-			EntitlementServiceStub stub = new EntitlementServiceStub(configCtx, serviceURL);
-			ServiceClient client = stub._getServiceClient();
-			Options option = client.getOptions();
-			option.setManageSession(true);
-			option.setProperty(HTTPConstants.COOKIE_STRING, authCookie);
-			option.setTransportOut(transportOut);
-			
-			try {
-				decision = stub.getDecisionByAttributes(subject, resource, action, null);
-			} catch (Exception e) {
-				logger.error("Error sending XACML authorization request, ensure that PDP is running ", e);
-				isAuthenticated = false;
-				return null;		
-			}finally{
-				stub.cleanup();
-			}
-
-		} else {
-			if (authenticate()) {
-				String serviceURL = pdpServiceURL + JasperPEPConstants.ENTITLEMENT_SERVICE;
-				EntitlementServiceStub stub = new EntitlementServiceStub(configCtx, serviceURL);
-				ServiceClient client = stub._getServiceClient();
-				Options option = client.getOptions();
-				option.setManageSession(true);
-				option.setProperty(HTTPConstants.COOKIE_STRING, authCookie);
-				option.setTransportOut(transportOut);
+		String serviceURL = pdpServiceURL + JasperPEPConstants.ENTITLEMENT_SERVICE;
+		EntitlementServiceStub stub = new EntitlementServiceStub(configCtx, serviceURL);
+		ServiceClient client = stub._getServiceClient();
+		Options option = client.getOptions();
+		option.setManageSession(true);
+		option.setProperty(HTTPConstants.COOKIE_STRING, authCookie);
+		option.setTransportOut(transportOut);
 				
-				try{
-					decision = stub.getDecisionByAttributes(subject, resource, action, null);
-				} catch (Exception e) {
-					logger.error("Error sending XACML authorization request, ensure that PDP is running ", e);
-					isAuthenticated = false;
-					return null;		
-				}finally{
-					stub.cleanup();
-				}
-
-			} else {
-				logger.error("User can not be authenticated to evaluate the entitlement query");
-				return null;
-			}
+		try {
+			decision = stub.getDecisionByAttributes(subject, resource, action, null);
+			return decision;
+		} catch (Exception e) {
+			logger.error("Error sending XACML authorization request, ensure that PDP is running ", e);
+			isAuthenticated = false;
+			return null;		
+		} finally{
+			stub.cleanup();
 		}
-
-		return decision;
 	}
 
 }

@@ -43,6 +43,7 @@ public class TestPEP extends TestCase {
 	public void testPEPConfigError() throws Exception {
 		System.setProperty("pdp-property-file", "../zipRoot/jsb-core/pdp.properties");
 		classUnderTest = JasperPEP.getInstance();
+		System.setProperty("pdp-property-file", "./src/test/resources/pdp.properties");
 		classUnderTest.init();
 		
 	}
