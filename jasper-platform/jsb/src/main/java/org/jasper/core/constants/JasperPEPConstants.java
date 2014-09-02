@@ -1,4 +1,4 @@
-package org.jasper.core.acl.pep;
+package org.jasper.core.constants;
 
 
 public class JasperPEPConstants {

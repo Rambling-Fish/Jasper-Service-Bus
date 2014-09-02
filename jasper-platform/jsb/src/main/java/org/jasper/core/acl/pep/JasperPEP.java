@@ -14,6 +14,7 @@ import org.apache.axis2.transport.TransportSender;
 import org.apache.axis2.transport.http.CommonsHTTPTransportSender;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.log4j.Logger;
+import org.jasper.core.constants.JasperPEPConstants;
 import org.wso2.carbon.authenticator.stub.AuthenticationAdminStub;
 import org.wso2.carbon.identity.entitlement.stub.EntitlementServiceStub;
 
