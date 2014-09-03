@@ -33,6 +33,7 @@ public class JasperPEP {
 	private TransportSender sender;
 	private boolean reuseSession;
 	private boolean isAuthenticated = false;
+	private boolean defaultPolicyDecision = false;
 
 	private JasperPEP() {
 		
@@ -51,6 +52,7 @@ public class JasperPEP {
 		pdpServiceURL = props.getProperty(JasperPEPConstants.PDP_SERVICE_URL);
 		authAdminURL = props.getProperty(JasperPEPConstants.PDP_AUTH_ADMIN_URL);
 		reuseSession = props.getProperty(JasperPEPConstants.REUSE_SESSION, "true").equalsIgnoreCase("true");
+		defaultPolicyDecision = props.getProperty(JasperPEPConstants.DEFAULT_POLICY_DECISION, "false").equalsIgnoreCase("true");
 		
 		if (pdpServiceURL != null) {
 			pdpServiceURL = pdpServiceURL.trim();
@@ -98,7 +100,10 @@ public class JasperPEP {
 					logger.error("XACML response is null - ensure that the PDP is running");
 					return false;
 				}
-				return (decision.contains("Permit") || decision.contains("NotApplicable"));
+				if(decision.contains("NotApplicable")){
+					return defaultPolicyDecision;
+				}
+				return (decision.contains("Permit"));
 			}
 			else{
 				logger.error("Could not authenticate user on PDP - all requests will be denied until issue is resolved");
