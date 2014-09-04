@@ -361,28 +361,38 @@ public class Jsc {
 	}
 	
 	private Response toResponsefromJson(String response) {
-		JsonElement jelement = new JsonParser().parse(response);
-	    JsonObject  jobject = jelement.getAsJsonObject();
-		int code = jobject.get(ResponseConstants.CODE_LABEL).getAsInt();
-		String reason = jobject.get(ResponseConstants.REASON_LABEL).getAsString();
-		String description =  (jobject.get(ResponseConstants.DESCRIPTION_LABEL)!=null)?jobject.get(ResponseConstants.DESCRIPTION_LABEL).getAsString():null;
-		Map<String, String> headers = (jobject.get(ResponseConstants.HEADERS_LABEL)!=null)?getMap(jobject.get(ResponseConstants.HEADERS_LABEL).getAsJsonObject()):null;
-		byte[] payload = (jobject.get(ResponseConstants.PAYLOAD_LABEL)!=null)?getByteArray(jobject.get(ResponseConstants.PAYLOAD_LABEL).getAsJsonArray()):null;
+		try{
+			JsonElement jelement = new JsonParser().parse(response);
+			JsonObject  jobject = jelement.getAsJsonObject();
+			int code = jobject.get(ResponseConstants.CODE_LABEL).getAsInt();
+			String reason = jobject.get(ResponseConstants.REASON_LABEL).getAsString();
+			String description =  (jobject.get(ResponseConstants.DESCRIPTION_LABEL)!=null)?jobject.get(ResponseConstants.DESCRIPTION_LABEL).getAsString():null;
+			Map<String, String> headers = (jobject.get(ResponseConstants.HEADERS_LABEL)!=null)?getMap(jobject.get(ResponseConstants.HEADERS_LABEL).getAsJsonObject()):null;
+			byte[] payload = (jobject.get(ResponseConstants.PAYLOAD_LABEL)!=null)?getByteArray(jobject.get(ResponseConstants.PAYLOAD_LABEL).getAsJsonArray()):null;
 		
-		return new Response(code,reason,description,headers,payload);
+			return new Response(code,reason,description,headers,payload);
+		} catch(Exception ex){
+			log.error("exception occurred while parsing jsc response ", ex);
+			return null;
+		}
 	}
 	
-	private Request toRequestfromJson(String request) {	
-		JsonElement jelement = new JsonParser().parse(request);
-	    JsonObject  jobject = jelement.getAsJsonObject();
-    	Method method = Method.valueOf(Method.class, jobject.get(RequestConstants.METHOD_LABEL).getAsString());
-		String ruri = jobject.get(RequestConstants.REQUEST_URI_LABEL).getAsString();
-		Map<String, String> headers = getMap(jobject.get(RequestConstants.HEADERS_LABEL).getAsJsonObject());
-		Map<String, String> parameters = getMap(jobject.get(RequestConstants.PARAMETERS_LABEL).getAsJsonObject());
-		String rule = jobject.get(RequestConstants.RULE_LABEL).getAsString();
+	private Request toRequestfromJson(String request) {
+		try{
+			JsonElement jelement = new JsonParser().parse(request);
+			JsonObject  jobject = jelement.getAsJsonObject();
+			Method method = Method.valueOf(Method.class, jobject.get(RequestConstants.METHOD_LABEL).getAsString());
+			String ruri = jobject.get(RequestConstants.REQUEST_URI_LABEL).getAsString();
+			Map<String, String> headers = getMap(jobject.get(RequestConstants.HEADERS_LABEL).getAsJsonObject());
+			Map<String, String> parameters = getMap(jobject.get(RequestConstants.PARAMETERS_LABEL).getAsJsonObject());
+			String rule = jobject.get(RequestConstants.RULE_LABEL).getAsString();
 		byte[] payload = getByteArray(jobject.get(RequestConstants.PAYLOAD_LABEL).getAsJsonArray());
 		
-		return new Request(method, ruri, headers, parameters, rule, payload);
+			return new Request(method, ruri, headers, parameters, rule, payload);
+		} catch(Exception ex){
+			log.error("exception occurred while parsing jsc request ", ex);
+			return null;
+		}
 	}
 
 	private Map<String, String> getMap(JsonObject json) {
