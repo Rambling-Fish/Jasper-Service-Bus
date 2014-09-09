@@ -6,7 +6,6 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -249,7 +248,7 @@ public class JasperPEP {
         return set;
     }
     
-    private Map parseDecision(String decision) throws Exception{
+    private Map<String,String> parseDecision(String decision) throws Exception{
     	Map<String, String> result = new HashMap<String, String>();
     	DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
     	DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
