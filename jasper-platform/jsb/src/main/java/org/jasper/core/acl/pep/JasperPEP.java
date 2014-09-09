@@ -6,6 +6,7 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -100,6 +101,7 @@ public class JasperPEP {
 	}
 
 	public boolean authorizeRequest(String subject, String resource, String action) {
+		Map<String,String> result = new HashMap<String,String>();
 		if(! reuseSession) {
 			isAuthenticated = false;
 		}
@@ -120,14 +122,20 @@ public class JasperPEP {
 					logger.error("XACML response is null - ensure that the PDP is running");
 					return false;
 				}
-				parseDecision(decision);
-				if(decision.contains("Deny")){
+				
+				result = parseDecision(decision);
+				if(result.containsValue(JasperPEPConstants.RESULT_DENY)){
 					return false;
 				}
-				if(decision.contains("NotApplicable")){
+				else if(result.containsValue(JasperPEPConstants.RESULT_NOTAPPLICABLE)){
 					return defaultPolicyDecision;
 				}
-				return (decision.contains("Permit"));
+				else if(result.containsValue(JasperPEPConstants.RESULT_INDETERMINATE)){
+					return false;
+				}
+				else if(result.containsValue(JasperPEPConstants.RESULT_PERMIT)){
+					return true;
+				}
 			}
 			else{
 				logger.error("Could not authenticate user on PDP - all requests will be denied until issue is resolved");

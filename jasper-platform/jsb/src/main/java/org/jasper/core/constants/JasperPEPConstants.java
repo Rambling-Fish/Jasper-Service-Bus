@@ -20,6 +20,10 @@ public class JasperPEPConstants {
     public static final String SUBJECT_ATTRIBUTE         = "subjectValues";
     public static final String RESOURCE_ATTRIBUTE        = "resourceValues";
     public static final String ACTION_ATTRIBUTE          = "actionValues";
+    public static final String RESULT_DENY               = "Deny";
+    public static final String RESULT_PERMIT             = "Permit";
+    public static final String RESULT_NOTAPPLICABLE      = "NotApplicable";
+    public static final String RESULT_INDETERMINATE      = "Indeterminate";
 
     // XACML request variables
 
