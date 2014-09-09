@@ -107,7 +107,7 @@ public class JasperPEP {
 			if(! isAuthenticated) {
 				authenticate();
 			}
-//resource = resource.concat(",http://jasper/timestamp");			
+		
 			if(isAuthenticated){
 				String xacmlRequest = buildRequest(subject, resource, action);
 				if(xacmlRequest == null){
