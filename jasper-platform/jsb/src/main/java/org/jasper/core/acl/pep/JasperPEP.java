@@ -2,7 +2,15 @@ package org.jasper.core.acl.pep;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.StringReader;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
@@ -14,9 +22,15 @@ import org.apache.axis2.transport.TransportSender;
 import org.apache.axis2.transport.http.CommonsHTTPTransportSender;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.log4j.Logger;
+import org.jasper.core.acl.pep.utils.AttributeValueDTO;
+import org.jasper.core.acl.pep.utils.XACMLRequestBuilder;
 import org.jasper.core.constants.JasperPEPConstants;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.wso2.carbon.authenticator.stub.AuthenticationAdminStub;
 import org.wso2.carbon.identity.entitlement.stub.EntitlementServiceStub;
+import org.xml.sax.InputSource;
 
 public class JasperPEP {
 	static Logger logger = Logger.getLogger(JasperPEP.class.getName());
@@ -93,11 +107,21 @@ public class JasperPEP {
 			if(! isAuthenticated) {
 				authenticate();
 			}
-			
+//resource = resource.concat(",http://jasper/timestamp");			
 			if(isAuthenticated){
-				String decision = getDecision(subject, resource, action);
+				String xacmlRequest = buildRequest(subject, resource, action);
+				if(xacmlRequest == null){
+					logger.error("Error creating XACML request");
+					return false;
+				}
+				if(logger.isDebugEnabled()) logger.debug("XACML request = " + xacmlRequest);
+				String decision = getDecision(xacmlRequest);
 				if(decision == null){
 					logger.error("XACML response is null - ensure that the PDP is running");
+					return false;
+				}
+				parseDecision(decision);
+				if(decision.contains("Deny")){
 					return false;
 				}
 				if(decision.contains("NotApplicable")){
@@ -148,7 +172,95 @@ public class JasperPEP {
 		return isAuthenticated;
 	}
 	
-	private String getDecision(String subject, String resource, String action) throws Exception{
+	private String buildRequest(String subject, String resource, String action) {
+		Set<AttributeValueDTO> valueDTOs = new HashSet<AttributeValueDTO>();
+		XACMLRequestBuilder reqBuilder = new XACMLRequestBuilder();
+		Set<AttributeValueDTO> subjectAttributes = getSubjectAttributeValues(subject);
+		Set<AttributeValueDTO> actionAttributes = getActionAttributeValues(action);
+        Set<AttributeValueDTO> resourceAttributes = getResourceAttributeValues(resource);
+        
+        valueDTOs.addAll(resourceAttributes);
+        valueDTOs.addAll(subjectAttributes);
+        valueDTOs.addAll(actionAttributes);
+        
+        try{
+        	Document document = reqBuilder.createRequestElement(valueDTOs);
+        	String request = reqBuilder.getStringFromDocument(document);
+        	return request;
+        }catch(Exception e){
+        	logger.error("Exception occurred while creating XACML request", e);
+        	return null;
+        }
+
+	}
+	
+	private Set<AttributeValueDTO> getSubjectAttributeValues(String subjectValues){
+        Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
+        if(subjectValues != null){
+            String[] values = subjectValues.split(",");
+            for(String value : values){
+                AttributeValueDTO valueDTO = new AttributeValueDTO();
+                valueDTO.setCategory(JasperPEPConstants.CATEGORY_SUBJECT);
+                valueDTO.setValue(value.trim());
+                set.add(valueDTO);
+            }
+        }
+
+        return set;
+    }
+	
+	public static Set<AttributeValueDTO> getResourceAttributeValues(String resourceValues){
+
+        Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
+        if(resourceValues != null){
+            String[] values = resourceValues.split(",");
+            for(String value : values){
+                AttributeValueDTO valueDTO = new AttributeValueDTO();
+                valueDTO.setCategory(JasperPEPConstants.CATEGORY_RESOURCE);
+                valueDTO.setValue(value.trim());
+                set.add(valueDTO);
+            }
+        }
+
+        return set;
+    }
+
+    public static Set<AttributeValueDTO> getActionAttributeValues(String actionValues){
+
+        Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
+        if(actionValues != null){
+            String[] values = actionValues.split(",");
+            for(String value : values){
+                AttributeValueDTO valueDTO = new AttributeValueDTO();
+                valueDTO.setCategory(JasperPEPConstants.CATEGORY_ACTION);
+                valueDTO.setValue(value.trim());
+                set.add(valueDTO);
+            }
+        }
+
+        return set;
+    }
+    
+    private Map parseDecision(String decision) throws Exception{
+    	Map<String, String> result = new HashMap<String, String>();
+    	DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+    	DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+    	Document doc = dBuilder.parse( new InputSource( new StringReader( decision ) ) );
+    	doc.getDocumentElement().normalize();
+    	
+    	NodeList decList = doc.getElementsByTagName("Decision");
+    	NodeList attList = doc.getElementsByTagName("AttributeValue");
+
+    	for (int temp = 0; temp < decList.getLength(); temp++) {
+    		Node dNode = decList.item(temp);
+    		Node aNode = attList.item(temp);
+    		result.put(aNode.getFirstChild().getTextContent(), dNode.getFirstChild().getTextContent());
+    	}
+    	
+    	return result;
+    }
+    	
+	private String getDecision(String xacmlRequest) throws Exception{
 		String decision;
 		String serviceURL = pdpServiceURL + JasperPEPConstants.ENTITLEMENT_SERVICE;
 		EntitlementServiceStub stub = new EntitlementServiceStub(configCtx, serviceURL);
@@ -159,7 +271,8 @@ public class JasperPEP {
 		option.setTransportOut(transportOut);
 				
 		try {
-			decision = stub.getDecisionByAttributes(subject, resource, action, null);
+			decision = stub.getDecision(xacmlRequest);
+			if(logger.isDebugEnabled()) logger.debug("PDP Decision = " + decision);
 			return decision;
 		} catch (Exception e) {
 			logger.error("Error sending XACML authorization request, ensure that PDP is running ", e);
