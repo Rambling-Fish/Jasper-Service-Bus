@@ -179,6 +179,13 @@ public class JasperPEP {
 		return isAuthenticated;
 	}
 	
+	 /**
+     * Builds an String representation of an XACML request to be sent to PDP server
+     * @param String subject comma delineated list of 0 or more subjects
+     * @param String resource comma delineated list of 0 or more resource URIs
+     * @param String action comma delineated list of 0 or more actions
+     * @return String representation of an XACML request or null on any error
+     */
 	private String buildRequest(String subject, String resource, String action) {
 		Set<AttributeValueDTO> valueDTOs = new HashSet<AttributeValueDTO>();
 		XACMLRequestBuilder reqBuilder = new XACMLRequestBuilder();
@@ -186,9 +193,15 @@ public class JasperPEP {
 		Set<AttributeValueDTO> actionAttributes = reqBuilder.getActionAttributeValues(action);
         Set<AttributeValueDTO> resourceAttributes = reqBuilder.getResourceAttributeValues(resource);
         
-        valueDTOs.addAll(resourceAttributes);
-        valueDTOs.addAll(subjectAttributes);
-        valueDTOs.addAll(actionAttributes);
+        if(resourceAttributes.size() > 0){
+        	valueDTOs.addAll(resourceAttributes);
+        }
+        if(subjectAttributes.size() > 0){
+        	valueDTOs.addAll(subjectAttributes);
+        }
+        if(actionAttributes.size() > 0){
+        	valueDTOs.addAll(actionAttributes);
+        }
         
         try{
         	Document document = reqBuilder.createRequestElement(valueDTOs);
