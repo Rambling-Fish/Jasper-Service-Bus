@@ -182,9 +182,9 @@ public class JasperPEP {
 	private String buildRequest(String subject, String resource, String action) {
 		Set<AttributeValueDTO> valueDTOs = new HashSet<AttributeValueDTO>();
 		XACMLRequestBuilder reqBuilder = new XACMLRequestBuilder();
-		Set<AttributeValueDTO> subjectAttributes = getSubjectAttributeValues(subject);
-		Set<AttributeValueDTO> actionAttributes = getActionAttributeValues(action);
-        Set<AttributeValueDTO> resourceAttributes = getResourceAttributeValues(resource);
+		Set<AttributeValueDTO> subjectAttributes = reqBuilder.getSubjectAttributeValues(subject);
+		Set<AttributeValueDTO> actionAttributes = reqBuilder.getActionAttributeValues(action);
+        Set<AttributeValueDTO> resourceAttributes = reqBuilder.getResourceAttributeValues(resource);
         
         valueDTOs.addAll(resourceAttributes);
         valueDTOs.addAll(subjectAttributes);
@@ -200,53 +200,6 @@ public class JasperPEP {
         }
 
 	}
-	
-	private Set<AttributeValueDTO> getSubjectAttributeValues(String subjectValues){
-        Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
-        if(subjectValues != null){
-            String[] values = subjectValues.split(",");
-            for(String value : values){
-                AttributeValueDTO valueDTO = new AttributeValueDTO();
-                valueDTO.setCategory(JasperPEPConstants.CATEGORY_SUBJECT);
-                valueDTO.setValue(value.trim());
-                set.add(valueDTO);
-            }
-        }
-
-        return set;
-    }
-	
-	public static Set<AttributeValueDTO> getResourceAttributeValues(String resourceValues){
-
-        Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
-        if(resourceValues != null){
-            String[] values = resourceValues.split(",");
-            for(String value : values){
-                AttributeValueDTO valueDTO = new AttributeValueDTO();
-                valueDTO.setCategory(JasperPEPConstants.CATEGORY_RESOURCE);
-                valueDTO.setValue(value.trim());
-                set.add(valueDTO);
-            }
-        }
-
-        return set;
-    }
-
-    public static Set<AttributeValueDTO> getActionAttributeValues(String actionValues){
-
-        Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
-        if(actionValues != null){
-            String[] values = actionValues.split(",");
-            for(String value : values){
-                AttributeValueDTO valueDTO = new AttributeValueDTO();
-                valueDTO.setCategory(JasperPEPConstants.CATEGORY_ACTION);
-                valueDTO.setValue(value.trim());
-                set.add(valueDTO);
-            }
-        }
-
-        return set;
-    }
     
     private Map<String,String> parseDecision(String decision) throws Exception{
     	Map<String, String> result = new HashMap<String, String>();

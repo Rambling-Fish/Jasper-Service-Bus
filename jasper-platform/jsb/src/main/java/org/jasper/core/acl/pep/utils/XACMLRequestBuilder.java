@@ -1,6 +1,7 @@
 package org.jasper.core.acl.pep.utils;
 
 import java.io.StringWriter;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -120,6 +121,68 @@ public class XACMLRequestBuilder {
         }
 
         return doc;
+    }
+    
+    /**
+     * Convert comma separated String value to a Set<AttributeValueDTOA> for subject elements
+     * @param String subjectValues
+     * @return Set of AttributeValueDTOs containing 0 or more subjects
+     */
+    public Set<AttributeValueDTO> getSubjectAttributeValues(String subjectValues){
+        Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
+        if(subjectValues != null){
+            String[] values = subjectValues.split(",");
+            for(String value : values){
+                AttributeValueDTO valueDTO = new AttributeValueDTO();
+                valueDTO.setCategory(JasperPEPConstants.CATEGORY_SUBJECT);
+                valueDTO.setValue(value.trim());
+                set.add(valueDTO);
+            }
+        }
+
+        return set;
+    }
+    
+    /**
+     * Convert comma separated String value to a Set<AttributeValueDTOA> for resource elements
+     * @param String resourceValues
+     * @return Set of AttributeValueDTOs containing 0 or more resources
+     */
+	public Set<AttributeValueDTO> getResourceAttributeValues(String resourceValues){
+
+        Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
+        if(resourceValues != null){
+            String[] values = resourceValues.split(",");
+            for(String value : values){
+                AttributeValueDTO valueDTO = new AttributeValueDTO();
+                valueDTO.setCategory(JasperPEPConstants.CATEGORY_RESOURCE);
+                valueDTO.setValue(value.trim());
+                set.add(valueDTO);
+            }
+        }
+
+        return set;
+    }
+	
+	/**
+     * Convert comma separated String value to a Set<AttributeValueDTOA> for action elements
+     * @param String actionValues
+     * @return Set of AttributeValueDTOs containing 0 or more actions
+     */
+    public Set<AttributeValueDTO> getActionAttributeValues(String actionValues){
+
+        Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
+        if(actionValues != null){
+            String[] values = actionValues.split(",");
+            for(String value : values){
+                AttributeValueDTO valueDTO = new AttributeValueDTO();
+                valueDTO.setCategory(JasperPEPConstants.CATEGORY_ACTION);
+                valueDTO.setValue(value.trim());
+                set.add(valueDTO);
+            }
+        }
+
+        return set;
     }
 
     /**
