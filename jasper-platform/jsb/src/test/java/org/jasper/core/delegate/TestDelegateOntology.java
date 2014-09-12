@@ -31,15 +31,17 @@ public class TestDelegateOntology {
 	private static DelegateOntology classUnderTest;
 	private String ruri = "http://coralcea.ca/jasper/hrData";
 	private String ruri2 = "http://coralcea.ca/jasper/getBpData";
+	private String ruri3 = "http://coralcea.ca/jasper/Sms/toSms";
 	private String publishUri = "http://coralcea.ca/jasper/sendSms";
 	private String operation = "http://coralcea.ca/jasper/getHrData";
 	private String inputObject = "http://coralcea.ca/jasper/HrDataReq";
 	private static String dtaName = "jasper:dta-heart-rate-monitor-D:1.0:jasperLab";
 	private static String dtaName2 = "jasper:dta-sms-terminator:1.0:rayLab";
+	private static String dtaName3 = "jasper:dta-nurse-call-viewer:1.0:paulLab";
 	private String dest = "dta-heart-rate-monitor-d-gethrdata";
 	private String triples = "@prefix :  <http://coralcea.ca/jasper/> .\n@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n@prefix hrSensor: <http://coralcea.ca/jasper/hrSensor/> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix dta:   <http://coralcea.ca/2014/01/dta#> .\n\n:MsData  a  owl:Class .\n\n:timestamp  a  owl:DatatypeProperty ;\n  rdfs:domain  :HrData ;\n rdfs:range   xsd:string .\n\n:hrSID  a owl:DatatypeProperty ;\n rdfs:domain  :HrDataReq ;\n  rdfs:range   xsd:string .\n\n:HrData  a owl:Class ;\n rdfs:subClassOf  :MsData ;\n  dta:restriction  [ a  owl:Restriction ;\n  owl:onProperty :timestamp\n  ] ;\n dta:restriction  [ a  owl:Restriction ;\n owl:onProperty   hrSensor:bpm\n ] .\n\n:dta-heart-rate-monitor-D\n a dta:DTA ;\n dta:operation  :getHrData .\n\n:hrData  a owl:ObjectProperty ;\n  rdfs:range :HrData ;\n  rdfs:subPropertyOf  :msData .\n\n:msData  a owl:ObjectProperty ;\n rdfs:range  :MsData .\n\n:HrDataReq  a owl:Class ;\n  dta:restriction  [ a owl:Restriction ;\n owl:onProperty   :hrSID;\n ] .\n\nhrSensor:bpm  a owl:DatatypeProperty ;\n  rdfs:domain  :HrData ;\n rdfs:range   xsd:integer .\n\n:getHrData  a dta:Operation ;\n dta:destination  'dta-heart-rate-monitor-d-gethrdata' ;\n dta:parameter :HrDataReq ;\n dta:kind dta:Get ;\n  dta:data :hrData .\n";	
 	private String triples2 = "@prefix : <http://coralcea.ca/jasper/Sms/> .\n@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix jasper: <http://coralcea.ca/jasper/> .\n@prefix dta:   <http://coralcea.ca/2014/01/dta#> .\n\n:SmsPostReq  a     owl:Class ;\n  dta:restriction  [ a  owl:Restriction ;\n   owl:onProperty   :bodySms\n  ] ;\n  dta:restriction  [ a  owl:Restriction ;\n    owl:onProperty   :fromSms\n   ] ;\n  dta:restriction  [ a  owl:Restriction ;\n  owl:onProperty  :logId\n ] ;\n  dta:restriction  [ a  owl:Restriction ;\n  owl:onProperty   :toSms\n  ] .\n\n:dta-sms-terminator  a  dta:DTA ;\n dta:operation  :sendSms .\n\n:sendSms  a  dta:Operation ;\n  dta:destination  'dta-sms-terminator-sendsms' ;\n  dta:parameter  :SmsPostReq ;\n  dta:kind  dta:Post .\n\n:fromSms  a owl:DatatypeProperty ;\n  rdfs:domain  :SmsPostReq ;\n  rdfs:range   xsd:string .\n\n:logId  a  owl:DatatypeProperty ;\n rdfs:domain  :SmsPostReq ;\n  rdfs:range   xsd:string .\n\n:toSms  a owl:DatatypeProperty ;\n  rdfs:domain  :SmsPostReq ;\n rdfs:range   xsd:string .\n\n:bodySms  a owl:DatatypeProperty ;\n rdfs:domain  :SmsPostReq ;\n rdfs:range   xsd:string .\n";	
-
+	private String triples3 = "@prefix :      <http://coralcea.ca/dta-nurse-call-viewer#> .\n@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix dta:   <http://coralcea.ca/2014/01/dta#> .\n\n<http://coralcea.ca/jasper/map/fullName>\n        owl:equivalentProperty  <http://coralcea.ca/jasper/contactName> .\n\n:dta-nurse-call-viewer\n        a            dta:DTA ;\n        dta:request  :handleNurseCall .\n\n<http://coralcea.ca/jasper/Sms/toSms>\n        owl:equivalentProperty  <http://coralcea.ca/jasper/info/workCellphone> .\n\n<http://coralcea.ca/dta-nurse-call-viewer>\n        a            owl:Ontology ;\n        owl:imports  <http://coralcea.ca/jasper> .\n\n:handleNurseCall  a          dta:Request ;\n        dta:data             <http://coralcea.ca/jasper/NurseCall/callNurse> ;\n        dta:dataRestriction  [ a                owl:Restriction ;\n                               owl:onProperty   <http://coralcea.ca/jasper/NurseCall/callNurse>\n                             ] ;\n        dta:destination      'dta-nurse-call-viewer-handleNurseCall' ;\n        dta:kind             dta:Subscribe .\n\n<http://coralcea.ca/jasper/EmailMsg/emailAddressTo>\n        owl:equivalentProperty  <http://coralcea.ca/jasper/info/workEmail> .\n";
 	
 	/**
 	 * This method tests all the public boolean methods of the DelegateOntology class
@@ -129,7 +131,11 @@ public class TestDelegateOntology {
 		resultSet.clear();
 		resultSet = classUnderTest.getEquivalentProperties(superRuri);
 		TestCase.assertNotNull(resultSet);
-		
+
+		resultSet.clear();
+		resultSet = classUnderTest.getEquivalents(ruri3);
+		TestCase.assertNotNull(resultSet);
+
 		ArrayList<String> arrList = classUnderTest.fetchPostOperations(publishUri);
 		TestCase.assertNotNull(arrList);
 		arrList = classUnderTest.fetchPostOperations(null);
@@ -175,6 +181,7 @@ public class TestDelegateOntology {
 	private void loadModel(){
 		classUnderTest.add(dtaName, triples);
 		classUnderTest.add(dtaName2, triples2);
+		classUnderTest.add(dtaName3, triples3);
 	}
 	
 	@BeforeClass

@@ -123,7 +123,7 @@ public class TestDataRequestHandler{
 		when(mockPersistReq.getRequest()).thenReturn(subscribeWithNoID);
 		when(mockDelegate.getJOntology()).thenReturn(mockOntology);
 		when(mockOntology.isRuriKnownForInputPublish(publishRuri)).thenReturn(true);
-		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.BADREQUEST, "susbcription request does not contain subcription ID", null, "application/json", JasperConstants.VERSION_1_0)).thenReturn("error");
+		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.BADREQUEST, "subscription request does not contain subscription ID", null, "application/json", JasperConstants.VERSION_1_0)).thenReturn("error");
 		classUnderTest.run();
 	}
 	

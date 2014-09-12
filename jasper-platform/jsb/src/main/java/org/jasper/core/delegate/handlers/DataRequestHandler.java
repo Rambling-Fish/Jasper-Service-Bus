@@ -143,16 +143,24 @@ public class DataRequestHandler implements Runnable {
 				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.SUBSCRIPTION_ID_LABEL).getAsJsonPrimitive().isString()) {
 			subscriptionId = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.SUBSCRIPTION_ID_LABEL).getAsJsonPrimitive().getAsString();
 		}else{
-			logger.error("susbcription request does not contain subcription ID, returning bad request response");
-			throw new JasperRequestException(JasperConstants.ResponseCodes.BADREQUEST, "susbcription request does not contain subcription ID");
+			logger.error("subscription request does not contain subscription ID, returning bad request response");
+			throw new JasperRequestException(JasperConstants.ResponseCodes.BADREQUEST, "subscription request does not contain subscription ID");
 		}
 		
 		int expiry;
 		if (jsonRequest.isJsonObject() && jsonRequest.getAsJsonObject().has(JasperConstants.HEADERS_LABEL) && jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).isJsonObject()
 				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().has(JasperConstants.EXPIRES_LABEL)
 				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).isJsonPrimitive()
-				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).getAsJsonPrimitive().isNumber()) {
-			expiry = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).getAsJsonPrimitive().getAsInt();
+				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).getAsJsonPrimitive().isString())
+                {
+					String expiryString = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).getAsJsonPrimitive().getAsString();
+					try {
+						expiry = Integer.parseInt(expiryString);
+					}
+					catch (NumberFormatException nfe) {
+						//set to -1 and never expire
+						expiry = -1;
+					}
 		} else {
 			//IF no expire, then set to -1 and never expire
 			expiry = -1;
@@ -239,10 +247,10 @@ public class DataRequestHandler implements Runnable {
 			if(responsesThatMeetCriteria != null){
 				if(sub.getResponseType().equalsIgnoreCase("application/ld+json")){
 					JsonElement jsonLDResponse = jsonLDTransformer.parseResponse(responsesThatMeetCriteria);
-					sendResponse(sub.getCorrelationID(), sub.getReply2q(), jsonLDResponse.toString());
+					sendSubResponse(sub.getCorrelationID(), sub.getReply2q(), jsonLDResponse.toString());
 				}
 				else{
-					sendResponse(sub.getCorrelationID(), sub.getReply2q(), responsesThatMeetCriteria.toString());
+					sendSubResponse(sub.getCorrelationID(), sub.getReply2q(), responsesThatMeetCriteria.toString());
 				}
 			}
 		}		
@@ -497,6 +505,23 @@ public class DataRequestHandler implements Runnable {
 	}
 
 	private JsonElement getResponse(String ruri, JsonObject parameters, String processing_scheme) throws JMSException, JasperRequestException {
+		DataProcessor dataProcessor = DataProcessorFactory.createDataProcessor(processing_scheme);
+
+        Set<String> setString = jOntology.getEquivalents(ruri);
+
+        for (String uri : jOntology.getEquivalents(ruri)) {
+        	JsonElement response = getResponseSingleUri(uri, parameters, processing_scheme);
+        	if(response != null) dataProcessor.add(response);
+        }
+
+        JsonElement singleResponse = getResponseSingleUri(ruri, parameters, processing_scheme);
+        if(singleResponse != null) dataProcessor.add(singleResponse);
+
+        JsonElement result = dataProcessor.process();
+        return result;
+	}
+
+	private JsonElement getResponseSingleUri(String ruri, JsonObject parameters, String processing_scheme) throws JMSException, JasperRequestException {
 		if (!jOntology.isRuriKnownForOutputGet(ruri)) return null;
 
 		DataProcessor dataProcessor = DataProcessorFactory.createDataProcessor(processing_scheme);
@@ -627,6 +652,12 @@ public class DataRequestHandler implements Runnable {
 		Message message = delegate.createTextMessage(jsonResponse);
 		message.setJMSCorrelationID(correlationID);
 		delegate.sendMessage(dstQ, message);
+	}
+
+	private void sendSubResponse(String correlationID, Destination dstQ, String response) throws JMSException {
+    	Message message = delegate.createTextMessage(response);
+        message.setJMSCorrelationID(correlationID);
+        delegate.sendMessage(dstQ, message);
 	}
 
 	private JsonObject getInputObject(String ruri, JsonObject parameters) throws JMSException, JasperRequestException {

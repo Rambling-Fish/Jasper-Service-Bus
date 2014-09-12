@@ -46,6 +46,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 	private Map<String, String>	provideDestinationQueueCache;
 	private Map<String, Set<String>> superPropertyList;
 	private Map<String, Set<String>> equivalentPropertyList;
+	private Map<String, Set<String>> equivalentObjectList;
 	private Map<String, Boolean>	knownRuriForInputPublishCache;
 	
 	static Logger logger = Logger.getLogger(DelegateOntology.class.getName());
@@ -74,6 +75,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 		provideDestinationQueueCache = new ConcurrentHashMap<String,String>();
 		superPropertyList = new ConcurrentHashMap<String,Set<String>>();
 		equivalentPropertyList = new ConcurrentHashMap<String,Set<String>>();
+		equivalentObjectList = new ConcurrentHashMap<String,Set<String>>();
 		knownRuriForInputPublishCache = new ConcurrentHashMap<String,Boolean>();
 		
 		for(String dtaName:dtaTriples.keySet()){
@@ -102,6 +104,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 		provideDestinationQueueCache.clear();
 		superPropertyList.clear();
 		equivalentPropertyList.clear();
+		equivalentObjectList.clear();
 		knownRuriForInputPublishCache.clear();
 	}
 
@@ -260,8 +263,36 @@ public class DelegateOntology implements EntryListener<String, String>{
 		}
 		return equivalentPropertyList.get(ruri);
 	}
-	
-	
+
+	public Set<String> getEquivalents(String ruri) {
+		if (ruri == null) return null;
+		
+		if(!equivalentObjectList.containsKey(ruri)){
+			String queryString = 
+					JasperOntologyConstants.PREFIXES +
+		             "SELECT ?equivalentObject  WHERE " +
+	             "   {" +
+	             "         <" + ruri + ">   (owl:equivalentProperty|^owl:equivalentProperty)+ ?equivalentObject \n" +
+	             "   }" ;
+			
+			Query query = QueryFactory.create(queryString) ;
+			QueryExecution qexec = QueryExecutionFactory.create(query, model);
+			Set<String> array = new HashSet<String>();
+			try {
+				ResultSet results = qexec.execSelect() ;
+				for ( ; results.hasNext() ; )
+				{
+					QuerySolution soln = results.nextSolution();
+					array.add(soln.get("equivalentObject").toString());
+					
+				}
+			}finally{
+				qexec.close();
+			}
+			equivalentObjectList.put(ruri, array);
+		}
+		return equivalentObjectList.get(ruri);
+	}
 
 	//========================================================================================== 
 	// METHOD:  isRuriKnownForOutputGet
@@ -283,7 +314,7 @@ public class DelegateOntology implements EntryListener<String, String>{
 		             "         ?dta    a                               dta:DTA       .\n" +
 		             "         ?dta    dta:operation                   ?oper         .\n" +
 		             "         ?oper   dta:kind                        dta:Get       .\n" +
-		             "         ?oper   dta:data/rdfs:subPropertyOf*                      <" + ruri + "> .\n" +
+		             "         ?oper   dta:data/rdfs:subPropertyOf*   <" + ruri + "> .\n" +
 		             "   }" + 
 		             "       UNION" +
 		             "   {" +
