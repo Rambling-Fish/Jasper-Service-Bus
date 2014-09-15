@@ -53,6 +53,7 @@ public class JasperPEP {
 		
 	}
 
+	// Reads in all values from the configuration file
 	public void init() {
 		try {
 			props.load(new FileInputStream(System.getProperty("pdp-property-file")));
@@ -91,6 +92,11 @@ public class JasperPEP {
 
 	}
 
+	/**
+     * Instantiates and initializes a singleton PEP instance
+     * 
+     * @return JasperPEP instance
+     */
 	public static JasperPEP getInstance() {
 		if (pep == null) {
 			pep = new JasperPEP();
@@ -99,6 +105,20 @@ public class JasperPEP {
 		return pep;
 	}
 
+	/**
+     * Authorizes requests for data from UDE by sending an XACML request to the PDP server.
+     * It must login first and will do so on every request if the config parameter reuseSession is false
+     * otherwise it will login only once and store a session cookie for further communication with PDP
+     * @param String subject - a comma separated String representation of 0 or more subjects (e.g. "trust level" of who is making request)
+     * @param String resource - a comma separated String representation of 0 or more resources (i.e. data being requested)
+     * @param String actions - a comma separated String representation of 0 or more actions (e.g GET)
+     * 
+     * @return boolean - true if requester is allowed access false if denied or on any error. If access decision 
+     *                   is "NotApplicable" meaning there is no access policy defined for requested resource, 
+     *                   then the value of the configuration parameter isDefaultPolicyAllow is returned. If 
+     *                   decision is Indeterminate which means not enough data was supplied in request then Deny (false)
+     *                   is returned
+     */
 	public boolean authorizeRequest(String subject, String resource, String action) {
 		Map<String,String> result = new HashMap<String,String>();
 		if(! reuseSession) {
@@ -122,15 +142,17 @@ public class JasperPEP {
 					return false;
 				}
 				
+				// Note: do not change order of evaluation. Check for all results
+				// that could lead to a Deny before checking for Permit
 				result = parseDecision(decision);
 				if(result.containsValue(JasperPEPConstants.RESULT_DENY)){
 					return false;
 				}
-				else if(result.containsValue(JasperPEPConstants.RESULT_NOTAPPLICABLE)){
-					return defaultPolicyDecision;
-				}
 				else if(result.containsValue(JasperPEPConstants.RESULT_INDETERMINATE)){
 					return false;
+				}
+				else if(result.containsValue(JasperPEPConstants.RESULT_NOTAPPLICABLE)){
+					return defaultPolicyDecision;
 				}
 				else if(result.containsValue(JasperPEPConstants.RESULT_PERMIT)){
 					return true;
@@ -148,9 +170,12 @@ public class JasperPEP {
 
 	}
 
-	/**
+	/*
 	 * authenticates with WSO2 Identity Server using authentication admin
-	 * service This must be done for each request
+	 * service This must be done for each request if config param reuseSession
+	 * is set to false otherwise it is only done on first request. If 
+	 * authentication with PDP server fails then no authorization requests
+	 * can be sent to server.
 	 * 
 	 * @return true/false
 	 */
@@ -184,6 +209,7 @@ public class JasperPEP {
      * @param String subject comma delineated list of 0 or more subjects
      * @param String resource comma delineated list of 0 or more resource URIs
      * @param String action comma delineated list of 0 or more actions
+     * 
      * @return String representation of an XACML request or null on any error
      */
 	private String buildRequest(String subject, String resource, String action) {
@@ -214,6 +240,11 @@ public class JasperPEP {
 
 	}
     
+	/* This method parses the XACML decision into a HashMap. The key to the map is the
+	    URI of the resource and the value is the XACML decision (e.g. Permit). This
+	    allows us the ability in the future to remove or anonymize data that the
+	    requester does not have permission to view
+	*/
     private Map<String,String> parseDecision(String decision) throws Exception{
     	Map<String, String> result = new HashMap<String, String>();
     	DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -233,6 +264,12 @@ public class JasperPEP {
     	return result;
     }
     	
+    /**
+     * Sends an XACML request to PDP server for an access decision
+     * @param String request - String representation of XACML request
+     * 
+     * @return String representation of an XACML response or null on any error
+     */
 	private String getDecision(String xacmlRequest) throws Exception{
 		String decision;
 		String serviceURL = pdpServiceURL + JasperPEPConstants.ENTITLEMENT_SERVICE;
