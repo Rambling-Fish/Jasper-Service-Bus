@@ -151,16 +151,8 @@ public class DataRequestHandler implements Runnable {
 		if (jsonRequest.isJsonObject() && jsonRequest.getAsJsonObject().has(JasperConstants.HEADERS_LABEL) && jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).isJsonObject()
 				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().has(JasperConstants.EXPIRES_LABEL)
 				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).isJsonPrimitive()
-				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).getAsJsonPrimitive().isString())
-                {
-					String expiryString = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).getAsJsonPrimitive().getAsString();
-					try {
-						expiry = Integer.parseInt(expiryString);
-					}
-					catch (NumberFormatException nfe) {
-						//set to -1 and never expire
-						expiry = -1;
-					}
+				&& jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).getAsJsonPrimitive().isNumber()) {
+			expiry = jsonRequest.getAsJsonObject().get(JasperConstants.HEADERS_LABEL).getAsJsonObject().get(JasperConstants.EXPIRES_LABEL).getAsJsonPrimitive().getAsInt();
 		} else {
 			//IF no expire, then set to -1 and never expire
 			expiry = -1;
