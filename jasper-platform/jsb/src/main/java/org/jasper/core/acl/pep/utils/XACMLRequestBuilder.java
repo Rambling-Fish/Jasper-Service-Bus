@@ -50,7 +50,7 @@ public class XACMLRequestBuilder {
                 if(JasperPEPConstants.CATEGORY_ACTION.equals(attribute.getCategory())){
                 	actionElement = doc.createElement(JasperPEPConstants.ATTRIBUTES);
                 	actionElement.setAttribute(JasperPEPConstants.CATEGORY, JasperPEPConstants.CATEGORY_ACTION);
-                    actionElement.appendChild(createRequestSubElement(attribute.getValue(), data, JasperPEPConstants.ACTION_ID,doc, FALSE));
+                    actionElement.appendChild(createRequestSubElement(attribute.getValue(), data, JasperPEPConstants.ACTION_ID,doc, TRUE));
                     
                     requestElement.appendChild(actionElement);
                 }
@@ -58,7 +58,7 @@ public class XACMLRequestBuilder {
                 if(JasperPEPConstants.CATEGORY_SUBJECT.equals(attribute.getCategory())){
                 	subjectElement =  doc.createElement(JasperPEPConstants.ATTRIBUTES);
                 	subjectElement.setAttribute(JasperPEPConstants.CATEGORY, JasperPEPConstants.CATEGORY_SUBJECT);
-                    subjectElement.appendChild(createRequestSubElement(attribute.getValue(), data, JasperPEPConstants.SUBJECT_ID_DEFAULT, doc, FALSE));
+                    subjectElement.appendChild(createRequestSubElement(attribute.getValue(), data, JasperPEPConstants.SUBJECT_ID_DEFAULT, doc, TRUE));
                     
                     requestElement.appendChild(subjectElement);
                 }
