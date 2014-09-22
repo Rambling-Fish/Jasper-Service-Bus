@@ -3,7 +3,9 @@ package org.jasper.core.acl.pep;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -19,8 +21,6 @@ import org.apache.axis2.description.TransportOutDescription;
 import org.apache.axis2.transport.TransportSender;
 import org.apache.axis2.transport.http.CommonsHTTPTransportSender;
 import org.apache.axis2.transport.http.HTTPConstants;
-import org.apache.commons.collections.MultiMap;
-import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.log4j.Logger;
 import org.jasper.core.acl.pep.utils.AttributeValueDTO;
 import org.jasper.core.acl.pep.utils.XACMLRequestBuilder;
@@ -120,7 +120,7 @@ public class JasperPEP {
      *                   is returned
      */
 	public boolean authorizeRequest(String subject, String resource, String action) {
-		MultiMap results = new MultiValueMap();
+		Map<String,String> result = new HashMap<String,String>();
 		if(! reuseSession) {
 			isAuthenticated = false;
 		}
@@ -128,7 +128,7 @@ public class JasperPEP {
 			if(! isAuthenticated) {
 				authenticate();
 			}
-		
+			
 			if(isAuthenticated){
 				String xacmlRequest = buildRequest(subject, resource, action);
 				if(xacmlRequest == null){
@@ -144,18 +144,17 @@ public class JasperPEP {
 				
 				// Note: do not change order of evaluation. Check for all results
 				// that could lead to a Deny before checking for Permit
-				results = parseDecision(decision);
-			
-				if(results.containsKey(JasperPEPConstants.RESULT_DENY)){
+				result = parseDecision(decision);
+				if(result.containsValue(JasperPEPConstants.RESULT_DENY)){
 					return false;
 				}
-				else if(results.containsKey(JasperPEPConstants.RESULT_INDETERMINATE)){
+				else if(result.containsValue(JasperPEPConstants.RESULT_INDETERMINATE)){
 					return false;
 				}
-				else if(results.containsKey(JasperPEPConstants.RESULT_NOTAPPLICABLE)){
+				else if(result.containsValue(JasperPEPConstants.RESULT_NOTAPPLICABLE)){
 					return defaultPolicyDecision;
 				}
-				else if(results.containsKey(JasperPEPConstants.RESULT_PERMIT)){
+				else if(result.containsValue(JasperPEPConstants.RESULT_PERMIT)){
 					return true;
 				}
 			}
@@ -243,11 +242,11 @@ public class JasperPEP {
     
 	/* This method parses the XACML decision into a HashMap. The key to the map is the
 	    URI of the resource and the value is the XACML decision (e.g. Permit). This
-	    allows the ability in the future to remove or anonymize data that the
+	    allows us the ability in the future to remove or anonymize data that the
 	    requester does not have permission to view
 	*/
-    private MultiMap parseDecision(String decision) throws Exception{
-    	MultiMap xacmlResult = new MultiValueMap();
+    private Map<String,String> parseDecision(String decision) throws Exception{
+    	Map<String, String> result = new HashMap<String, String>();
     	DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
     	DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
     	Document doc = dBuilder.parse( new InputSource( new StringReader( decision ) ) );
@@ -255,21 +254,14 @@ public class JasperPEP {
     	
     	NodeList decList = doc.getElementsByTagName("Decision");
     	NodeList attList = doc.getElementsByTagName("AttributeValue");
-    	int numDecisions = decList.getLength();
-    	int attrPerDecision = (attList.getLength() / numDecisions);
-    	int ctr = 0;
 
-    	for(int temp = 0; temp < decList.getLength(); temp++) {
-    		Node dNode = decList.item(temp);  	
-    		for(int numAttr = ctr; numAttr < attrPerDecision; numAttr++){
-    			Node aNode = attList.item(numAttr);
-    			xacmlResult.put(dNode.getFirstChild().getTextContent(), aNode.getFirstChild().getTextContent());
-    			ctr++;
-    		}
-    		attrPerDecision = (attrPerDecision + attrPerDecision);
+    	for (int temp = 0; temp < decList.getLength(); temp++) {
+    		Node dNode = decList.item(temp);
+    		Node aNode = attList.item(temp);
+    		result.put(aNode.getFirstChild().getTextContent(), dNode.getFirstChild().getTextContent());
     	}
-    
-    	return xacmlResult;
+    	
+    	return result;
     }
     	
     /**
