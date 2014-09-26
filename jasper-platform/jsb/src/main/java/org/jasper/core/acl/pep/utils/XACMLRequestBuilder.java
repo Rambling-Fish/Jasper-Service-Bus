@@ -4,11 +4,9 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -18,9 +16,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.axiom.om.OMAbstractFactory;
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.OMFactory;
 import org.jasper.core.constants.JasperPEPConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -158,94 +153,6 @@ public class XACMLRequestBuilder {
 		return result;
 	}
     
-    public static String buildXACML3Request(Attribute[] attributes) {
-
-        OMFactory factory = OMAbstractFactory.getOMFactory();
-
-        OMElement requestXML = factory.createOMElement("Request", null);
-        requestXML.addAttribute("xlmns", "urn:oasis:names:tc:xacml:3.0:core:schema:wd-17", null);
-        requestXML.addAttribute("CombinedDecision", "false", null);
-        requestXML.addAttribute("ReturnPolicyIdList", "false", null);
-
-        HashSet<String> catagorySet = new HashSet<String>();
-        for (Attribute attribute : attributes) {
-            if (!catagorySet.contains(attribute.getCategory())) {
-                catagorySet.add(attribute.getCategory());
-                OMElement attributesXML = factory.createOMElement("Attributes", null);
-                attributesXML.addAttribute("Category", attribute.getCategory(), null);
-
-                HashSet<String> attributeSet = new HashSet<String>();
-                if (!attributeSet.contains(attribute.getId())) {
-                    attributeSet.add(attribute.getId());
-                    OMElement attributeXML = factory.createOMElement("Attribute", null);
-                    attributeXML.addAttribute("AttributeId", attribute.getId(), null);
-                    attributeXML.addAttribute("IncludeInResult", "true", null);
-
-                    OMElement attributeValueXML = factory.createOMElement("AttributeValue", null);
-                    attributeValueXML.addAttribute("DataType", "http://www.w3.org/2001/XMLSchema#" + attribute.getType(), null);
-                    attributeValueXML.setText(attribute.getValue());
-                    attributeXML.addChild(attributeValueXML);
-                    attributesXML.addChild(attributeXML);
-                } else {
-                    Iterator itr = attributesXML.getChildElements();
-                    while (itr.hasNext()) {
-                        OMElement attributeXML = (OMElement) itr.next();
-                        if (attribute.getId().equals(attributeXML.getAttributeValue(new QName("AttributeId")))) {
-                            OMElement attributeValueXML = factory.createOMElement("AttributeValue", null);
-                            attributeValueXML.addAttribute("DataType", "http://www.w3.org/2001/XMLSchema#" + attribute.getType(), null);
-                            attributeValueXML.setText(attribute.getValue());
-                            attributeXML.addChild(attributeValueXML);
-                            break;
-                        }
-                    }
-                }
-                requestXML.addChild(attributesXML);
-            } else {
-                Iterator itr = requestXML.getChildElements();
-                while (itr.hasNext()) {
-                    OMElement attributesXML = (OMElement) itr.next();
-                    if (attribute.getCategory().equals(attributesXML.getAttributeValue(new QName("Category")))) {
-                        HashSet<String> attributeSet = new HashSet<String>();
-                        Iterator itr1 = attributesXML.getChildElements();
-                        while (itr1.hasNext()) {
-                            attributeSet.add(((OMElement) itr1.next()).getAttributeValue(new QName("AttributeId")));
-                        }
-
-                        if (!attributeSet.contains(attribute.getId())) {
-                            attributeSet.add(attribute.getId());
-                            OMElement attributeXML = factory.createOMElement("Attribute", null);
-                            attributeXML.addAttribute("AttributeId", attribute.getId(), null);
-                            attributeXML.addAttribute("IncludeInResult", "true", null);
-
-                            OMElement attributeValueXML = factory.createOMElement("AttributeValue", null);
-                            attributeValueXML.addAttribute("DataType", "http://www.w3.org/2001/XMLSchema#" + attribute.getType(), null);
-                            attributeValueXML.setText(attribute.getValue());
-                            attributeXML.addChild(attributeValueXML);
-                            attributesXML.addChild(attributeXML);
-                        } else {
-                            Iterator itr2 = attributesXML.getChildElements();
-                            while (itr2.hasNext()) {
-                                OMElement attributeXML = (OMElement) itr2.next();
-                                if (attribute.getId().equals(attributeXML.getAttributeValue(new QName("AttributeId")))) {
-                                    OMElement attributeValueXML = factory.createOMElement("AttributeValue", null);
-                                    attributeValueXML.addAttribute("DataType", "http://www.w3.org/2001/XMLSchema#" + attribute.getType(), null);
-                                    attributeValueXML.setText(attribute.getValue());
-                                    attributeXML.addChild(attributeValueXML);
-                                    break;
-                                }
-                            }
-                        }
-                        break;
-                    }
-
-                }
-            }
-
-        }
-        return requestXML.toString();
-    }
-
-
     public Element createRequestSubElement(String attributeValue, String data, String id, Document doc, String includeInResult){
 
         if(attributeValue != null) {
