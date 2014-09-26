@@ -30,7 +30,7 @@ public class XACMLRequestBuilder {
 	private static final String TRUE  = "true";
 	private static final String FALSE = "false";
 
-    public Document createRequestElement(Set<AttributeValueDTO> attributeValues) throws Exception {
+    private static Document createRequestElement(Set<AttributeValueDTO> attributeValues) throws Exception {
 
         Document doc = createNewDocument();
         Element requestElement = doc.createElement(JasperPEPConstants.REQUEST_ELEMENT);
@@ -104,10 +104,9 @@ public class XACMLRequestBuilder {
      */
 	public static String buildRequest(String subject, String resource, String action) {
 		Set<AttributeValueDTO> valueDTOs = new HashSet<AttributeValueDTO>();
-		XACMLRequestBuilder reqBuilder = new XACMLRequestBuilder();
-		Set<AttributeValueDTO> subjectAttributes = reqBuilder.getSubjectAttributeValues(subject);
-		Set<AttributeValueDTO> actionAttributes = reqBuilder.getActionAttributeValues(action);
-        Set<AttributeValueDTO> resourceAttributes = reqBuilder.getResourceAttributeValues(resource);
+		Set<AttributeValueDTO> subjectAttributes = getSubjectAttributeValues(subject);
+		Set<AttributeValueDTO> actionAttributes = getActionAttributeValues(action);
+        Set<AttributeValueDTO> resourceAttributes = getResourceAttributeValues(resource);
         
         if(resourceAttributes.size() > 0){
         	valueDTOs.addAll(resourceAttributes);
@@ -120,8 +119,8 @@ public class XACMLRequestBuilder {
         }
         
         try{
-        	Document document = reqBuilder.createRequestElement(valueDTOs);
-        	String request = reqBuilder.getStringFromDocument(document);
+        	Document document = createRequestElement(valueDTOs);
+        	String request = getStringFromDocument(document);
         	return request;
         }catch(Exception e){
         	return null;
@@ -153,7 +152,7 @@ public class XACMLRequestBuilder {
 		return result;
 	}
     
-    public Element createRequestSubElement(String attributeValue, String data, String id, Document doc, String includeInResult){
+    private static Element createRequestSubElement(String attributeValue, String data, String id, Document doc, String includeInResult){
 
         if(attributeValue != null) {
             Element attributeElement = doc.createElement(JasperPEPConstants.ATTRIBUTE);
@@ -172,7 +171,7 @@ public class XACMLRequestBuilder {
     }
 
 
-    private Document createNewDocument() throws Exception {
+    private static Document createNewDocument() throws Exception {
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder = null;
         Document doc = null;
@@ -192,7 +191,7 @@ public class XACMLRequestBuilder {
      * @param String subjectValues
      * @return Set of AttributeValueDTOs containing 0 or more subjects
      */
-    public Set<AttributeValueDTO> getSubjectAttributeValues(String subjectValues){
+    private static Set<AttributeValueDTO> getSubjectAttributeValues(String subjectValues){
         Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
         if(subjectValues != null){
             String[] values = subjectValues.split(",");
@@ -212,7 +211,7 @@ public class XACMLRequestBuilder {
      * @param String resourceValues
      * @return Set of AttributeValueDTOs containing 0 or more resources
      */
-	public Set<AttributeValueDTO> getResourceAttributeValues(String resourceValues){
+	private static Set<AttributeValueDTO> getResourceAttributeValues(String resourceValues){
 
         Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
         if(resourceValues != null){
@@ -233,7 +232,7 @@ public class XACMLRequestBuilder {
      * @param String actionValues
      * @return Set of AttributeValueDTOs containing 0 or more actions
      */
-    public Set<AttributeValueDTO> getActionAttributeValues(String actionValues){
+    private static Set<AttributeValueDTO> getActionAttributeValues(String actionValues){
 
         Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
         if(actionValues != null){
@@ -255,7 +254,7 @@ public class XACMLRequestBuilder {
      * @return String XACML policy
      * @throws Exception
      */
-    public String getStringFromDocument(Document doc) throws Exception {
+    private static String getStringFromDocument(Document doc) throws Exception {
         try {
             DOMSource domSource = new DOMSource(doc);
             StringWriter writer = new StringWriter();

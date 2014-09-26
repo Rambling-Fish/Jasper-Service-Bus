@@ -2,15 +2,9 @@ package org.jasper.core.acl.pep.soap;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
@@ -22,15 +16,10 @@ import org.apache.axis2.transport.TransportSender;
 import org.apache.axis2.transport.http.CommonsHTTPTransportSender;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.log4j.Logger;
-import org.jasper.core.acl.pep.utils.AttributeValueDTO;
 import org.jasper.core.acl.pep.utils.XACMLRequestBuilder;
 import org.jasper.core.constants.JasperPEPConstants;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.wso2.carbon.authenticator.stub.AuthenticationAdminStub;
 import org.wso2.carbon.identity.entitlement.stub.EntitlementServiceStub;
-import org.xml.sax.InputSource;
 
 public class JasperPEP {
 	static Logger logger = Logger.getLogger(JasperPEP.class.getName());
