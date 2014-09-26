@@ -1,9 +1,14 @@
 package org.jasper.core.acl.pep.utils;
 
+import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -13,9 +18,15 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.axiom.om.OMAbstractFactory;
+import org.apache.axiom.om.OMElement;
+import org.apache.axiom.om.OMFactory;
 import org.jasper.core.constants.JasperPEPConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 /**
  * Build XACML request
@@ -58,7 +69,7 @@ public class XACMLRequestBuilder {
                 if(JasperPEPConstants.CATEGORY_SUBJECT.equals(attribute.getCategory())){
                 	subjectElement =  doc.createElement(JasperPEPConstants.ATTRIBUTES);
                 	subjectElement.setAttribute(JasperPEPConstants.CATEGORY, JasperPEPConstants.CATEGORY_SUBJECT);
-                    subjectElement.appendChild(createRequestSubElement(attribute.getValue(), data, JasperPEPConstants.SUBJECT_ID_DEFAULT, doc, FALSE));
+                    subjectElement.appendChild(createRequestSubElement(attribute.getValue(), data, JasperPEPConstants.SUBJECT_ID, doc, FALSE));
                     
                     requestElement.appendChild(subjectElement);
                 }
@@ -86,6 +97,152 @@ public class XACMLRequestBuilder {
         doc.appendChild(requestElement);
 
         return doc;
+    }
+    
+	 /**
+     * Builds an String representation of an XACML request to be sent to PDP server
+     * @param String subject comma delineated list of 0 or more subjects
+     * @param String resource comma delineated list of 0 or more resource URIs
+     * @param String action comma delineated list of 0 or more actions
+     * 
+     * @return String representation of an XACML request or null on any error
+     */
+	public static String buildRequest(String subject, String resource, String action) {
+		Set<AttributeValueDTO> valueDTOs = new HashSet<AttributeValueDTO>();
+		XACMLRequestBuilder reqBuilder = new XACMLRequestBuilder();
+		Set<AttributeValueDTO> subjectAttributes = reqBuilder.getSubjectAttributeValues(subject);
+		Set<AttributeValueDTO> actionAttributes = reqBuilder.getActionAttributeValues(action);
+        Set<AttributeValueDTO> resourceAttributes = reqBuilder.getResourceAttributeValues(resource);
+        
+        if(resourceAttributes.size() > 0){
+        	valueDTOs.addAll(resourceAttributes);
+        }
+        if(subjectAttributes.size() > 0){
+        	valueDTOs.addAll(subjectAttributes);
+        }
+        if(actionAttributes.size() > 0){
+        	valueDTOs.addAll(actionAttributes);
+        }
+        
+        try{
+        	Document document = reqBuilder.createRequestElement(valueDTOs);
+        	String request = reqBuilder.getStringFromDocument(document);
+        	return request;
+        }catch(Exception e){
+        	return null;
+        }
+
+	}
+	
+	/* This method parses the XACML decision into a HashMap. The key to the map is the
+    URI of the resource and the value is the XACML decision (e.g. Permit). This
+    allows us the ability in the future to remove or anonymize data that the
+    requester does not have permission to view
+	 */
+	public static Map<String,String> parseDecision(String decision) throws Exception{
+		Map<String, String> result = new HashMap<String, String>();
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		Document doc = dBuilder.parse( new InputSource( new StringReader( decision ) ) );
+		doc.getDocumentElement().normalize();
+	
+		NodeList decList = doc.getElementsByTagName("Decision");
+		NodeList attList = doc.getElementsByTagName("AttributeValue");
+
+		for (int temp = 0; temp < decList.getLength(); temp++) {
+			Node dNode = decList.item(temp);
+			Node aNode = attList.item(temp);
+			result.put(aNode.getFirstChild().getTextContent(), dNode.getFirstChild().getTextContent());
+		}
+	
+		return result;
+	}
+    
+    public static String buildXACML3Request(Attribute[] attributes) {
+
+        OMFactory factory = OMAbstractFactory.getOMFactory();
+
+        OMElement requestXML = factory.createOMElement("Request", null);
+        requestXML.addAttribute("xlmns", "urn:oasis:names:tc:xacml:3.0:core:schema:wd-17", null);
+        requestXML.addAttribute("CombinedDecision", "false", null);
+        requestXML.addAttribute("ReturnPolicyIdList", "false", null);
+
+        HashSet<String> catagorySet = new HashSet<String>();
+        for (Attribute attribute : attributes) {
+            if (!catagorySet.contains(attribute.getCategory())) {
+                catagorySet.add(attribute.getCategory());
+                OMElement attributesXML = factory.createOMElement("Attributes", null);
+                attributesXML.addAttribute("Category", attribute.getCategory(), null);
+
+                HashSet<String> attributeSet = new HashSet<String>();
+                if (!attributeSet.contains(attribute.getId())) {
+                    attributeSet.add(attribute.getId());
+                    OMElement attributeXML = factory.createOMElement("Attribute", null);
+                    attributeXML.addAttribute("AttributeId", attribute.getId(), null);
+                    attributeXML.addAttribute("IncludeInResult", "true", null);
+
+                    OMElement attributeValueXML = factory.createOMElement("AttributeValue", null);
+                    attributeValueXML.addAttribute("DataType", "http://www.w3.org/2001/XMLSchema#" + attribute.getType(), null);
+                    attributeValueXML.setText(attribute.getValue());
+                    attributeXML.addChild(attributeValueXML);
+                    attributesXML.addChild(attributeXML);
+                } else {
+                    Iterator itr = attributesXML.getChildElements();
+                    while (itr.hasNext()) {
+                        OMElement attributeXML = (OMElement) itr.next();
+                        if (attribute.getId().equals(attributeXML.getAttributeValue(new QName("AttributeId")))) {
+                            OMElement attributeValueXML = factory.createOMElement("AttributeValue", null);
+                            attributeValueXML.addAttribute("DataType", "http://www.w3.org/2001/XMLSchema#" + attribute.getType(), null);
+                            attributeValueXML.setText(attribute.getValue());
+                            attributeXML.addChild(attributeValueXML);
+                            break;
+                        }
+                    }
+                }
+                requestXML.addChild(attributesXML);
+            } else {
+                Iterator itr = requestXML.getChildElements();
+                while (itr.hasNext()) {
+                    OMElement attributesXML = (OMElement) itr.next();
+                    if (attribute.getCategory().equals(attributesXML.getAttributeValue(new QName("Category")))) {
+                        HashSet<String> attributeSet = new HashSet<String>();
+                        Iterator itr1 = attributesXML.getChildElements();
+                        while (itr1.hasNext()) {
+                            attributeSet.add(((OMElement) itr1.next()).getAttributeValue(new QName("AttributeId")));
+                        }
+
+                        if (!attributeSet.contains(attribute.getId())) {
+                            attributeSet.add(attribute.getId());
+                            OMElement attributeXML = factory.createOMElement("Attribute", null);
+                            attributeXML.addAttribute("AttributeId", attribute.getId(), null);
+                            attributeXML.addAttribute("IncludeInResult", "true", null);
+
+                            OMElement attributeValueXML = factory.createOMElement("AttributeValue", null);
+                            attributeValueXML.addAttribute("DataType", "http://www.w3.org/2001/XMLSchema#" + attribute.getType(), null);
+                            attributeValueXML.setText(attribute.getValue());
+                            attributeXML.addChild(attributeValueXML);
+                            attributesXML.addChild(attributeXML);
+                        } else {
+                            Iterator itr2 = attributesXML.getChildElements();
+                            while (itr2.hasNext()) {
+                                OMElement attributeXML = (OMElement) itr2.next();
+                                if (attribute.getId().equals(attributeXML.getAttributeValue(new QName("AttributeId")))) {
+                                    OMElement attributeValueXML = factory.createOMElement("AttributeValue", null);
+                                    attributeValueXML.addAttribute("DataType", "http://www.w3.org/2001/XMLSchema#" + attribute.getType(), null);
+                                    attributeValueXML.setText(attribute.getValue());
+                                    attributeXML.addChild(attributeValueXML);
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    }
+
+                }
+            }
+
+        }
+        return requestXML.toString();
     }
 
 

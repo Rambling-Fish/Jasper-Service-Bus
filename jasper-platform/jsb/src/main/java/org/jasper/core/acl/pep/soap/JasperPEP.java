@@ -1,4 +1,4 @@
-package org.jasper.core.acl.pep;
+package org.jasper.core.acl.pep.soap;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -77,9 +77,10 @@ public class JasperPEP {
 		}
 		
 		//set keystore to enable SSL communications with PDP server
-		System.setProperty("javax.net.ssl.trustStore", System.getProperty("jsb-keystore") + JasperPEPConstants.PDP_SERVER_KEYSTORE);
-		System.setProperty("javax.net.ssl.trustStorePassword", JasperPEPConstants.PDP_KEYSTORE_PASSWORD);
-		System.setProperty("javax.net.ssl.trustStoreType", JasperPEPConstants.PDP_TRUSTSTORE_TYPE);
+		System.setProperty(JasperPEPConstants.TRUST_STORE, System.getProperty("jsb-keystore") + JasperPEPConstants.PDP_SERVER_KEYSTORE);
+		System.setProperty(JasperPEPConstants.TRUST_STORE_PASSWORD, JasperPEPConstants.PDP_KEYSTORE_PASSWORD);
+		System.setProperty(JasperPEPConstants.TRUST_STORE_TYPE, JasperPEPConstants.PDP_TRUSTSTORE_TYPE);
+		
 
 		try {
 			configCtx = ConfigurationContextFactory.createEmptyConfigurationContext();
@@ -128,9 +129,9 @@ public class JasperPEP {
 			if(! isAuthenticated) {
 				authenticate();
 			}
-			
+	
 			if(isAuthenticated){
-				String xacmlRequest = buildRequest(subject, resource, action);
+				String xacmlRequest = XACMLRequestBuilder.buildRequest(subject, resource, action);
 				if(xacmlRequest == null){
 					logger.error("Error creating XACML request");
 					return false;
@@ -144,7 +145,7 @@ public class JasperPEP {
 				
 				// Note: do not change order of evaluation. Check for all results
 				// that could lead to a Deny before checking for Permit
-				result = parseDecision(decision);
+				result = XACMLRequestBuilder.parseDecision(decision);
 				if(result.containsValue(JasperPEPConstants.RESULT_DENY)){
 					return false;
 				}
@@ -203,66 +204,6 @@ public class JasperPEP {
 
 		return isAuthenticated;
 	}
-	
-	 /**
-     * Builds an String representation of an XACML request to be sent to PDP server
-     * @param String subject comma delineated list of 0 or more subjects
-     * @param String resource comma delineated list of 0 or more resource URIs
-     * @param String action comma delineated list of 0 or more actions
-     * 
-     * @return String representation of an XACML request or null on any error
-     */
-	private String buildRequest(String subject, String resource, String action) {
-		Set<AttributeValueDTO> valueDTOs = new HashSet<AttributeValueDTO>();
-		XACMLRequestBuilder reqBuilder = new XACMLRequestBuilder();
-		Set<AttributeValueDTO> subjectAttributes = reqBuilder.getSubjectAttributeValues(subject);
-		Set<AttributeValueDTO> actionAttributes = reqBuilder.getActionAttributeValues(action);
-        Set<AttributeValueDTO> resourceAttributes = reqBuilder.getResourceAttributeValues(resource);
-        
-        if(resourceAttributes.size() > 0){
-        	valueDTOs.addAll(resourceAttributes);
-        }
-        if(subjectAttributes.size() > 0){
-        	valueDTOs.addAll(subjectAttributes);
-        }
-        if(actionAttributes.size() > 0){
-        	valueDTOs.addAll(actionAttributes);
-        }
-        
-        try{
-        	Document document = reqBuilder.createRequestElement(valueDTOs);
-        	String request = reqBuilder.getStringFromDocument(document);
-        	return request;
-        }catch(Exception e){
-        	logger.error("Exception occurred while creating XACML request", e);
-        	return null;
-        }
-
-	}
-    
-	/* This method parses the XACML decision into a HashMap. The key to the map is the
-	    URI of the resource and the value is the XACML decision (e.g. Permit). This
-	    allows us the ability in the future to remove or anonymize data that the
-	    requester does not have permission to view
-	*/
-    private Map<String,String> parseDecision(String decision) throws Exception{
-    	Map<String, String> result = new HashMap<String, String>();
-    	DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-    	DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-    	Document doc = dBuilder.parse( new InputSource( new StringReader( decision ) ) );
-    	doc.getDocumentElement().normalize();
-    	
-    	NodeList decList = doc.getElementsByTagName("Decision");
-    	NodeList attList = doc.getElementsByTagName("AttributeValue");
-
-    	for (int temp = 0; temp < decList.getLength(); temp++) {
-    		Node dNode = decList.item(temp);
-    		Node aNode = attList.item(temp);
-    		result.put(aNode.getFirstChild().getTextContent(), dNode.getFirstChild().getTextContent());
-    	}
-    	
-    	return result;
-    }
     	
     /**
      * Sends an XACML request to PDP server for an access decision

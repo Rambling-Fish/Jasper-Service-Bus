@@ -13,7 +13,7 @@ import javax.jms.Message;
 import javax.jms.TextMessage;
 
 import org.apache.log4j.Logger;
-import org.jasper.core.acl.pep.JasperPEP;
+import org.jasper.core.acl.pep.soap.JasperPEP;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.dataprocessor.DataProcessor;
 import org.jasper.core.dataprocessor.DataProcessorFactory;

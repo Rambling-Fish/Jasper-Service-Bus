@@ -21,7 +21,7 @@ import org.apache.activemq.broker.BrokerRegistry;
 import org.apache.activemq.broker.JsbTransportConnector;
 import org.apache.activemq.network.NetworkConnector;
 import org.apache.log4j.Logger;
-import org.jasper.core.acl.pep.JasperPEP;
+import org.jasper.core.acl.pep.soap.JasperPEP;
 import org.jasper.core.auth.AuthenticationFacade;
 import org.jasper.core.auth.JasperAuthenticationPlugin;
 import org.jasper.core.delegate.Delegate;

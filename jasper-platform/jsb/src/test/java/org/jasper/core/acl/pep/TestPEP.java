@@ -3,6 +3,7 @@ package org.jasper.core.acl.pep;
 import static org.mockito.Mockito.when;
 import junit.framework.TestCase;
 
+import org.jasper.core.acl.pep.soap.JasperPEP;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

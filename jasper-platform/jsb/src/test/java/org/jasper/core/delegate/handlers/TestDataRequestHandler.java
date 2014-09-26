@@ -14,7 +14,7 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.jasper.core.acl.pep.JasperPEP;
+import org.jasper.core.acl.pep.soap.JasperPEP;
 import org.jasper.core.constants.JasperConstants;
 import org.jasper.core.delegate.Delegate;
 import org.jasper.core.delegate.DelegateOntology;
