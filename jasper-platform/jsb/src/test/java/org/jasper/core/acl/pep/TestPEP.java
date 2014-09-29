@@ -1,9 +1,16 @@
 package org.jasper.core.acl.pep;
 
 import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import junit.framework.TestCase;
 
 import org.jasper.core.acl.pep.soap.JasperPEP;
+import org.jasper.core.acl.pep.utils.AttributeValueDTO;
+import org.jasper.core.acl.pep.utils.XACMLRequestBuilder;
+import org.jasper.core.constants.JasperPEPConstants;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,6 +65,49 @@ public class TestPEP extends TestCase {
 		when(mockAuthStub.login(user, password, authURL)).thenReturn(true);
 		boolean authorize = classUnderTest.authorizeRequest(subject, hrResource, action);
 		TestCase.assertEquals(false, authorize);
+		
+	}
+	
+	/*
+	 * This tests the AttributeValueDTO class which is used to
+	 * store xacml request attributes
+	 */
+	@Test
+	public void testAttributeValueDTO(){
+		AttributeValueDTO myAttribs = new AttributeValueDTO();
+		myAttribs.setCategory(JasperPEPConstants.CATEGORY_ENVIRONMENT);
+		myAttribs.setValue("12:00");
+		String value = myAttribs.getValue();
+		String category = myAttribs.getCategory();
+		TestCase.assertEquals("12:00", value);
+		TestCase.assertEquals(JasperPEPConstants.CATEGORY_ENVIRONMENT, category);
+	}
+	
+	/*
+	 * This tests the XACMLRequestBulder class which is
+	 * used to build an xacml request and parse an xacml response into
+	 * a Map
+	 */
+	@Test
+	public void testXACMLBuilder(){
+		String action = "GET";
+		String resource = "http://coralcea.ca/jasper/hrData";
+		String subject = "DTA-D";
+		String request = XACMLRequestBuilder.buildRequest(subject, resource, action);
+		TestCase.assertNotNull(request);
+		String decision = "<Response xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\">" +
+		"<Result><Decision>Permit</Decision><Status><StatusCode Value=\"urn:oasis:names:tc:xacml:1.0:status:ok\"/>" + 
+		"</Status><Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">" + 
+		"<Attribute AttributeId=\"urn:oasis:names:tc:xacml:1.0:resource:resource-id\" IncludeInResult=\"true\">" +
+        "<AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">http://coralcea.ca/jasper/hrData</AttributeValue></Attribute></Attributes></Result></Response>";
+		request = XACMLRequestBuilder.buildRequest(null,  null,  null);
+		Map<String,String> myMap = new HashMap<String,String>();
+		try {
+			myMap = XACMLRequestBuilder.parseDecision(decision);
+			TestCase.assertEquals(true, myMap.containsValue("Permit"));
+		} catch (Exception e) {
+			TestCase.fail("Exception during parseDecision");
+		}
 		
 	}
 	
