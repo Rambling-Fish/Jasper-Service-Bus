@@ -101,7 +101,7 @@ public class DataRequestHandler implements Runnable {
 		
 		// if access control lists are enabled then send an authorization request to PDP server via JasperPEP client
 		if (delegate.getPep() != null){
-			if(! delegate.getPep().authorizeRequest(subject, ruri, method)){
+			if(! delegate.getPep().authorizeRequest(subject, ruri, method, null)){
 				logger.error("Authorization service denied access to resource: " + ruri);
 				throw new JasperRequestException(JasperConstants.ResponseCodes.FORBIDDEN, "Access to resource " + ruri + " is denied");
 			}

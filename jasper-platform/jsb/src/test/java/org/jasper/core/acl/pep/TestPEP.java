@@ -27,9 +27,7 @@ public class TestPEP extends TestCase {
 	private String subject = "dta";
 	private String user = "admin";
 	private String password = "admin";
-	private String authURL = "192.168.10.226";
-	
-	
+	private String authURL = "0.0.0.0";
 	
 	/*
 	 * This test creates a new JasperPEP class and initializes it 
@@ -62,8 +60,11 @@ public class TestPEP extends TestCase {
 	@Test
 	public void testPDPAuthentication() throws Exception {
 		classUnderTest = JasperPEP.getInstance();
+		String[] environment = new String[2];
+		environment[0] = "timeofDay";
+		environment[1] = "dayofWeek";
 		when(mockAuthStub.login(user, password, authURL)).thenReturn(true);
-		boolean authorize = classUnderTest.authorizeRequest(subject, hrResource, action);
+		boolean authorize = classUnderTest.authorizeRequest(subject, hrResource, action, environment);
 		TestCase.assertEquals(false, authorize);
 		
 	}
@@ -93,14 +94,18 @@ public class TestPEP extends TestCase {
 		String action = "GET";
 		String resource = "http://coralcea.ca/jasper/hrData";
 		String subject = "DTA-D";
-		String request = XACMLRequestBuilder.buildRequest(subject, resource, action);
+		String[] environment = new String[2];
+		environment = new String[2];
+		environment[0] = "timeofDay";
+		environment[1] = "dayofWeek";
+		String request = XACMLRequestBuilder.buildRequest(subject, resource, action, environment);
 		TestCase.assertNotNull(request);
 		String decision = "<Response xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\">" +
 		"<Result><Decision>Permit</Decision><Status><StatusCode Value=\"urn:oasis:names:tc:xacml:1.0:status:ok\"/>" + 
 		"</Status><Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">" + 
 		"<Attribute AttributeId=\"urn:oasis:names:tc:xacml:1.0:resource:resource-id\" IncludeInResult=\"true\">" +
         "<AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">http://coralcea.ca/jasper/hrData</AttributeValue></Attribute></Attributes></Result></Response>";
-		request = XACMLRequestBuilder.buildRequest(null,  null,  null);
+		request = XACMLRequestBuilder.buildRequest(null,  null,  null, null);
 		Map<String,String> myMap = new HashMap<String,String>();
 		try {
 			myMap = XACMLRequestBuilder.parseDecision(decision);

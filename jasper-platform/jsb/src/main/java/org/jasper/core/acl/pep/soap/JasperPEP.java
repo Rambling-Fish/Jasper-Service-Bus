@@ -102,6 +102,7 @@ public class JasperPEP {
      * @param String subject - a comma separated String representation of 0 or more subjects (e.g. "trust level" of who is making request)
      * @param String resource - a comma separated String representation of 0 or more resources (i.e. data being requested)
      * @param String actions - a comma separated String representation of 0 or more actions (e.g GET)
+     * @param String[] environment - an array of environment parameters
      * 
      * @return boolean - true if requester is allowed access false if denied or on any error. If access decision 
      *                   is "NotApplicable" meaning there is no access policy defined for requested resource, 
@@ -109,7 +110,7 @@ public class JasperPEP {
      *                   decision is Indeterminate which means not enough data was supplied in request then Deny (false)
      *                   is returned
      */
-	public boolean authorizeRequest(String subject, String resource, String action) {
+	public boolean authorizeRequest(String subject, String resource, String action, String[] environment) {
 		Map<String,String> result = new HashMap<String,String>();
 		if(! reuseSession) {
 			isAuthenticated = false;
@@ -120,7 +121,7 @@ public class JasperPEP {
 			}
 	
 			if(isAuthenticated){
-				String xacmlRequest = XACMLRequestBuilder.buildRequest(subject, resource, action);
+				String xacmlRequest = XACMLRequestBuilder.buildRequest(subject, resource, action, environment);
 				if(xacmlRequest == null){
 					logger.error("Error creating XACML request");
 					return false;

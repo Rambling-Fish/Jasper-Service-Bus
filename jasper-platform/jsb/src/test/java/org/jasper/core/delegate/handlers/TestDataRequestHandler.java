@@ -70,7 +70,7 @@ public class TestDataRequestHandler{
 		when(mockPersistReq.getRequest()).thenReturn(getRequest);
 		when(mockDelegate.getJOntology()).thenReturn(mockOntology);
 		when(mockOntology.isRuriKnownForOutputGet(ruri)).thenReturn(true);
-		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/hrData", "GET")).thenReturn(true);
+		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/hrData", "GET", null)).thenReturn(true);
 		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.NOTFOUND, "http://coralcea.ca/jasper/hrData is known, but we could not get a valid response before request expired",
 				null, "application/json", JasperConstants.VERSION_1_0)).thenReturn("error");
 		when(mockDelegate.createTextMessage("error")).thenReturn(mockTxtMsg);
@@ -97,7 +97,7 @@ public class TestDataRequestHandler{
 		when(mockPersistReq.getRequest()).thenReturn(subscribeReq);
 		when(mockDelegate.getJOntology()).thenReturn(mockOntology);
 		when(mockOntology.isRuriKnownForInputPublish(publishRuri)).thenReturn(true);
-		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/NurseCall/callNurse", "SUBSCRIBE")).thenReturn(true);
+		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/NurseCall/callNurse", "SUBSCRIBE", null)).thenReturn(true);
 		
 		classUnderTest = new DataRequestHandler(mockDelegate, mockPersistReq);
 		classUnderTest.run();
@@ -119,7 +119,7 @@ public class TestDataRequestHandler{
 		
 		// invalid method
 		when(mockPersistReq.getRequest()).thenReturn(badMethodReq);
-		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/NurseCall/callNurse", "INVALID")).thenReturn(true);
+		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/NurseCall/callNurse", "INVALID", null)).thenReturn(true);
 		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.BADREQUEST, "unsupported method type INVALID", null, "application/json", JasperConstants.VERSION_1_0)).thenReturn("error");
 		classUnderTest.run();
 		
@@ -148,7 +148,7 @@ public class TestDataRequestHandler{
 		when(mockOntology.fetchPostOperationInputObject(operation)).thenReturn(ruri);
 		when(mockOntology.createJsonSchema(ruri)).thenReturn(jsonObj);
 		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.NOTFOUND, "http://coralcea.ca/jasper/RoomTempUpdateReq POST did not return 200 OK from DTAs, request failed", null, "application/json", JasperConstants.VERSION_1_0)).thenReturn("error");
-		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/RoomTempUpdateReq", "POST")).thenReturn(true);
+		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/RoomTempUpdateReq", "POST", null)).thenReturn(true);
 		
 		classUnderTest = new DataRequestHandler(mockDelegate, mockPersistReq);
 		classUnderTest.run();
@@ -179,7 +179,7 @@ public class TestDataRequestHandler{
 		when(mockSubscriptionReq.getResponseType()).thenReturn("application/ld+json");
 		when(mockDelegate.createJasperResponse(JasperConstants.ResponseCodes.OK, "Success", ldResponse, "application/json", JasperConstants.VERSION_1_0)).thenReturn("success");
 		when(mockDelegate.createTextMessage("success")).thenReturn(mockTxtMsg);
-		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/NurseCall/callNurse", "PUBLISH")).thenReturn(true);
+		when(mockPEP.authorizeRequest("dta", "http://coralcea.ca/jasper/NurseCall/callNurse", "PUBLISH", null)).thenReturn(true);
 		
 		classUnderTest = new DataRequestHandler(mockDelegate, mockPersistReq);
 		classUnderTest.run();

@@ -41,6 +41,7 @@ public class XACMLRequestBuilder {
         Element resourceElement = null;
         Element subjectElement = null;
         Element actionElement = null;
+        Element environmentElement = null;
         String data = JasperPEPConstants.STRING_DATA_TYPE;
 
         if(attributeValues != null){            
@@ -68,6 +69,14 @@ public class XACMLRequestBuilder {
                     
                     requestElement.appendChild(subjectElement);
                 }
+                
+                if(JasperPEPConstants.CATEGORY_ENVIRONMENT.equals(attribute.getCategory())){
+                	environmentElement =  doc.createElement(JasperPEPConstants.ATTRIBUTES);
+                	environmentElement.setAttribute(JasperPEPConstants.CATEGORY, JasperPEPConstants.CATEGORY_ENVIRONMENT);
+                	environmentElement.appendChild(createRequestSubElement(attribute.getValue(), data, JasperPEPConstants.ENVIRONMENT_ID, doc, FALSE));
+                    
+                	requestElement.appendChild(environmentElement);
+                }
             }
         }
 
@@ -88,6 +97,12 @@ public class XACMLRequestBuilder {
             actionElement.setAttribute(JasperPEPConstants.CATEGORY, JasperPEPConstants.CATEGORY_ACTION);
             requestElement.appendChild(actionElement);
         }
+        
+        if(environmentElement == null){
+        	environmentElement = doc.createElement(JasperPEPConstants.ATTRIBUTES);
+        	environmentElement.setAttribute(JasperPEPConstants.CATEGORY, JasperPEPConstants.CATEGORY_ENVIRONMENT);
+        	requestElement.appendChild(environmentElement);
+        }
          
         doc.appendChild(requestElement);
 
@@ -102,11 +117,12 @@ public class XACMLRequestBuilder {
      * 
      * @return String representation of an XACML request or null on any error
      */
-	public static String buildRequest(String subject, String resource, String action) {
+	public static String buildRequest(String subject, String resource, String action, String[] environment) {
 		Set<AttributeValueDTO> valueDTOs = new HashSet<AttributeValueDTO>();
 		Set<AttributeValueDTO> subjectAttributes = getSubjectAttributeValues(subject);
 		Set<AttributeValueDTO> actionAttributes = getActionAttributeValues(action);
         Set<AttributeValueDTO> resourceAttributes = getResourceAttributeValues(resource);
+        Set<AttributeValueDTO> environmentAttributes = getEnvironmentAttributeValues(environment);
         
         if(resourceAttributes.size() > 0){
         	valueDTOs.addAll(resourceAttributes);
@@ -116,6 +132,10 @@ public class XACMLRequestBuilder {
         }
         if(actionAttributes.size() > 0){
         	valueDTOs.addAll(actionAttributes);
+        }
+        
+        if(environmentAttributes.size() > 0){
+        	valueDTOs.addAll(environmentAttributes);
         }
         
         try{
@@ -240,6 +260,25 @@ public class XACMLRequestBuilder {
             for(String value : values){
                 AttributeValueDTO valueDTO = new AttributeValueDTO();
                 valueDTO.setCategory(JasperPEPConstants.CATEGORY_ACTION);
+                valueDTO.setValue(value.trim());
+                set.add(valueDTO);
+            }
+        }
+
+        return set;
+    }
+    
+    /**
+     * Convert a String[] to a Set<AttributeValueDTOA> for environment elements
+     * @param String[] environment
+     * @return Set of AttributeValueDTOs containing 0 or more enivornment values
+     */
+    private static Set<AttributeValueDTO> getEnvironmentAttributeValues(String[] environmentValues){
+        Set<AttributeValueDTO> set = new HashSet<AttributeValueDTO>();
+        if(environmentValues != null && environmentValues.length > 0){
+            for(String value : environmentValues){
+                AttributeValueDTO valueDTO = new AttributeValueDTO();
+                valueDTO.setCategory(JasperPEPConstants.CATEGORY_ENVIRONMENT);
                 valueDTO.setValue(value.trim());
                 set.add(valueDTO);
             }
