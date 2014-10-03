@@ -102,17 +102,26 @@ public class TestPEP extends TestCase {
 		String request = XACMLRequestBuilder.buildRequest(subject, resource, action, environment);
 		TestCase.assertNotNull(request);
 		String decision = "<Response xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\">" +
-		"<Result><Decision>Permit</Decision><Status><StatusCode Value=\"urn:oasis:names:tc:xacml:1.0:status:ok\"/>" + 
-		"</Status><Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">" + 
-		"<Attribute AttributeId=\"urn:oasis:names:tc:xacml:1.0:resource:resource-id\" IncludeInResult=\"true\">" +
-        "<AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">http://coralcea.ca/jasper/hrData</AttributeValue></Attribute></Attributes></Result></Response>";
+                          "<Result><Decision>Permit</Decision><Status>" +
+                          "<StatusCode Value=\"urn:oasis:names:tc:xacml:1.0:status:ok\"/></Status>" +
+                          "<Obligations><Obligation ObligationId=\"GetConsent\">" +
+                          "<AttributeAssignment  AttributeId=\"service\" DataType=\"http://www.w3.org/2001/XMLSchema#string\">" +
+                          "http://coralcea.ca/jasper/getConsent</AttributeAssignment>" +
+                          "<AttributeAssignment  AttributeId=\"contact\" DataType=\"http://www.w3.org/2001/XMLSchema#string\">" +
+                          "http://coralcea.ca/jasper/guardianContactInfo</AttributeAssignment>" +
+                          "<AttributeAssignment  AttributeId=\"operation\" DataType=\"http://www.w3.org/2001/XMLSchema#string\">" +
+                          "http://coralcea.ca/jasper/contactGuardian</AttributeAssignment>" +
+                          "</Obligation></Obligations><Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">" +
+                          "<Attribute AttributeId=\"urn:oasis:names:tc:xacml:1.0:resource:resource-id\" IncludeInResult=\"true\">" +
+                          "<AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">http://coralcea.ca/jasper/roomTempData</AttributeValue>" +
+                          "</Attribute></Attributes></Result></Response>";
 		request = XACMLRequestBuilder.buildRequest(null,  null,  null, null);
 		ArrayList<Map<String,String>> myMap = new ArrayList<Map<String,String>>();
 		try {
 			myMap = XACMLRequestBuilder.parseDecision(decision);
 			Map<String,String> decisionMap = new HashMap<String,String>();
 			decisionMap = myMap.get(0);
-			TestCase.assertEquals(true, myMap.size() == 1);
+			TestCase.assertEquals(true, myMap.size() == 2);
 			TestCase.assertEquals(true, decisionMap.containsValue("Permit"));
 		} catch (Exception e) {
 			TestCase.fail("Exception during parseDecision");
