@@ -2,6 +2,7 @@ package org.jasper.core.acl.pep;
 
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -106,10 +107,13 @@ public class TestPEP extends TestCase {
 		"<Attribute AttributeId=\"urn:oasis:names:tc:xacml:1.0:resource:resource-id\" IncludeInResult=\"true\">" +
         "<AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">http://coralcea.ca/jasper/hrData</AttributeValue></Attribute></Attributes></Result></Response>";
 		request = XACMLRequestBuilder.buildRequest(null,  null,  null, null);
-		Map<String,String> myMap = new HashMap<String,String>();
+		ArrayList<Map<String,String>> myMap = new ArrayList<Map<String,String>>();
 		try {
 			myMap = XACMLRequestBuilder.parseDecision(decision);
-			TestCase.assertEquals(true, myMap.containsValue("Permit"));
+			Map<String,String> decisionMap = new HashMap<String,String>();
+			decisionMap = myMap.get(0);
+			TestCase.assertEquals(true, myMap.size() == 1);
+			TestCase.assertEquals(true, decisionMap.containsValue("Permit"));
 		} catch (Exception e) {
 			TestCase.fail("Exception during parseDecision");
 		}

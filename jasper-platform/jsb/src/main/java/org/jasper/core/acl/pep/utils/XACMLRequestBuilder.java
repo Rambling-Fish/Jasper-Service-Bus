@@ -1,7 +1,23 @@
+/*
+ * Copyright (c)  WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jasper.core.acl.pep.utils;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -21,6 +37,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.traversal.DocumentTraversal;
+import org.w3c.dom.traversal.NodeFilter;
+import org.w3c.dom.traversal.NodeIterator;
 import org.xml.sax.InputSource;
 
 /**
@@ -153,23 +172,38 @@ public class XACMLRequestBuilder {
     allows us the ability in the future to remove or anonymize data that the
     requester does not have permission to view
 	 */
-	public static Map<String,String> parseDecision(String decision) throws Exception{
-		Map<String, String> result = new HashMap<String, String>();
+	public static ArrayList<Map<String,String>> parseDecision(String decision) throws Exception{
+		Map<String, String> decisionMap = new HashMap<String, String>();
+		Map<String,String> obligationMap = new HashMap<String,String>();
+		ArrayList<Map<String,String>> results = new ArrayList<Map<String,String>>();
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 		Document doc = dBuilder.parse( new InputSource( new StringReader( decision ) ) );
 		doc.getDocumentElement().normalize();
+		DocumentTraversal traversal = (DocumentTraversal) doc;
+		NodeIterator iterator = traversal.createNodeIterator(doc.getDocumentElement(), NodeFilter.SHOW_ELEMENT, null, true);
+//TODO see if you can do the decision and attribute parsing here too
+		for (Node n = iterator.nextNode(); n != null; n = iterator.nextNode()) {
+			if(((Element) n).getTagName().equalsIgnoreCase("AttributeAssignment")){
+				obligationMap.put(n.getAttributes().getNamedItem("AttributeId").getTextContent(), n.getFirstChild().getTextContent());
+			}
+		}
 	
 		NodeList decList = doc.getElementsByTagName("Decision");
 		NodeList attList = doc.getElementsByTagName("AttributeValue");
 
 		for (int temp = 0; temp < decList.getLength(); temp++) {
 			Node dNode = decList.item(temp);
-			Node aNode = attList.item(temp);
-			result.put(aNode.getFirstChild().getTextContent(), dNode.getFirstChild().getTextContent());
+			Node aNode = attList.item(temp);	
+			decisionMap.put(aNode.getFirstChild().getTextContent(), dNode.getFirstChild().getTextContent());
 		}
-	
-		return result;
+		
+		results.add(decisionMap);
+		if(! obligationMap.isEmpty()){
+			results.add(obligationMap);
+		}
+
+		return results;
 	}
     
     private static Element createRequestSubElement(String attributeValue, String data, String id, Document doc, String includeInResult){

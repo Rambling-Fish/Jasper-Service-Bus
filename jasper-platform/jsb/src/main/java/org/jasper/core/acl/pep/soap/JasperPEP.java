@@ -1,7 +1,23 @@
+/*
+ * Copyright (c)  WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jasper.core.acl.pep.soap;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -111,7 +127,10 @@ public class JasperPEP {
      *                   is returned
      */
 	public boolean authorizeRequest(String subject, String resource, String action, String[] environment) {
-		Map<String,String> result = new HashMap<String,String>();
+		Map<String,String> decisionMap = new HashMap<String,String>();
+		Map<String,String> obligationMap = new HashMap<String,String>();
+		ArrayList<Map<String,String>> results = new ArrayList<Map<String,String>>();
+		
 		if(! reuseSession) {
 			isAuthenticated = false;
 		}
@@ -135,17 +154,24 @@ public class JasperPEP {
 				
 				// Note: do not change order of evaluation. Check for all results
 				// that could lead to a Deny before checking for Permit
-				result = XACMLRequestBuilder.parseDecision(decision);
-				if(result.containsValue(JasperPEPConstants.RESULT_DENY)){
+				results = XACMLRequestBuilder.parseDecision(decision);
+				decisionMap = results.get(0);
+				if(results.size() == 2){
+					obligationMap = results.get(1);
+				}
+				if(decisionMap.containsValue(JasperPEPConstants.RESULT_DENY)){
 					return false;
 				}
-				else if(result.containsValue(JasperPEPConstants.RESULT_INDETERMINATE)){
+				else if(decisionMap.containsValue(JasperPEPConstants.RESULT_INDETERMINATE)){
 					return false;
 				}
-				else if(result.containsValue(JasperPEPConstants.RESULT_NOTAPPLICABLE)){
+				else if(decisionMap.containsValue(JasperPEPConstants.RESULT_NOTAPPLICABLE)){
 					return defaultPolicyDecision;
 				}
-				else if(result.containsValue(JasperPEPConstants.RESULT_PERMIT)){
+				else if(decisionMap.containsValue(JasperPEPConstants.RESULT_PERMIT)){
+					if(! obligationMap.isEmpty()){
+						processObligation(obligationMap);
+					}
 					return true;
 				}
 			}
@@ -221,6 +247,13 @@ public class JasperPEP {
 			return null;		
 		} finally{
 			stub.cleanup();
+		}
+	}
+	
+	private void processObligation(Map<String,String> obligations){
+		System.out.println("processing obligation:");
+		for(String key:obligations.keySet()){
+			System.out.println(key + obligations.get(key));
 		}
 	}
 
