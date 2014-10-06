@@ -167,10 +167,11 @@ public class XACMLRequestBuilder {
 
 	}
 	
-	/* This method parses the XACML decision into a HashMap. The key to the map is the
-    URI of the resource and the value is the XACML decision (e.g. Permit). This
-    allows us the ability in the future to remove or anonymize data that the
-    requester does not have permission to view
+	/* This method parses the XACML decision into one or two HashMaps. One is for the decision
+	   and theThe key to the map is the URI of the resource and the value is the XACML decision
+	   (e.g. Permit). This allows us the ability in the future to remove or anonymize data that the
+       requester does not have permission to view. The second optional map contains the parameters
+       from the obligation if one was returned in the XACML decision.
 	 */
 	public static ArrayList<Map<String,String>> parseDecision(String decision) throws Exception{
 		Map<String, String> decisionMap = new HashMap<String, String>();
