@@ -183,25 +183,27 @@ public class XACMLRequestBuilder {
 		doc.getDocumentElement().normalize();
 		DocumentTraversal traversal = (DocumentTraversal) doc;
 		NodeIterator iterator = traversal.createNodeIterator(doc.getDocumentElement(), NodeFilter.SHOW_ELEMENT, null, true);
+		
+		// Parse out decision and optional obligation if it exists
+		for (Node n = iterator.nextNode(); n != null; n = iterator.nextNode()) {
+			if(((Element) n).getTagName().equalsIgnoreCase("Decision")){
+				// Parse out decision
+				NodeList decList = doc.getElementsByTagName("Decision");
+				NodeList attList = doc.getElementsByTagName("AttributeValue");
 
-		// Parse out decision
-		NodeList decList = doc.getElementsByTagName("Decision");
-		NodeList attList = doc.getElementsByTagName("AttributeValue");
-
-		for (int temp = 0; temp < decList.getLength(); temp++) {
-			Node dNode = decList.item(temp);
-			Node aNode = attList.item(temp);	
-			decisionMap.put(aNode.getFirstChild().getTextContent(), dNode.getFirstChild().getTextContent());
+				for (int temp = 0; temp < decList.getLength(); temp++) {
+					Node dNode = decList.item(temp);
+					Node aNode = attList.item(temp);	
+					decisionMap.put(aNode.getFirstChild().getTextContent(), dNode.getFirstChild().getTextContent());
+				}
+			}
+			else if(((Element) n).getTagName().equalsIgnoreCase("AttributeAssignment")){
+				obligationMap.put(n.getAttributes().getNamedItem("AttributeId").getTextContent(), n.getFirstChild().getTextContent());
+			}
 		}
 		
 		results.add(decisionMap);
 		
-		// Parse out obligation if it exists
-		for (Node n = iterator.nextNode(); n != null; n = iterator.nextNode()) {
-			if(((Element) n).getTagName().equalsIgnoreCase("AttributeAssignment")){
-				obligationMap.put(n.getAttributes().getNamedItem("AttributeId").getTextContent(), n.getFirstChild().getTextContent());
-			}
-		}
 		if(! obligationMap.isEmpty()){
 			results.add(obligationMap);
 		}

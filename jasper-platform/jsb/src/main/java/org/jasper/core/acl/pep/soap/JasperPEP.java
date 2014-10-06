@@ -250,11 +250,15 @@ public class JasperPEP {
 		}
 	}
 	
+	//TODO replace this with actual obligation processing
 	private void processObligation(Map<String,String> obligations){
-		System.out.println("processing obligation:");
+		logger.warn("processing obligation:");
+		StringBuilder sb = new StringBuilder();
 		for(String key:obligations.keySet()){
-			System.out.println(key + obligations.get(key));
+			sb.append(key + obligations.get(key));
+			sb.append("\n");
 		}
+		logger.warn(sb.toString());
 	}
 
 }
