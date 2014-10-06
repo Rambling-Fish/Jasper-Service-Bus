@@ -179,17 +179,12 @@ public class XACMLRequestBuilder {
 		ArrayList<Map<String,String>> results = new ArrayList<Map<String,String>>();
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-		Document doc = dBuilder.parse( new InputSource( new StringReader( decision ) ) );
+		Document doc = dBuilder.parse(new InputSource(new StringReader(decision)));
 		doc.getDocumentElement().normalize();
 		DocumentTraversal traversal = (DocumentTraversal) doc;
 		NodeIterator iterator = traversal.createNodeIterator(doc.getDocumentElement(), NodeFilter.SHOW_ELEMENT, null, true);
-//TODO see if you can do the decision and attribute parsing here too
-		for (Node n = iterator.nextNode(); n != null; n = iterator.nextNode()) {
-			if(((Element) n).getTagName().equalsIgnoreCase("AttributeAssignment")){
-				obligationMap.put(n.getAttributes().getNamedItem("AttributeId").getTextContent(), n.getFirstChild().getTextContent());
-			}
-		}
-	
+
+		// Parse out decision
 		NodeList decList = doc.getElementsByTagName("Decision");
 		NodeList attList = doc.getElementsByTagName("AttributeValue");
 
@@ -200,6 +195,13 @@ public class XACMLRequestBuilder {
 		}
 		
 		results.add(decisionMap);
+		
+		// Parse out obligation if it exists
+		for (Node n = iterator.nextNode(); n != null; n = iterator.nextNode()) {
+			if(((Element) n).getTagName().equalsIgnoreCase("AttributeAssignment")){
+				obligationMap.put(n.getAttributes().getNamedItem("AttributeId").getTextContent(), n.getFirstChild().getTextContent());
+			}
+		}
 		if(! obligationMap.isEmpty()){
 			results.add(obligationMap);
 		}
