@@ -239,10 +239,14 @@ public class DataRequestHandler implements Runnable {
 			if(responsesThatMeetCriteria != null){
 				if(sub.getResponseType().equalsIgnoreCase("application/ld+json")){
 					JsonElement jsonLDResponse = jsonLDTransformer.parseResponse(responsesThatMeetCriteria);
-					sendSubResponse(sub.getCorrelationID(), sub.getReply2q(), jsonLDResponse.toString());
+					// NOTE: For nurse-call-viewer demo, invoke sendSubResponse instead of sendResponse
+					// sendSubResponse(sub.getCorrelationID(), sub.getReply2q(), jsonLDResponse.toString());
+					sendResponse(sub.getCorrelationID(), sub.getReply2q(), jsonLDResponse.toString());
 				}
 				else{
-					sendSubResponse(sub.getCorrelationID(), sub.getReply2q(), responsesThatMeetCriteria.toString());
+					// NOTE: For nurse-call-viewer demo, invoke sendSubResponse instead of sendResponse
+					// sendSubResponse(sub.getCorrelationID(), sub.getReply2q(), responsesThatMeetCriteria.toString());
+					sendResponse(sub.getCorrelationID(), sub.getReply2q(), responsesThatMeetCriteria.toString());
 				}
 			}
 		}		
